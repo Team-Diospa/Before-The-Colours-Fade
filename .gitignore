@@ -1,0 +1,30 @@
+# ====================================================================
+# GODOT 4 SPECIFIC RUNTIME METADATA AND GRAPHICS CACHE
+# ====================================================================
+.godot/
+.import/
+export_presets.cfg
+
+# ====================================================================
+# MONO / C# BUILD ARTIFACTS (IF EXTENDED IN THE FUTURE)
+# ====================================================================
+.mono/
+data_*/
+mono_crash.*
+[Bb]in/
+[Oo]bj/
+
+# ====================================================================
+# OPERATING SYSTEM VOLATILE FILES
+# ====================================================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.log
+
+# ====================================================================
+# LOCAL USER SPECIFIC CONFIGURATIONS AND OVERRIDES
+# ====================================================================
+editor_settings-4.tres
+project_metadata.cfg
