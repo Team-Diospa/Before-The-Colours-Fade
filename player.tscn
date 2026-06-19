@@ -2,6 +2,10 @@
 
 [ext_resource type="Script" uid="uid://cn5b23xbvn242" path="res://scripts/player.gd" id="1_onrkg"]
 [ext_resource type="Texture2D" uid="uid://cw7e8ai61c0t" path="res://Assets/Adventurer/adventurer-Sheet.png" id="2_i3pqv"]
+[ext_resource type="Texture2D" uid="uid://dhvsmci23vtdd" path="res://Assets/Adventurer/Individual Sprites/adventurer-crouch-00.png" id="3_crc00"]
+[ext_resource type="Texture2D" uid="uid://bmhf2ty381hw8" path="res://Assets/Adventurer/Individual Sprites/adventurer-crouch-01.png" id="4_crc01"]
+[ext_resource type="Texture2D" uid="uid://cwqsy4dr1dpho" path="res://Assets/Adventurer/Individual Sprites/adventurer-crouch-02.png" id="5_crc02"]
+[ext_resource type="Texture2D" uid="uid://ckjmiwuxm81xu" path="res://Assets/Adventurer/Individual Sprites/adventurer-crouch-03.png" id="6_crc03"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hqtel"]
 atlas = ExtResource("2_i3pqv")
@@ -135,6 +139,23 @@ animations = [{
 }],
 "loop": true,
 "name": &"Run",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_crc00")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_crc01")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_crc02")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_crc03")
+}],
+"loop": true,
+"name": &"Crouch",
 "speed": 5.0
 }]
 
