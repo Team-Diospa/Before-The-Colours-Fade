@@ -10,7 +10,7 @@ extends CharacterBody2D
 @export var gravity: float = 1500.0
 
 @export_category("Abilities")
-@export var jump_strength: float = -600.0
+@export var jump_strength: float = -600.0 # Biasanya -600 sudah cukup tinggi, sesuaikan lagi nanti
 @export var max_jump: int = 2
 @export var dash_strength: float = 1000.0
 @export var dash_cooldown: float = 3.0
@@ -19,6 +19,7 @@ extends CharacterBody2D
 @export_category("Healing")
 @export var time_to_heal: float = 5.0
 
+# State variables
 var current_jump: int = 0
 var idle_time: float = 0.0
 var direction: Vector2 = Vector2.ZERO
@@ -45,6 +46,7 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
+	# Update visual seperti animasi dan flip sprite dilakukan setelah move_and_slide
 	update_animations(delta)
 
 func apply_gravity(delta: float) -> void:
@@ -72,9 +74,10 @@ func handle_jump() -> void:
 	if Input.is_action_just_pressed("space") and current_jump < max_jump:
 		velocity.y = jump_strength
 		current_jump += 1
-		is_dashing = false
+		is_dashing = false # Membatalkan dash jika lompat
 
 func handle_dash() -> void:
+	# Dash mekanik (hanya bisa di lantai sesuai kode awalmu)
 	if is_crouching:
 		return
 	if Input.is_action_just_pressed("e") and is_on_floor() and direction.x != 0:
@@ -82,29 +85,36 @@ func handle_dash() -> void:
 		is_dashing = true
 
 func handle_horizontal_movement(delta: float) -> void:
+	# Ambil input horizontal
 	direction.x = Input.get_axis("a", "d")
 
 	var current_speed := speed * (0.5 if is_crouching else 1.0)
 
+	# Jika sedang dash, biarkan velocity.x perlahan melambat ke speed normal memakai friction
 	if is_dashing:
 		if abs(velocity.x) <= current_speed:
-			is_dashing = false
+			is_dashing = false # Selesai dash jika kecepatan sudah kembali normal
 		else:
 			velocity.x = move_toward(velocity.x, sign(velocity.x) * current_speed, friction * delta)
 	else:
+		# Pergerakan normal
 		if direction.x != 0:
 			velocity.x = move_toward(velocity.x, direction.x * current_speed, acceleration * delta)
 		else:
 			velocity.x = move_toward(velocity.x, 0, friction * delta)
 
 func update_animations(delta: float) -> void:
+	# 1. Flip Sprite Direction
 	if direction.x > 0:
 		animated_sprite.flip_h = false
 	elif direction.x < 0:
 		animated_sprite.flip_h = true
 
+	# 2. Logika Animasi (Prioritas: Udara -> Tanah)
 	if not is_on_floor():
+		# Reset idle time karena sedang bergerak/berada di udara
 		idle_time = 0.0
+
 		if velocity.y < 0:
 			animated_sprite.play("Jump")
 		else:
@@ -113,10 +123,13 @@ func update_animations(delta: float) -> void:
 		idle_time = 0.0
 		animated_sprite.play("Crouch")
 	else:
+		# Jika berada di lantai
 		if velocity.x != 0:
 			idle_time = 0.0
 			animated_sprite.play("Run")
 		else:
+			# Hitung waktu diam untuk mekanik healing/regen kamu yang dulu
+			# Karena animasi "Regen" sudah dihapus, bagian ini disiapkan untuk logic heal ke depannya
 			idle_time += delta
 			animated_sprite.play("Idle")
 
