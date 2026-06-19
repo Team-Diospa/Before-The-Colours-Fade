@@ -1,0 +1,71 @@
+[gd_scene format=3 uid="uid://c1ptapt"]
+
+[ext_resource type="Script" uid="uid://eiwdfkqwfwpe" path="res://scenes/exploration/apartment.gd" id="1_apt"]
+[ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://c3pb5fctrsol" path="res://core/components/interactable.tscn" id="3_interactable"]
+
+[node name="Apartment" type="Node2D" unique_id=2089114218]
+script = ExtResource("1_apt")
+
+[node name="Background" type="ColorRect" parent="." unique_id=181139083]
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.1, 0.1, 0.12, 1)
+
+[node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=891102101]
+color = Color(1, 0.95, 0.9, 1)
+
+[node name="Floor" type="ColorRect" parent="." unique_id=1684334211]
+offset_top = 500.0
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.15, 0.15, 0.18, 1)
+
+[node name="Player" parent="." unique_id=1096648528 instance=ExtResource("2_player")]
+position = Vector2(100, 520)
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1869526077]
+limit_left = 0
+limit_right = 1152
+limit_bottom = 648
+
+[node name="LeftWall" type="StaticBody2D" parent="." unique_id=609188447]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="LeftWall" unique_id=1182240177]
+polygon = PackedVector2Array(0, 0, -20, 0, -20, 648, 0, 648)
+
+[node name="RightWall" type="StaticBody2D" parent="." unique_id=414492129]
+position = Vector2(1152, 0)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RightWall" unique_id=235821463]
+polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
+
+[node name="Bed" parent="." unique_id=314475394 instance=ExtResource("3_interactable")]
+position = Vector2(250, 500)
+interaction_id = "bed"
+prompt_message = "Press E to check Bed"
+
+[node name="Guitar" parent="." unique_id=618256286 instance=ExtResource("3_interactable")]
+position = Vector2(450, 500)
+interaction_id = "guitar"
+prompt_message = "Press E to inspect Guitar"
+
+[node name="Desk" parent="." unique_id=506045287 instance=ExtResource("3_interactable")]
+position = Vector2(650, 500)
+interaction_id = "desk"
+prompt_message = "Press E to study Desk"
+
+[node name="Shower" parent="." unique_id=481263341 instance=ExtResource("3_interactable")]
+position = Vector2(850, 500)
+interaction_id = "shower"
+prompt_message = "Press E to use Shower"
+
+[node name="Toilet" parent="." unique_id=724969966 instance=ExtResource("3_interactable")]
+position = Vector2(980, 500)
+interaction_id = "toilet"
+prompt_message = "Press E to use Toilet"
+
+[node name="ExitDoor" parent="." unique_id=854293492 instance=ExtResource("3_interactable")]
+position = Vector2(1080, 500)
+interaction_id = "exit_door"
+prompt_message = "Press E to exit Apartment"

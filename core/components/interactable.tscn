@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://core/components/Interactable.gd" id="1_1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2"]
+size = Vector2(80, 100)
+
+[node name="Interactable" type="Area2D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -50)
+shape = SubResource("RectangleShape2D_2")
+
+[node name="VisualIndicator" type="ColorRect" parent="."]
+offset_left = -20.0
+offset_top = -60.0
+offset_right = 20.0
+offset_bottom = -20.0
+color = Color(0.85, 0.85, 0.35, 0.4)

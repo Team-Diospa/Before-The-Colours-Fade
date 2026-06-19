@@ -1,0 +1,161 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/combat/CombatManager.gd" id="1_combat"]
+
+[node name="GrassyField" type="Node2D"]
+script = ExtResource("1_combat")
+enemy_name = "Castle Boss"
+enemy_hp = 50
+enemy_max_hp = 50
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Background" type="ColorRect" parent="UI"]
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.2, 0.4, 0.22, 1)
+
+[node name="PlayerPanel" type="Panel" parent="UI"]
+offset_left = 80.0
+offset_top = 80.0
+offset_right = 380.0
+offset_bottom = 280.0
+
+[node name="VBox" type="VBoxContainer" parent="UI/PlayerPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="UI/PlayerPanel/VBox"]
+layout_mode = 2
+text = "Hilbert Hickman"
+horizontal_alignment = 1
+
+[node name="HPLabel" type="Label" parent="UI/PlayerPanel/VBox"]
+layout_mode = 2
+text = "HP: 50/50"
+horizontal_alignment = 1
+
+[node name="BlockLabel" type="Label" parent="UI/PlayerPanel/VBox"]
+layout_mode = 2
+text = "Block: 0"
+horizontal_alignment = 1
+
+[node name="EnergyLabel" type="Label" parent="UI/PlayerPanel/VBox"]
+layout_mode = 2
+text = "Energy: 3/3"
+horizontal_alignment = 1
+
+[node name="EnemyPanel" type="Panel" parent="UI"]
+offset_left = 772.0
+offset_top = 80.0
+offset_right = 1072.0
+offset_bottom = 280.0
+
+[node name="VBox" type="VBoxContainer" parent="UI/EnemyPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="UI/EnemyPanel/VBox"]
+layout_mode = 2
+text = "Castle Boss"
+horizontal_alignment = 1
+
+[node name="HPLabel" type="Label" parent="UI/EnemyPanel/VBox"]
+layout_mode = 2
+text = "HP: 50/50"
+horizontal_alignment = 1
+
+[node name="BlockLabel" type="Label" parent="UI/EnemyPanel/VBox"]
+layout_mode = 2
+text = "Block: 0"
+horizontal_alignment = 1
+
+[node name="IntentLabel" type="Label" parent="UI/EnemyPanel/VBox"]
+layout_mode = 2
+text = "Intent: Attack (6)"
+horizontal_alignment = 1
+
+[node name="HandPanel" type="Panel" parent="UI"]
+offset_left = 80.0
+offset_top = 450.0
+offset_right = 900.0
+offset_bottom = 600.0
+
+[node name="Margin" type="MarginContainer" parent="UI/HandPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="HBox" type="HBoxContainer" parent="UI/HandPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="ActionPanel" type="Panel" parent="UI"]
+offset_left = 930.0
+offset_top = 450.0
+offset_right = 1070.0
+offset_bottom = 600.0
+
+[node name="VBox" type="VBoxContainer" parent="UI/ActionPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="EndTurnButton" type="Button" parent="UI/ActionPanel/VBox"]
+layout_mode = 2
+text = "End Turn"
+
+[node name="RerollButton" type="Button" parent="UI/ActionPanel/VBox"]
+layout_mode = 2
+text = "Reroll Hand"
+
+[node name="ShiftButton" type="Button" parent="UI/ActionPanel/VBox"]
+layout_mode = 2
+text = "Shift to Reality"
+
+[node name="FeedbackLabel" type="Label" parent="UI"]
+offset_left = 80.0
+offset_top = 340.0
+offset_right = 1072.0
+offset_bottom = 380.0
+text = "Draw Phase"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="UI/ActionPanel/VBox/EndTurnButton" to="." method="_on_end_turn_pressed"]
+[connection signal="pressed" from="UI/ActionPanel/VBox/RerollButton" to="." method="_on_reroll_pressed"]
+[connection signal="pressed" from="UI/ActionPanel/VBox/ShiftButton" to="." method="_on_shift_pressed"]

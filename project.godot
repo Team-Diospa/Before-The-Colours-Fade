@@ -11,9 +11,20 @@ config_version=5
 [application]
 
 config/name="Before the Colours Fade"
-run/main_scene="res://Test.tscn"
+run/main_scene="res://scenes/exploration/apartment.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+GlobalState="*res://core/singletons/GlobalState.gd"
+EventBus="*res://core/singletons/EventBus.gd"
+SceneManager="*res://core/singletons/SceneManager.gd"
+DialogueSystem="*res://core/singletons/DialogueSystem.gd"
+DeckManager="*res://core/singletons/DeckManager.gd"
+ShiftManager="*res://core/singletons/ShiftManager.gd"
+ExplorationHUD="*res://core/singletons/ExplorationHUD.gd"
+
 
 [dotnet]
 

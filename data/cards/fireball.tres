@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/CardData.gd" id="1_fireball"]
+
+[resource]
+script = ExtResource("1_fireball")
+card_name = "Fireball"
+energy_cost = 2
+base_value = 8
+card_type = "Special"
+description = "Deal 8 damage to all enemies"
+target_mode = "all"
