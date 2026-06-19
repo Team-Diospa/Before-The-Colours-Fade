@@ -1,3 +1,4 @@
+
 # ====================================================================
 # GODOT 4 SPECIFIC RUNTIME METADATA AND GRAPHICS CACHE
 # ====================================================================
@@ -28,3 +29,6 @@ Desktop.ini
 # ====================================================================
 editor_settings-4.tres
 project_metadata.cfg
+
+# Godot 4+ specific ignores
+/android/
