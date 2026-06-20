@@ -218,8 +218,8 @@ func _ready() -> void:
 	guide_label = Label.new()
 	guide_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	guide_label.add_theme_font_size_override("font_size", 10.5)
-	# Explain the gameplay loop and narrative connection to alleviate user confusion.
-	guide_label.text = "You are Hilbert Hickman. Your friend Leo recently passed away. Hilbert's mind is blocking out the grief, creating a vibrant dream world to cope.\n\nGameplay Loop:\n1. Explore reality (Grey morning) to find items, talk to peers, and uncover memories. These choices grant starting buffs or add powerful cards to your deck.\n2. In combat, you can Dimension Shift back to reality once your shift charge is ready, allowing you to search reality for solutions mid-battle.\n3. Be Warned: Escaping the stress through delusion will help you win, but the more you shift, the more you erase Leo's memory..."
+	# Explain the gameplay loop and narrative connection to alleviate user confusion while preserving the psychological mystery.
+	guide_label.text = "You are Hilbert Hickman. The morning is cold, grey, and quiet. There is a weight in your chest, a name you cannot fully read, and a face in the photographs that seems to dissolve when you look too closely.\n\nGameplay Guide:\n- A/D to walk. E to inspect the physical world.\n- Inspecting your surroundings unlocks starting combat modifiers or adds new cards to your deck.\n- In battle, when your Shift charge is full, you can press the Shift button to escape back to reality, finding items and answers to bypass impossible combat obstacles.\n- Every choice carries weight. Reality is fading. Do not forget the seat next to you."
 	guide_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right_vbox.add_child(guide_label)
 	
