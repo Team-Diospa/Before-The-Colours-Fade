@@ -218,8 +218,8 @@ func _ready() -> void:
 	guide_label = Label.new()
 	guide_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	guide_label.add_theme_font_size_override("font_size", 10.5)
-	# Explain the gameplay loop and narrative connection to alleviate user confusion while preserving the psychological mystery.
-	guide_label.text = "You are Hilbert Hickman. The morning is cold, grey, and quiet. There is a weight in your chest, a name you cannot fully read, and a face in the photographs that seems to dissolve when you look too closely.\n\nGameplay Guide:\n- A/D to walk. E to inspect the physical world.\n- Inspecting your surroundings unlocks starting combat modifiers or adds new cards to your deck.\n- In battle, when your Shift charge is full, you can press the Shift button to escape back to reality, finding items and answers to bypass impossible combat obstacles.\n- Every choice carries weight. Reality is fading. Do not forget the seat next to you."
+	# RATIONALE: Keep the narrative mysterious and player-facing, avoiding spoilers while explaining the core loop.
+	guide_label.text = "You are Hilbert Hickman. The morning is grey, cold, and quiet. There is a quiz today, but something feels... off. A persistent fog sits in your chest, and your doodles are starting to look too real.\n\nGameplay Loop:\n1. Explore your surroundings in reality to gather items and reflect. Your choices shape your starting deck and stats before you cross over.\n2. In combat, charge your Dimension Shift to warp back to reality. Searching the real world mid-battle will reveal new options to counter the dream's anomalies.\n3. Note: The dream world is vibrant and comfortable, but reality holds the truth. What are you forgetting?"
 	guide_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right_vbox.add_child(guide_label)
 	

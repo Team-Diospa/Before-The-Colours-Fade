@@ -1,33 +1,33 @@
-# System Narrative and Thematic Design
+# Overarching Narrative Structure and Narrative Design
 
-This document details the thematic systemization, overarching plot, and connections between the gameplay loop and narrative meaning for "Before the Colours Fade".
+This document details the story pacing, thematic delivery, and mechanical integration for "Before the Colours Fade", focused on maintaining mystery, foreshadowing, absurdism, and psychological horror from the player's perspective.
 
-## 1. Core Theme: Memory Decay as a Coping Mechanism
+## 1. Pacing the Mystery (Avoiding Sudden Spoilers)
 
-The game's title, "Before the Colours Fade", refers to the fading memory of Hilbert's deceased creative partner. The core psychological conflict is that the vibrant dream world is fueled by Hilbert's grief, and escaping into it acts as a cognitive eraser.
-- The Child World is warm, colorful, and makes Hilbert feel powerful.
-- The Reality World is cold and gray, but it is the only place where his friend's actual memory exists.
-- Every time Hilbert uses a "Dream Fragment" in reality, he is using his delusion to overwrite his real-world problems. In doing so, he cures his trauma but erases his memories of his friend.
-- To survive the game (defeat the combat bosses), the player must perform these shifts, making the player complicit in the slow erasure of Hilbert's friend from his mind.
+The story is designed to be experienced from Hilbert's perspective, meaning the player only knows what Hilbert knows. The truth should not be stated directly. Instead, it relies on slow realization.
+- **Act I (The Grey Morning):** The player experiences school stress (sleeping in, studying, peer friction). The mood is mundane but slightly off-kilter. The player does not know anything about a tragedy. They only feel a lingering numbness.
+- **Act II (The Dream Shift):** The transition to the child world feels like a typical high-fantasy deckbuilder. The player is encouraged to accept this escapism because it is vibrant and has clear goals (defeating monsters).
+- **Act III (The Cracks in the Dream):** During battles, the player is forced to shift back to the grey classroom. This reality check introduces discrepancies (the monster speaking in exam terms, the empty desk next to them).
+- **Act IV (The Resolution):** The ending provides a subtle shock rather than a heavy-handed explanation. Finding a blank contact card on a phone named n.n. creates a quiet, unsettling realization of memory loss.
 
-## 2. The Identity of n.n. (Nomen Nescio)
+## 2. Foreshadowing and Symbolism
 
-The flying mechanical companion is named "n.n.", which stands for Nomen Nescio (Latin for "Name Unknown" or anonymous). 
-- Hilbert believes n.n. is just an old childhood invention schematic.
-- In reality, n.n. is the residual subconscious projection of his deceased friend.
-- Because Hilbert's mind is already beginning to block out the grief, he can no longer remember his friend's face or name. Thus, the companion appears as a nameless machine ("n.n.").
-- As Hilbert defeats the monsters (the representations of his life stress), he becomes "cured" of his pain, but n.n. fades away. By the end of the demo, the contact information of his friend in his phone has changed from a name to simply "n.n.".
+Instead of giving away the plot, the exploration interactions drop crumbs that only make sense in hindsight:
+- **The Photo Frame:** In the apartment, the player sees a framed photo of two boys, but one face is scratched out. Hilbert simply notes that he cannot recall who it is.
+- **The Empty Desk:** In the classroom, the desk next to Hilbert is covered in dust. Peers mention he is spacing out and talking to thin air, hinting that n.n. is a hallucination.
+- **The Companion's Name:** The robot companion is named n.n. (Nomen Nescio, name unknown). It speaks with child-like enthusiasm, acting as the memory of a childhood friend Hilbert has already started to block out.
 
-## 3. Narrative Integration of Exploration Nodes
+## 3. Balancing Psychological Horror with Absurdism and Humor
 
-Every interaction in the exploration phases now carries existential weight and directly foreshadows this twist:
+To prevent the narrative from feeling excessively edgy or melodramatically depressing, the horror is balanced with absurdism and relatable humor:
+- **Absurd Combat Scenarios:** Fighting a giant monster made of exam papers using a deck of drawing-pad swords and fireball spells.
+- **Peer Relatability:** The peers react with realistic annoyance or pity. For example, Peer 2 calling Hilbert creepy for whispering to a non-existent robot companion.
+- **The Bed Choice:** The choice to sleep in is framed around the universal desire to avoid a Monday morning test, rather than a deep existential crisis, keeping the tone grounded and relatable.
 
-### Apartment (Level 0)
-- **The Guitar:** Hilbert's friend was the musician. Interacting with it highlights that Hilbert is losing the memory of who used to play it.
-- **The Drawer (Photograph):** The photo of Hilbert and his friend shows the friend's face as scratched out or faded. Hilbert realizes he cannot recall his face.
-- **The Bed:** Represents the choice between active resistance (alertness, starting energy bonus) and giving in to sleep (numbness, higher max HP but slower start).
+## 4. Avoiding Forced Emotional Weight
 
-### Classroom (Level 3)
-- **Peer 1 (Compassion):** Highlights that Hilbert is behaving like a "ghost" and forgetting basic details about his friend's past.
-- **Peer 2 (Alienation):** Highlights that Hilbert is talking to thin air (n.n. is invisible to everyone else), reinforcing the psychological delusion.
-- **The Paper Monster (Quiz):** In reality, the monster represents his failing grades. During the shift, the monster warns Hilbert that erasing his pain will erase his friend.
+The game avoids melodrama, tragic monologues, or forced tear-jerkers. The weight comes from silence and absence:
+- The silence in the apartment.
+- The grey CanvasModulate color shifts.
+- The sudden emptiness of the contact list at the end.
+By keeping the dialogue simple and dry, the final realization carries a stronger shock factor.

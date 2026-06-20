@@ -6,94 +6,94 @@ extends Node2D
 # Dialogue trees for the classroom actors with split beats and isolated system notices.
 var peer1_dialogue: Dictionary = {
 	"start": {
-		"text": "Marcus: Hilbert? Whoa, dude. You look like you got ran over by a steamroller. Did you forget your medication again?",
+		"text": "Peer 1: Hilbert? You look like a ghost. Did you... forget again?",
 		"options": [
-			{"text": "\"I'm fine. Just forgot where I put things.\"", "next": "forget_what"},
-			{"text": "\"Just exam panic. I'll survive.\"", "next": "stressed"}
+			{"text": "\"Forget what?\"", "next": "forget_what"},
+			{"text": "\"I'm just stressed about the quiz.\"", "next": "stressed"}
 		]
 	},
 	"forget_what": {
-		"text": "Hilbert: I'm fine. Just forgot where I put things.",
+		"text": "Hilbert: Forget what?",
 		"next": "forget_what_2"
 	},
 	"forget_what_2": {
-		"text": "Marcus: Right. Well, I found this notebook under the bleachers yesterday. It's full of those weird clockwork drawings you and... well, you know. I left it in your locker. You should grab it.",
+		"text": "Peer 1: Your notebook. You left it at... well, his place. You know, before the accident.",
 		"next": "forget_what_3"
 	},
 	"forget_what_3": {
-		"text": "Hilbert: Me and... who?",
+		"text": "Hilbert: Whose place?",
 		"next": "forget_what_4"
 	},
 	"forget_what_4": {
-		"text": "Marcus stares at you, his nervous grin slowly dying. A look of profound, uncomfortable pity crosses his face. 'Hilbert. That's... not funny. Seriously. Go check your locker.'",
+		"text": "Peer 1 looks at you with deep pity. 'Never mind. Just... take care.'",
 		"next": "peer1_healed_sys"
 	},
 	"stressed": {
-		"text": "Hilbert: Just exam panic. I'll survive.",
+		"text": "Hilbert: I'm just stressed about the quiz.",
 		"next": "stressed_2"
 	},
 	"stressed_2": {
-		"text": "Marcus: Yeah, this professor is a monster. Tell you what, take my lucky green pen. Don't die out there, man.",
+		"text": "Peer 1: Don't worry, it's just a quiz. You'll do fine. Take it slow, Hilbert.",
 		"next": "peer1_healed_sys"
 	},
 	"peer1_healed_sys": {
-		"text": "[System]: A classmate's small concern warms the cold fog in your chest (Health restored by 15 HP).",
+		"text": "[System]: Their concern comforts you (Health restored by 15 HP).",
 		"next": ""
 	}
 }
 
 var peer2_dialogue: Dictionary = {
 	"start": {
-		"text": "Chloe: Hilbert, seriously? You've been staring at the wall and whispering to yourself for ten minutes. It's distracting and, honestly, kinda freaking me out.",
+		"text": "Peer 2: Stop staring at me! You've been spacing out and whispering to thin air. It's creepy.",
 		"options": [
-			{"text": "\"Sorry, Chloe. Spaced out.\"", "next": "apologize"},
-			{"text": "Ignore her.", "next": "ignore"}
+			{"text": "\"Sorry, just spaced out.\"", "next": "apologize"},
+			{"text": "Ignore them.", "next": "ignore"}
 		]
 	},
 	"apologize": {
-		"text": "Hilbert: Sorry, Chloe. Spaced out.",
+		"text": "Hilbert: Sorry, just spaced out.",
 		"next": "apologize_2"
 	},
 	"apologize_2": {
-		"text": "Chloe rolls her eyes but sighs. 'Whatever. Just don't start muttering during the quiz, okay? I need to focus.' You force a polite nod, pushing down the prickling anxiety.",
+		"text": "You swallow your pride to defuse the tension.",
 		"next": "apologize_sys"
 	},
 	"apologize_sys": {
-		"text": "[System]: De-escalating the friction clears the static in your head (+5 starting Block on turn 1 of combat).",
+		"text": "[System]: Defusing tension clears your head (+5 starting Block on turn 1 of combat).",
 		"next": ""
 	},
 	"ignore": {
-		"text": "You ignore the comment, focusing your gaze right through her onto the hum of the classroom fluorescent lights.",
+		"text": "You ignore the comment and turn away.",
 		"next": "ignore_2"
 	},
 	"ignore_2": {
-		"text": "Chloe: 'Creepy.' She mutters under her breath and aggressively turns her desk away. You block her out. The noise of the world recedes into a dull, distant murmur.",
+		"text": "You focus inward, blocking out the classroom noise.",
 		"next": "ignore_sys"
 	},
 	"ignore_sys": {
-		"text": "[System]: Uncompromising isolation sharpens your cognitive focus (Draw +1 card on turn 1 of combat).",
+		"text": "[System]: Inward focus improves concentration (Draw +1 card on turn 1 of combat).",
 		"next": ""
 	}
 }
 
 var locker_dialogue: Dictionary = {
 	"start": {
-		"text": "You open the metal locker. Taped to the door is a hand-drawn sketch of a flying clockwork machine with a smiling face and a tiny propeller. The initials at the bottom read: 'H.H. & L.G.'",
+		"text": "You open the locker. Inside is an old notebook covered in brave drawings of inventions.",
 		"next": "locker_2"
 	},
 	"locker_2": {
-		"text": "Hilbert: H.H. is me... Hilbert Hickman. But L.G.? Who is L.G.? The drawings feel warm, filled with a childhood hope that feels entirely foreign to this grey morning. You pull the sketch down.",
+		"text": "Hilbert: These drawings... we drew this together. I won't let his designs die.",
 		"next": "locker_sys"
 	},
 	"locker_sys": {
-		"text": "[System]: Childhood Blueprint retrieved -> The memory of courage manifests (Fortress and Counter Stance cards added. Courage Buff active).",
+		"text": "[System]: Locker -> Courage (Fortress and Counter Stance added to deck. Courage Buff active).",
 		"next": ""
 	}
 }
 
 var locker_empty_dialogue: Dictionary = {
 	"start": {
-		"text": "The locker is empty. Only dust and scratched metal remain.",
+		"text": "The locker is empty.",
 		"next": ""
 	}
 }
