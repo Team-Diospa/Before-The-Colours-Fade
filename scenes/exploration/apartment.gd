@@ -154,6 +154,34 @@ var shower_dialogue: Dictionary = {
 	}
 }
 
+var wardrobe_dialogue: Dictionary = {
+	"start": {
+		"text": "Just a few faded shirts and your worn-out jacket. You grab the same clothes you wore yesterday.",
+		"next": ""
+	}
+}
+
+var kitchen_dialogue: Dictionary = {
+	"start": {
+		"text": "The sink is piled with unwashed mugs. You haven't cooked anything warm in months.",
+		"next": ""
+	}
+}
+
+var window_dialogue: Dictionary = {
+	"start": {
+		"text": "Outside, the morning sun is blinding. You close the blinds, preferring the familiar silence of the shadows.",
+		"next": ""
+	}
+}
+
+var papers_dialogue: Dictionary = {
+	"start": {
+		"text": "Old, abandoned schematics scattered on the floor. The graphite is smudged and covered in dust.",
+		"next": ""
+	}
+}
+
 var door_dialogue: Dictionary = {
 	"start": {
 		"text": "Exit to the faculty building hallway?",
@@ -184,12 +212,18 @@ func _ready() -> void:
 	CanvasModulateNode.color = COLOR_MORNING
 	
 	# Connect local interactable node signals.
-	$Bed.interacted.connect(_on_bed_interacted)
-	$Guitar.interacted.connect(_on_guitar_interacted)
-	$Desk.interacted.connect(_on_desk_interacted)
-	$Toilet.interacted.connect(_on_toilet_interacted)
-	$Shower.interacted.connect(_on_shower_interacted)
-	$ExitDoor.interacted.connect(_on_exit_door_interacted)
+	if has_node("Bed"): $Bed.interacted.connect(_on_bed_interacted)
+	if has_node("Guitar"): $Guitar.interacted.connect(_on_guitar_interacted)
+	if has_node("Desk"): $Desk.interacted.connect(_on_desk_interacted)
+	if has_node("Toilet"): $Toilet.interacted.connect(_on_toilet_interacted)
+	if has_node("Shower"): $Shower.interacted.connect(_on_shower_interacted)
+	if has_node("ExitDoor"): $ExitDoor.interacted.connect(_on_exit_door_interacted)
+	
+	# New features based on visual layout
+	if has_node("Wardrobe"): $Wardrobe.interacted.connect(_on_wardrobe_interacted)
+	if has_node("Kitchen"): $Kitchen.interacted.connect(_on_kitchen_interacted)
+	if has_node("Window"): $Window.interacted.connect(_on_window_interacted)
+	if has_node("Papers"): $Papers.interacted.connect(_on_papers_interacted)
 
 func _on_bed_interacted(_id: String) -> void:
 	if GlobalState.has_flag("bed_slept"):
@@ -281,4 +315,25 @@ func _on_exit_door_interacted(_id: String) -> void:
 func _on_door_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_door_dialogue_finished)
 	if DialogueSystem.dialogue_tree == door_dialogue and DialogueSystem.current_node_id == "exit_yes":
+		# RATIONALE: Proceeding to hallway.
 		SceneManager.transition_to_state("S_hall")
+
+func _on_wardrobe_interacted(_id: String) -> void:
+	# RATIONALE: Just flavorful text emphasizing the worn-out state described in the script.
+	DialogueSystem.start_dialogue(wardrobe_dialogue, "start")
+
+func _on_kitchen_interacted(_id: String) -> void:
+	# RATIONALE: Flavor text emphasizing neglect.
+	DialogueSystem.start_dialogue(kitchen_dialogue, "start")
+
+func _on_window_interacted(_id: String) -> void:
+	DialogueSystem.start_dialogue(window_dialogue, "start")
+	if not GlobalState.has_flag("window_closed"):
+		GlobalState.set_flag("window_closed", true)
+		# RATIONALE: Fulfills "hawa menjadi gelap, sepi, busuk (setelah MC menutup jendela)" from script alur.md
+		var tween = create_tween()
+		tween.tween_property(CanvasModulateNode, "color", COLOR_DEPRESSION, 2.0)
+
+func _on_papers_interacted(_id: String) -> void:
+	# RATIONALE: Flavor text reinforcing the childhood dream and current depression.
+	DialogueSystem.start_dialogue(papers_dialogue, "start")
