@@ -23,7 +23,6 @@ var deck_overlay_panel: Panel
 var deck_list_container: VBoxContainer
 var stats_detail_label: Label
 var guide_label: Label
-var memories_label: Label
 
 # HUD visibility and deck state tracking.
 var is_visible: bool = false
@@ -191,15 +190,10 @@ func _ready() -> void:
 	deck_scroll.add_child(deck_list_container)
 	
 	# Right: Stats, Buffs & Narrative Guide
-	# Right: Stats, Buffs, Narrative Guide & Reconstructed Memories (Scrollable to prevent overflow)
-	var right_scroll = ScrollContainer.new()
-	right_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right_scroll.custom_minimum_size.x = 280
-	content_hbox.add_child(right_scroll)
-	
 	var right_vbox = VBoxContainer.new()
 	right_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right_scroll.add_child(right_vbox)
+	right_vbox.custom_minimum_size.x = 280
+	content_hbox.add_child(right_vbox)
 	
 	var status_title = Label.new()
 	status_title.text = "Next Battle Starting Status"
@@ -212,7 +206,7 @@ func _ready() -> void:
 	right_vbox.add_child(stats_detail_label)
 	
 	var right_spacer = Control.new()
-	right_spacer.custom_minimum_size.y = 12
+	right_spacer.custom_minimum_size.y = 8
 	right_vbox.add_child(right_spacer)
 	
 	var guide_title = Label.new()
@@ -226,24 +220,8 @@ func _ready() -> void:
 	guide_label.add_theme_font_size_override("font_size", 10.5)
 	# RATIONALE: Keep the narrative mysterious and player-facing, avoiding spoilers while explaining the core loop.
 	guide_label.text = "You are Hilbert Hickman. The morning is grey, cold, and quiet. There is a quiz today, but something feels... off. A persistent fog sits in your chest, and your doodles are starting to look too real.\n\nGameplay Loop:\n1. Explore your surroundings in reality to gather items and reflect. Your choices shape your starting deck and stats before you cross over.\n2. In combat, charge your Dimension Shift to warp back to reality. Searching the real world mid-battle will reveal new options to counter the dream's anomalies.\n3. Note: The dream world is vibrant and comfortable, but reality holds the truth. What are you forgetting?"
-	guide_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	guide_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right_vbox.add_child(guide_label)
-	
-	var right_spacer2 = Control.new()
-	right_spacer2.custom_minimum_size.y = 12
-	right_vbox.add_child(right_spacer2)
-	
-	var memories_title = Label.new()
-	memories_title.text = "Reconstructed Memories"
-	memories_title.add_theme_font_size_override("font_size", 13)
-	memories_title.modulate = Color(0.9, 0.7, 0.4, 1.0) # Warm amber highlight for trauma recollection
-	right_vbox.add_child(memories_title)
-	
-	memories_label = Label.new()
-	memories_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	memories_label.add_theme_font_size_override("font_size", 10.5)
-	memories_label.modulate = Color(0.85, 0.85, 0.85, 1.0)
-	right_vbox.add_child(memories_label)
 	
 	# Close footer hint
 	var footer_lbl = Label.new()
@@ -338,30 +316,6 @@ func update_deck_overlay() -> void:
 		"+" if GlobalState.starting_draw_modifier >= 0 else "",
 		GlobalState.starting_draw_modifier
 	]
-	
-	# RATIONALE: Construct dynamic Reconstructed Memories text. As the player uncovers traces of
-	# past trauma through environmental anchoring, they populate in their status journal.
-	# Follows Bartlett's Schema Theory & Iser's Narrative Gaps (story_structure.md).
-	var memories = []
-	if GlobalState.has_flag("bed_slept"):
-		memories.append("• [Bed] I chose to hide from the morning. The blanket felt heavy, but escaping reality only delays the panic.")
-	if GlobalState.has_flag("has_showered"):
-		memories.append("• [Shower] Cold water against my skin. Staring blankly at the drain, trying to wash away a heavy, empty silence.")
-	if GlobalState.has_flag("guitar_played"):
-		memories.append("• [Guitar] I haven't played in months. Ever since... since he was taken. It's just a dust-covered shape in the corner now.")
-	if GlobalState.has_flag("desk_searched"):
-		memories.append("• [Desk Drawer] Found the old photograph in the drawer. A memory of when we built things together. Why did I hide it?")
-	if GlobalState.has_flag("window_closed"):
-		memories.append("• [Window] I closed the blinds. The sun was too loud. I prefer the shadows where nothing is expected of me.")
-	if GlobalState.has_flag("shift_1_done"):
-		memories.append("• [n.n.] A flying machine from my childhood drawings. He calls me 'dummy'. He's a projection of a project we never finished.")
-	if GlobalState.has_flag("locker_searched"):
-		memories.append("• [Locker] The old gear-brake calculations. We designed it to convert incoming force into resistance. A defense mechanism.")
-		
-	if memories.is_empty():
-		memories_label.text = "No memories reconstructed yet.\nInteracting with the environment in reality might spark something..."
-	else:
-		memories_label.text = "\n".join(memories)
 
 # Show the HUD and run a refresh.
 func show_hud() -> void:
@@ -406,7 +360,8 @@ func update_hud() -> void:
 	
 	match current_scene_name:
 		"Apartment":
-			if not GlobalState.has_flag("has_showered"):
+			var apt_node = get_tree().current_scene
+			if apt_node and not apt_node.has_showered:
 				objective_text = "Objective: Interact with the shower to prepare for the Monday quiz."
 			else:
 				objective_text = "Objective: Walk to the door and exit the apartment to attend class."

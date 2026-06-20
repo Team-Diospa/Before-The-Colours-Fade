@@ -12,10 +12,8 @@ var canvas_layer: CanvasLayer
 var root_control: Control
 var dialogue_panel: Panel
 var speaker_label: Label
-var text_label: RichTextLabel
+var text_label: Label
 var options_container: VBoxContainer
-var next_indicator: Label
-var _indicator_tween: Tween
 
 # Tracks if dialogue is active.
 var is_active: bool = false
@@ -36,97 +34,100 @@ func _ready() -> void:
 	# Root control node covering full viewport.
 	root_control = Control.new()
 	root_control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# Set mouse filter to ignore so clicks pass through empty spaces.
 	root_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root_control.visible = false # Hidden initially
+	root_control.visible = false
 	canvas_layer.add_child(root_control)
 	
-	# Main dialog container panel.
+	# Main dialog container panel - positioned below screen for slide-up entry.
 	dialogue_panel = Panel.new()
 	dialogue_panel.visible = false
+	dialogue_panel.modulate.a = 0.0
 	root_control.add_child(dialogue_panel)
 	
-	# Position panel at the bottom of the screen.
+	# RATIONALE: Panel anchored to the bottom. Starts below the viewport (offset_top = 0)
+	# and animates upward to -185 pixels on entry. This produces a sheet slide-up effect.
 	dialogue_panel.anchor_top = 1.0
 	dialogue_panel.anchor_right = 1.0
 	dialogue_panel.anchor_bottom = 1.0
-	dialogue_panel.offset_top = 0.0 # Start off-screen (slide in on start)
+	dialogue_panel.offset_left = 0.0
 	dialogue_panel.offset_right = 0.0
 	dialogue_panel.offset_bottom = 0.0
-	dialogue_panel.offset_left = 0.0
+	dialogue_panel.offset_top = 0.0 # Starts fully off-screen below
 	
-	# Apply premium glassmorphism StyleBoxFlat.
+	# Styled dark panel with stronger border and slight inner shadow.
 	var style_box = StyleBoxFlat.new()
-	style_box.bg_color = Color(0.08, 0.08, 0.1, 0.9) # Dark slate semi-transparent
-	style_box.corner_radius_top_left = 12
-	style_box.corner_radius_top_right = 12
-	style_box.border_width_top = 2
-	style_box.border_color = Color(0.25, 0.35, 0.45, 0.8) # Premium highlight border
-	style_box.shadow_color = Color(0, 0, 0, 0.45)
+	style_box.bg_color = Color(0.06, 0.06, 0.09, 0.97)
+	style_box.corner_radius_top_left = 16
+	style_box.corner_radius_top_right = 16
+	style_box.border_width_top = 1
+	style_box.border_color = Color(0.18, 0.28, 0.45, 1.0)
+	style_box.shadow_color = Color(0.0, 0.0, 0.0, 0.6)
 	style_box.shadow_size = 12
 	style_box.shadow_offset = Vector2(0, -4)
 	dialogue_panel.add_theme_stylebox_override("panel", style_box)
 	
-	# Next Page / Continue visual cue
-	next_indicator = Label.new()
-	next_indicator.text = "[E/Space]"
-	next_indicator.add_theme_font_size_override("font_size", 9)
-	next_indicator.modulate = Color(0.5, 0.6, 0.7, 1.0)
-	next_indicator.visible = false
-	dialogue_panel.add_child(next_indicator)
-	next_indicator.anchor_left = 1.0
-	next_indicator.anchor_top = 1.0
-	next_indicator.anchor_right = 1.0
-	next_indicator.anchor_bottom = 1.0
-	next_indicator.offset_left = -70
-	next_indicator.offset_top = -25
-	next_indicator.offset_right = 0
-	next_indicator.offset_bottom = 0
-	
-	# MarginContainer for padding.
+	# MarginContainer for internal padding.
 	var margin_container = MarginContainer.new()
 	margin_container.anchor_right = 1.0
 	margin_container.anchor_bottom = 1.0
-	margin_container.offset_right = 0.0
-	margin_container.offset_bottom = 0.0
-	margin_container.offset_left = 0.0
-	margin_container.offset_top = 0.0
-	margin_container.add_theme_constant_override("margin_left", 30)
-	margin_container.add_theme_constant_override("margin_right", 30)
-	margin_container.add_theme_constant_override("margin_top", 20)
-	margin_container.add_theme_constant_override("margin_bottom", 20)
+	margin_container.add_theme_constant_override("margin_left", 36)
+	margin_container.add_theme_constant_override("margin_right", 36)
+	margin_container.add_theme_constant_override("margin_top", 22)
+	margin_container.add_theme_constant_override("margin_bottom", 22)
 	dialogue_panel.add_child(margin_container)
 	
-	# Horizontal container to separate text and option buttons.
+	# Horizontal split: text on the left, options on the right.
 	var h_box = HBoxContainer.new()
+	h_box.add_theme_constant_override("separation", 24)
 	margin_container.add_child(h_box)
 	
-	# RATIONALE: Nesting labels inside a VBox container to show speaker badge above dialogue text.
+	# Left side: speaker badge and dialogue text.
 	var text_vbox = VBoxContainer.new()
 	text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	text_vbox.add_theme_constant_override("separation", 8)
 	h_box.add_child(text_vbox)
 	
-	# Speaker label widget.
+	# Speaker name pill - styled as a small badge above the text.
 	speaker_label = Label.new()
-	speaker_label.add_theme_font_size_override("font_size", 14)
-	speaker_label.modulate = Color(0.4, 0.7, 1.0, 1.0) # Sky blue highlight for speakers
+	speaker_label.add_theme_font_size_override("font_size", 12)
+	speaker_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0, 1.0))
 	speaker_label.text = ""
+	speaker_label.visible = false
+	# Pill background styling.
+	var speaker_style = StyleBoxFlat.new()
+	speaker_style.bg_color = Color(0.12, 0.2, 0.35, 0.85)
+	speaker_style.corner_radius_top_left = 4
+	speaker_style.corner_radius_top_right = 4
+	speaker_style.corner_radius_bottom_left = 4
+	speaker_style.corner_radius_bottom_right = 4
+	speaker_style.content_margin_left = 10
+	speaker_style.content_margin_right = 10
+	speaker_style.content_margin_top = 3
+	speaker_style.content_margin_bottom = 3
+	speaker_label.add_theme_stylebox_override("normal", speaker_style)
 	text_vbox.add_child(speaker_label)
 	
-	# Label to render the text. (RichTextLabel for BBCode support and typewriter accuracy).
-	text_label = RichTextLabel.new()
-	text_label.bbcode_enabled = true
-	text_label.scroll_active = false
+	# Dialogue body text.
+	text_label = Label.new()
 	text_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	text_label.add_theme_font_size_override("font_size", 16)
+	text_label.add_theme_font_size_override("font_size", 17)
+	text_label.add_theme_constant_override("line_spacing", 6)
 	text_vbox.add_child(text_label)
 	
-	# VBoxContainer to render branch choice buttons.
+	# Advance hint label.
+	var hint_label = Label.new()
+	hint_label.text = "[ E / Space to advance ]"
+	hint_label.add_theme_font_size_override("font_size", 11)
+	hint_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.25))
+	hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	text_vbox.add_child(hint_label)
+	
+	# Right side: vertically stacked option buttons.
 	options_container = VBoxContainer.new()
 	options_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	options_container.custom_minimum_size.x = 220
+	options_container.add_theme_constant_override("separation", 8)
+	options_container.custom_minimum_size.x = 200
 	h_box.add_child(options_container)
 	
 	# Connect to EventBus signals.
@@ -141,16 +142,12 @@ func _input(event: InputEvent) -> void:
 		# RATIONALE: If dialogue is still drawing, first press stops typewriter animation.
 		# A subsequent press is required to advance nodes, preventing skipping.
 		if _is_typing:
-			if _active_tween:
-				_active_tween.kill()
-			text_label.visible_characters = -1
-			_is_typing = false
-			_show_next_prompt()
+			_is_typing = false # Will break the typing coroutine
+			text_label.visible_characters = -1 # Show all text
 			get_viewport().set_input_as_handled()
 			return
 			
 		if active_options.is_empty():
-			_hide_next_prompt()
 			# Fetch next node from current node data.
 			var node_data = dialogue_tree.get(current_node_id, {})
 			if node_data.has("next") and node_data["next"] != "":
@@ -164,14 +161,17 @@ func _input(event: InputEvent) -> void:
 func start_dialogue(tree: Dictionary, start_node: String = "start") -> void:
 	dialogue_tree = tree
 	is_active = true
-	root_control.visible = true # Enable full overlay control node
+	root_control.visible = true
 	dialogue_panel.visible = true
-	_hide_next_prompt()
 	
-	# Premium slide-up transition.
+	# RATIONALE: Slide-up entry animation. Panel starts at offset_top = 0 (fully hidden below
+	# the screen edge) and tweens to -185 while simultaneously fading in. This is more dynamic
+	# than a simple fade and feels premium without being distracting.
 	dialogue_panel.offset_top = 0.0
-	var tw = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUART)
-	tw.tween_property(dialogue_panel, "offset_top", -160.0, 0.4)
+	dialogue_panel.modulate.a = 0.0
+	var tw = create_tween().set_parallel(true)
+	tw.tween_property(dialogue_panel, "offset_top", -185.0, 0.25).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+	tw.tween_property(dialogue_panel, "modulate:a", 1.0, 0.2).set_trans(Tween.TRANS_SINE)
 	
 	EventBus.dialogue_started.emit(start_node)
 	_play_node(start_node)
@@ -207,29 +207,20 @@ func _play_node(node_id: String) -> void:
 			speaker_label.text = "[" + speaker + "]"
 	else:
 		speaker_label.text = ""
+		
 	speaker_label.visible = speaker != ""
 	text_label.text = body_text
 	
+	# System notifications formatting
+	if speaker_label.text == "[System]":
+		text_label.modulate = Color(0.8, 0.7, 0.4, 1.0) # Muted gold
+		speaker_label.modulate = Color(0.8, 0.7, 0.4, 1.0)
+	else:
+		text_label.modulate = Color(1.0, 1.0, 1.0, 1.0) # White
+		speaker_label.modulate = Color(0.4, 0.7, 1.0, 1.0) # Sky blue highlight
+	
 	# Print to console for editor debugging.
 	print("[Dialogue Node ID: ", node_id, "] ", raw_text)
-	
-	# RATIONALE: Tween visible characters from 0 to total parsed length for typewriter animations.
-	# This correctly skips counting BBCode tags for timing and audio click triggers.
-	if _active_tween:
-		_active_tween.kill()
-		
-	_hide_next_prompt()
-	var parsed_length = text_label.get_parsed_text().length()
-	text_label.visible_characters = 0
-	_is_typing = true
-	
-	_active_tween = create_tween()
-	var duration = max(0.4, parsed_length * 0.02) # 20ms per character
-	_active_tween.tween_method(_on_typewriter_step, 0, parsed_length, duration)
-	_active_tween.finished.connect(func():
-		_is_typing = false
-		_show_next_prompt()
-	)
 	
 	# Clear old buttons.
 	for child in options_container.get_children():
@@ -237,48 +228,91 @@ func _play_node(node_id: String) -> void:
 		
 	active_options.clear()
 	
-	# Populate options if available.
+	# Populate options if available, before typing starts so they are ready.
 	if node_data.has("options"):
 		var options = node_data["options"]
 		for i in range(options.size()):
 			var opt = options[i]
 			var btn = Button.new()
 			btn.text = opt.get("text", "")
-			btn.add_theme_font_size_override("font_size", 12)
+			btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			btn.custom_minimum_size = Vector2(0, 44)
+			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			
-			# Premium Flat style for dialogue choices to match the aesthetics of the prompt box.
-			var opt_style_normal = StyleBoxFlat.new()
-			opt_style_normal.bg_color = Color(0.1, 0.12, 0.16, 0.85)
-			opt_style_normal.border_width_left = 3
-			opt_style_normal.border_color = Color(0.3, 0.45, 0.65, 0.6) # Sleek blue accent
-			opt_style_normal.corner_radius_top_right = 4
-			opt_style_normal.corner_radius_bottom_right = 4
-			opt_style_normal.content_margin_left = 12
-			opt_style_normal.content_margin_right = 12
-			opt_style_normal.content_margin_top = 6
-			opt_style_normal.content_margin_bottom = 6
+			# RATIONALE: Card-style button with a left accent border to create visual identity.
+			# Dark background with a glowing blue border on hover signals interactability clearly.
+			var style_normal = StyleBoxFlat.new()
+			style_normal.bg_color = Color(0.08, 0.1, 0.16, 0.85)
+			style_normal.corner_radius_top_left = 8
+			style_normal.corner_radius_top_right = 8
+			style_normal.corner_radius_bottom_left = 8
+			style_normal.corner_radius_bottom_right = 8
+			style_normal.border_width_left = 3
+			style_normal.border_color = Color(0.25, 0.4, 0.7, 0.6)
+			style_normal.content_margin_left = 14
+			style_normal.content_margin_right = 14
+			style_normal.content_margin_top = 8
+			style_normal.content_margin_bottom = 8
 			
-			var opt_style_hover = StyleBoxFlat.new()
-			opt_style_hover.bg_color = Color(0.16, 0.2, 0.28, 0.95)
-			opt_style_hover.border_width_left = 3
-			opt_style_hover.border_color = Color(0.4, 0.7, 1.0, 1.0) # Sky blue highlight glow
-			opt_style_hover.corner_radius_top_right = 4
-			opt_style_hover.corner_radius_bottom_right = 4
-			opt_style_hover.content_margin_left = 12
-			opt_style_hover.content_margin_right = 12
-			opt_style_hover.content_margin_top = 6
-			opt_style_hover.content_margin_bottom = 6
+			var style_hover = style_normal.duplicate()
+			style_hover.bg_color = Color(0.14, 0.2, 0.36, 0.95)
+			style_hover.border_color = Color(0.5, 0.75, 1.0, 1.0)
+			style_hover.border_width_left = 4
 			
-			btn.add_theme_stylebox_override("normal", opt_style_normal)
-			btn.add_theme_stylebox_override("hover", opt_style_hover)
-			btn.add_theme_stylebox_override("pressed", opt_style_hover)
-			btn.add_theme_stylebox_override("focus", opt_style_hover)
+			var style_pressed = style_hover.duplicate()
+			style_pressed.bg_color = Color(0.1, 0.16, 0.28, 1.0)
+			
+			btn.add_theme_stylebox_override("normal", style_normal)
+			btn.add_theme_stylebox_override("hover", style_hover)
+			btn.add_theme_stylebox_override("pressed", style_pressed)
+			btn.add_theme_font_size_override("font_size", 15)
+			btn.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0, 1.0))
+			btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
+			
+			# Scale + translate on hover for tactile feel.
+			btn.pivot_offset = Vector2(0, 22)
+			btn.mouse_entered.connect(func():
+				var tw = btn.create_tween().set_parallel(true)
+				tw.tween_property(btn, "scale", Vector2(1.03, 1.03), 0.12).set_trans(Tween.TRANS_SINE)
+			)
+			btn.mouse_exited.connect(func():
+				var tw = btn.create_tween().set_parallel(true)
+				tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.12).set_trans(Tween.TRANS_SINE)
+			)
+			
+			# Stagger button entrance animations.
+			btn.modulate.a = 0.0
+			var entry_tw = btn.create_tween()
+			entry_tw.tween_property(btn, "modulate:a", 1.0, 0.15).set_delay(0.05 * i)
 			
 			btn.pressed.connect(func(): EventBus.dialogue_option_selected.emit(i))
 			options_container.add_child(btn)
 			active_options.append(opt.get("next", ""))
 			
 	EventBus.dialogue_text_updated.emit(raw_text, active_options)
+	
+	# RATIONALE: Dynamic typewriter pacing using coroutine.
+	# Pauses longer on commas and periods to simulate natural breathing/thought.
+	# 0.012s base delay is roughly twice as fast as the old 0.02 default.
+	_is_typing = true
+	text_label.visible_characters = 0
+	
+	for i in range(body_text.length()):
+		if not _is_typing:
+			break # User skipped animation
+		text_label.visible_characters = i + 1
+		
+		var char_delay = 0.012
+		var c = body_text[i]
+		if c in [".", "!", "?"]:
+			char_delay = 0.18
+		elif c == "," or c == ":":
+			char_delay = 0.08
+			
+		await get_tree().create_timer(char_delay).timeout
+		
+	if _is_typing:
+		_is_typing = false
 
 # Callback when user presses an option button.
 func select_option(index: int) -> void:
@@ -290,83 +324,18 @@ func select_option(index: int) -> void:
 func close_dialogue() -> void:
 	print("[Dialogue] Sequence finished.")
 	is_active = false
-	if _active_tween:
-		_active_tween.kill()
 	_is_typing = false
-	_hide_next_prompt()
 	
-	# Premium slide-down transition.
-	var tw = create_tween().set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUART)
-	tw.tween_property(dialogue_panel, "offset_top", 0.0, 0.3)
-	tw.finished.connect(func():
-		root_control.visible = false
-		dialogue_panel.visible = false
-		for child in options_container.get_children():
-			child.queue_free()
-		active_options.clear()
-		EventBus.dialogue_finished.emit()
-	)
-
-func _on_typewriter_step(val: int) -> void:
-	if val > text_label.visible_characters:
-		text_label.visible_characters = val
-		_on_character_typed(val, text_label.get_parsed_text())
-
-func _on_character_typed(char_index: int, full_text: String) -> void:
-	if char_index <= 0 or char_index > full_text.length():
-		return
-	var c = full_text[char_index - 1]
-	# RATIONALE: Typewriter ticks are only played for alphanumeric characters to sound natural,
-	# and throttled to every 2nd character to avoid high pitch/audio clutter.
-	if c != " " and c != "\t" and c != "\n":
-		if char_index % 2 == 0:
-			play_procedural_click()
-
-# RATIONALE: Procedurally synthesize a tiny typewriter mechanical click/tock sound using AudioStreamGenerator
-# to avoid the need for external static assets and maintain low package entropy.
-func play_procedural_click() -> void:
-	var player = AudioStreamPlayer.new()
-	add_child(player)
+	# Slide-down + fade-out to mirror the slide-up entrance.
+	var tw = create_tween().set_parallel(true)
+	tw.tween_property(dialogue_panel, "offset_top", 0.0, 0.2).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
+	tw.tween_property(dialogue_panel, "modulate:a", 0.0, 0.15).set_trans(Tween.TRANS_SINE)
+	await tw.finished
 	
-	var synth = AudioStreamGenerator.new()
-	synth.mix_rate = 22050
-	synth.buffer_length = 0.05
-	player.stream = synth
-	player.volume_db = -32.0 # Gentle, atmospheric click volume
-	player.play()
+	root_control.visible = false # Disable overlay so click interactions pass through
+	dialogue_panel.visible = false
 	
-	var playback = player.get_stream_playback()
-	if playback:
-		var duration_frames = int(22050 * 0.015) # 15ms duration
-		var buffer = PackedVector2Array()
-		buffer.resize(duration_frames)
-		
-		# Generate a sine wave with short linear decay and noise overlay for physical texture
-		var phase = 0.0
-		var freq = 280.0 + randf_range(-60.0, 60.0) # slight pitch variance
-		for i in range(duration_frames):
-			var t = float(i) / duration_frames
-			var val = sin(phase * TAU) * (1.0 - t)
-			val += randf_range(-0.1, 0.1) * (1.0 - t) # Noise texture
-			buffer[i] = Vector2(val, val) * 0.3
-			phase += freq / 22050.0
-			
-		playback.push_back_frames(buffer)
-		
-	# Clean up after playing
-	get_tree().create_timer(0.08).timeout.connect(player.queue_free)
-
-func _show_next_prompt() -> void:
-	if active_options.is_empty():
-		next_indicator.visible = true
-		next_indicator.modulate.a = 1.0
-		if _indicator_tween:
-			_indicator_tween.kill()
-		_indicator_tween = create_tween().set_loops()
-		_indicator_tween.tween_property(next_indicator, "modulate:a", 0.2, 0.6)
-		_indicator_tween.tween_property(next_indicator, "modulate:a", 1.0, 0.6)
-
-func _hide_next_prompt() -> void:
-	next_indicator.visible = false
-	if _indicator_tween:
-		_indicator_tween.kill()
+	for child in options_container.get_children():
+		child.queue_free()
+	active_options.clear()
+	EventBus.dialogue_finished.emit()

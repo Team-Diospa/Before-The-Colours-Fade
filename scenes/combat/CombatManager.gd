@@ -236,6 +236,13 @@ func transition_to(new_state: State) -> void:
 			player_energy = MAX_ENERGY + GlobalState.starting_energy_modifier
 			player_block = GlobalState.starting_block_modifier
 			
+			# RATIONALE: Enemy block fully decays each round, not just at execute time.
+			# Previously block only reset inside execute_enemy_action(), meaning a Defend
+			# intent resolved in the previous ENEMY_TURN would persist visually into the next
+			# player turn and remain until execute ran again. Resetting here ensures the
+			# displayed block is always the fresh value for the coming enemy action.
+			enemy_block = 0
+			
 			# Reset round-specific deck mechanics.
 			DeckManager.can_reroll = true
 			DeckManager.can_retain = true
@@ -513,6 +520,26 @@ func _on_retain_pressed() -> void:
 # Dimension Shift option button.
 func _on_shift_pressed() -> void:
 	if ShiftManager.can_shift():
+		# RATIONALE: Bateson's Double-Bind. Shifting isn't a clean escape; it has a visual cost.
+		# Add a blinding white flash and violent screen shake before transitioning.
+		var flash = ColorRect.new()
+		flash.color = Color.WHITE
+		flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		$UI.add_child(flash)
+		
+		var tw = create_tween().set_parallel(true)
+		tw.tween_property(flash, "color:a", 0.0, 0.6)
+		
+		var original_pos = position
+		var shake_tw = create_tween()
+		for i in range(6):
+			var offset = Vector2(randf_range(-15, 15), randf_range(-15, 15))
+			shake_tw.tween_property(self, "position", original_pos + offset, 0.05)
+		shake_tw.tween_property(self, "position", original_pos, 0.05)
+		
+		await shake_tw.finished
+		
 		ShiftManager.serialize_combat(
 			player_hp, 
 			player_energy, 
@@ -597,13 +624,14 @@ func update_ui() -> void:
 		btn.pivot_offset = Vector2(btn.custom_minimum_size.x / 2, btn.custom_minimum_size.y)
 		btn.mouse_entered.connect(func():
 			var tween = btn.create_tween().set_parallel(true)
-			tween.tween_property(btn, "scale", Vector2(1.10, 1.10), 0.12)
-			tween.tween_property(btn, "modulate", Color(1.1, 1.1, 1.2, 1.0), 0.12)
+			# Shklovsky's Defamiliarization: Slower, tactile 3% scale up to make the cards feel heavy.
+			tween.tween_property(btn, "scale", Vector2(1.03, 1.03), 0.5).set_trans(Tween.TRANS_SINE)
+			tween.tween_property(btn, "modulate", Color(1.2, 1.2, 1.2, 1.0), 0.5)
 		)
 		btn.mouse_exited.connect(func():
 			var tween = btn.create_tween().set_parallel(true)
-			tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.12)
-			tween.tween_property(btn, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.12)
+			tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_SINE)
+			tween.tween_property(btn, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.2)
 		)
 
 func set_buttons_disabled(disabled: bool) -> void:
