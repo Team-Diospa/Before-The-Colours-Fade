@@ -225,16 +225,7 @@ func _play_node(node_id: String) -> void:
 	
 	_active_tween = create_tween()
 	var duration = max(0.4, parsed_length * 0.02) # 20ms per character
-	_active_tween.tween_method(
-		func(val: int):
-			if val > text_label.visible_characters:
-				text_label.visible_characters = val
-				_on_character_typed(val, text_label.get_parsed_text())
-		,
-		0,
-		parsed_length,
-		duration
-	)
+	_active_tween.tween_method(_on_typewriter_step, 0, parsed_length, duration)
 	_active_tween.finished.connect(func():
 		_is_typing = false
 		_show_next_prompt()
@@ -315,6 +306,11 @@ func close_dialogue() -> void:
 		active_options.clear()
 		EventBus.dialogue_finished.emit()
 	)
+
+func _on_typewriter_step(val: int) -> void:
+	if val > text_label.visible_characters:
+		text_label.visible_characters = val
+		_on_character_typed(val, text_label.get_parsed_text())
 
 func _on_character_typed(char_index: int, full_text: String) -> void:
 	if char_index <= 0 or char_index > full_text.length():
