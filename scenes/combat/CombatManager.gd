@@ -416,19 +416,15 @@ func _resolve_victory() -> void:
 	if enemy_name == "Castle Boss":
 		DialogueSystem.start_dialogue({
 			"start": {
-				"text": "n.n.: Wow, that was awesome Hilbert! I didn't know you could do that.",
+				"text": "n.n.: We did it, Hilbert! The castle is secure again.",
 				"next": "win_step2"
 			},
 			"win_step2": {
-				"text": "Hilbert: Well, me neither. But, somehow I just had the courage to do it. I haven't had this much fun in a while.",
+				"text": "Hilbert: Yeah. But my head feels weirdly light. Like I'm forgetting what class we have next.",
 				"next": "win_step3"
 			},
 			"win_step3": {
-				"text": "n.n.: Yes there is, but you have to wake up too. This is only a dream, you need to go back to reality.",
-				"next": "win_step4"
-			},
-			"win_step4": {
-				"text": "Hilbert: No, wait, I can't, I don't want to...",
+				"text": "n.n.: Don't worry about it! Just focus on the morning. Let's wake up.",
 				"next": ""
 			}
 		}, "start")
@@ -439,27 +435,27 @@ func _resolve_victory() -> void:
 	elif enemy_name == "Pack Leader":
 		DialogueSystem.start_dialogue({
 			"start": {
-				"text": "n.n.: The fire is gone. The village is peaceful again, Hilbert.",
+				"text": "n.n.: The fire is out, Hilbert. The valley is quiet.",
 				"next": "win_step2"
 			},
 			"win_step2": {
-				"text": "Hilbert: I... I actually solved it. It felt so real.",
+				"text": "Hilbert: It is. But I feel... like I left something behind in the classroom. A notebook? A pen?",
 				"next": "win_step3"
 			},
 			"win_step3": {
-				"text": "n.n.: Every victory here makes you stronger out there. But remember... reality is waiting.",
+				"text": "n.n.: It is fine. You do not need it anymore. You passed. Let's head home.",
 				"next": "win_step4"
 			},
 			"win_step4": {
-				"text": "Hilbert: Just a little longer. Let the colors stay for a bit.",
+				"text": "You wake up at your desk in the classroom. The quiz paper in front of you is fully solved. You passed.",
 				"next": "win_step5"
 			},
 			"win_step5": {
-				"text": "You open your eyes. The classroom is quiet. The quiz paper in front of you is fully filled out in neat handwriting.",
+				"text": "But the seat next to you is empty and covered in a thin layer of dust. You pull out your phone.",
 				"next": "win_step6"
 			},
 			"win_step6": {
-				"text": "You check your phone. No new notifications, just the time and a blank reminder.",
+				"text": "Your contact list has a blank entry named 'n.n.' that you do not recognize. You stare at it blankly.",
 				"next": "win_step7"
 			},
 			"win_step7": {

@@ -6,26 +6,26 @@ extends Node2D
 # Dialogue trees for the classroom actors with split beats and isolated system notices.
 var peer1_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 1: Hilbert? You look like a ghost. Did you... study at all?",
+		"text": "Peer 1: Hilbert? You look extremely tired. Did you get any study time in last night?",
 		"options": [
-			{"text": "\"Study what?\"", "next": "forget_what"},
+			{"text": "\"Not really. I lost my notebook.\"", "next": "forget_what"},
 			{"text": "\"I'm just stressed about the quiz.\"", "next": "stressed"}
 		]
 	},
 	"forget_what": {
-		"text": "Hilbert: Study what?",
+		"text": "Hilbert: Not really. I lost my notebook.",
 		"next": "forget_what_2"
 	},
 	"forget_what_2": {
-		"text": "Peer 1: The quiz, Hilbert. The one worth half our grade. You know, the one the professor has been warning us about for weeks.",
+		"text": "Peer 1: The one with the blueprint sketches? I think you left it in the library last week.",
 		"next": "forget_what_3"
 	},
 	"forget_what_3": {
-		"text": "Hilbert: Oh. Right. I lost my notebook.",
+		"text": "Hilbert: The library? I don't remember going there.",
 		"next": "forget_what_4"
 	},
 	"forget_what_4": {
-		"text": "Peer 1: Well, I saw it in your locker. You should grab it before the test starts.",
+		"text": "Peer 1: Chloe saw it and put it in your locker so it wouldn't get lost. You should check there.",
 		"next": "peer1_healed_sys"
 	},
 	"stressed": {
@@ -33,7 +33,7 @@ var peer1_dialogue: Dictionary = {
 		"next": "stressed_2"
 	},
 	"stressed_2": {
-		"text": "Peer 1: Don't worry, it's just a quiz. You'll do fine. Take it slow, Hilbert.",
+		"text": "Peer 1: Don't worry, it's just a quiz. Take it slow, Hilbert.",
 		"next": "peer1_healed_sys"
 	},
 	"peer1_healed_sys": {
@@ -55,7 +55,7 @@ var peer2_dialogue: Dictionary = {
 		"next": "apologize_2"
 	},
 	"apologize_2": {
-		"text": "Peer 2: Yeah, well, space out somewhere else. I'm trying to cram.",
+		"text": "You swallow your pride to defuse the tension.",
 		"next": "apologize_sys"
 	},
 	"apologize_sys": {
@@ -67,7 +67,7 @@ var peer2_dialogue: Dictionary = {
 		"next": "ignore_2"
 	},
 	"ignore_2": {
-		"text": "Peer 2: Whatever. Weirdo.",
+		"text": "You focus inward, blocking out the classroom noise.",
 		"next": "ignore_sys"
 	},
 	"ignore_sys": {
@@ -78,11 +78,11 @@ var peer2_dialogue: Dictionary = {
 
 var locker_dialogue: Dictionary = {
 	"start": {
-		"text": "You open the locker. Inside is your old notebook covered in drawings of flying machines.",
+		"text": "You open the locker. Inside is an old notebook covered in drawings of mechanical gadgets.",
 		"next": "locker_2"
 	},
 	"locker_2": {
-		"text": "Hilbert: These doodles... they make me feel like I can build anything.",
+		"text": "Hilbert: These drawings... They look like designs for flying drones. I must have sketched this last semester.",
 		"next": "locker_sys"
 	},
 	"locker_sys": {
@@ -134,11 +134,11 @@ var paper_monster_dialogue: Dictionary = {
 		"next": "use_yes_2"
 	},
 	"use_yes_2": {
-		"text": "Paper Monster: CHOOSE A, B, OR C! FAILURE IS NOT AN OPTION!",
+		"text": "Paper Monster: TIME IS UP. PUT DOWN YOUR PENCILS. THE TEST CANNOT BE REDONE.",
 		"next": "use_yes_3"
 	},
 	"use_yes_3": {
-		"text": "The monster shatters into fading light. You feel a sudden, numb lightness in your chest.",
+		"text": "The monster shatters into fading light, dissolving the heavy fog in the classroom.",
 		"next": "use_yes_sys"
 	},
 	"use_yes_sys": {
