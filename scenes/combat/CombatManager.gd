@@ -279,8 +279,19 @@ func update_ui() -> void:
 	enemy_block_label.text = "Block: " + str(enemy_block)
 	enemy_intent_label.text = "Intent: " + enemy_intent + " (" + str(enemy_intent_value) + ")"
 	
-	# Dimension shifting is only permitted in the Pack Leader fight, and only if the buff is not already acquired.
-	shift_btn.visible = ShiftManager.can_shift() and enemy_name == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active")
+	# Dimension shifting button logic in Pack Leader fight.
+	if enemy_name == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active"):
+		shift_btn.visible = true
+		if ShiftManager.can_shift():
+			shift_btn.disabled = false
+			shift_btn.text = "Shift to Reality\n(READY)"
+		else:
+			shift_btn.disabled = true
+			shift_btn.text = "Shift to Reality\n(" + str(GlobalState.dimension_charge) + "/3)"
+	else:
+		# Hide the button in Castle Boss tutorial and after the buff is already used.
+		shift_btn.visible = false
+		
 	reroll_btn.disabled = not DeckManager.can_reroll or player_energy < 1
 	
 	# Redraw card hand buttons.
