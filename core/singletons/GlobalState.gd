@@ -20,6 +20,7 @@ const FLAG_NAMES: Array = [
 	# Combat-specific flags (reset between combats via reset_combat_flags).
 	"enemy_burning",             # Fireball secondary effect: enemy skips Defend next turn.
 	"pack_leader_hint_shown",    # Pack Leader immunity hint fired once.
+	"window_closed",             # Apartment window closed; triggers room darkening tween.
 ]
 
 # Dictionary to hold various narrative progression flags.
@@ -42,6 +43,7 @@ var narrative_flags: Dictionary = {
 	# Combat-specific flags.
 	"enemy_burning": false,
 	"pack_leader_hint_shown": false,
+	"window_closed": false,
 }
 
 # Tracks how many attack cards the player has played against Pack Leader without the confidence buff.
@@ -112,6 +114,7 @@ func reset_state() -> void:
 		"peer2_talked": false,
 		"enemy_burning": false,
 		"pack_leader_hint_shown": false,
+		"window_closed": false,
 	}
 	pack_leader_attack_count = 0
 	player_max_hp = 50

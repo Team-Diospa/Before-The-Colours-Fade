@@ -69,3 +69,23 @@ prompt_message = "Press E to use Toilet"
 position = Vector2(1080, 500)
 interaction_id = "exit_door"
 prompt_message = "Press E to exit Apartment"
+
+[node name="Window" parent="." instance=ExtResource("3_interactable")]
+position = Vector2(100, 500)
+interaction_id = "window"
+prompt_message = "Press E to look out Window"
+
+[node name="Wardrobe" parent="." instance=ExtResource("3_interactable")]
+position = Vector2(570, 500)
+interaction_id = "wardrobe"
+prompt_message = "Press E to open Wardrobe"
+
+[node name="Papers" parent="." instance=ExtResource("3_interactable")]
+position = Vector2(750, 500)
+interaction_id = "papers"
+prompt_message = "Press E to inspect Papers"
+
+[node name="Kitchen" parent="." instance=ExtResource("3_interactable")]
+position = Vector2(900, 500)
+interaction_id = "kitchen"
+prompt_message = "Press E to check Kitchen"

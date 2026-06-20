@@ -22,8 +22,12 @@ func _ready() -> void:
 	call_deferred("_init_hud_on_start")
 
 func _init_hud_on_start() -> void:
+	# RATIONALE: Do not show the HUD when the game launches into the main menu.
+	# The HUD is only shown when transitioning into an exploration scene.
 	if has_node("/root/ExplorationHUD"):
-		get_node("/root/ExplorationHUD").show_hud()
+		var current = get_tree().current_scene
+		if current and current.scene_file_path != "res://scenes/ui/main_menu.tscn":
+			get_node("/root/ExplorationHUD").show_hud()
 
 # Transition to a target state by path mapping.
 func transition_to_state(target_state: String) -> void:
@@ -55,6 +59,12 @@ func transition_to_state(target_state: String) -> void:
 			
 	# Trigger the transition process with fade effect.
 	_change_scene_with_fade(target_scene_path)
+
+# Return to the main menu. Called by PauseManager when the player selects Main Menu.
+func transition_to_state_menu() -> void:
+	if has_node("/root/ExplorationHUD"):
+		get_node("/root/ExplorationHUD").hide_hud()
+	_change_scene_with_fade("res://scenes/ui/main_menu.tscn")
 
 # Perform fade-out, scene change, and fade-in.
 func _change_scene_with_fade(scene_path: String) -> void:
