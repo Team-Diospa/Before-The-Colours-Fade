@@ -55,9 +55,9 @@ func _draw() -> void:
 	# Health actual fill line (smoothly lerping red vector)
 	draw_line(Vector2(player_x_start, player_y_bar), Vector2(player_x_start + 180 * smooth_player_hp_ratio, player_y_bar), Color(0.8, 0.25, 0.25, 0.75), 5.0)
 	
-	# Muted block shield highlight outline
+	# Muted block shield highlight outline (translucent silver)
 	if manager.player_block > 0:
-		draw_rect(Rect2(player_x_start - 4, player_y_bar - 6, 188, 12), Color(0.25, 0.45, 0.75, 0.35), false, 1.5)
+		draw_rect(Rect2(player_x_start - 4, player_y_bar - 6, 188, 12), Color(0.8, 0.8, 0.8, 0.45), false, 1.5)
 		
 	# 4. Enemy Stats Frame and Health Line (X = 800 to 1000, Y = 150 to 250)
 	var enemy_x_start = 810
@@ -71,9 +71,9 @@ func _draw() -> void:
 	# Health actual fill line (smoothly lerping red vector)
 	draw_line(Vector2(enemy_x_start, enemy_y_bar), Vector2(enemy_x_start + 180 * smooth_enemy_hp_ratio, enemy_y_bar), Color(0.8, 0.25, 0.25, 0.75), 5.0)
 	
-	# Muted block shield highlight outline
+	# Muted block shield highlight outline (translucent silver)
 	if manager.enemy_block > 0:
-		draw_rect(Rect2(enemy_x_start - 4, enemy_y_bar - 6, 188, 12), Color(0.25, 0.45, 0.75, 0.35), false, 1.5)
+		draw_rect(Rect2(enemy_x_start - 4, enemy_y_bar - 6, 188, 12), Color(0.8, 0.8, 0.8, 0.45), false, 1.5)
 		
 	# 5. Sun (top-right, X = 1050, Y = 80)
 	var sun_color = Color(0.9, 0.75, 0.15, 1.0) # Warm sienna/yellow

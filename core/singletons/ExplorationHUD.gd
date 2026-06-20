@@ -46,7 +46,7 @@ func _ready() -> void:
 	# Premium dark pixel styling (no rounded corners, disabled anti-aliasing, retro shadow).
 	# Restyled to translucent glassmorphism with square corners and a thin white highlight border.
 	var style_box = StyleBoxFlat.new()
-	style_box.bg_color = Color(0.04, 0.06, 0.1, 0.45) # Glossy translucent dark slate blue
+	style_box.bg_color = Color(0.08, 0.08, 0.08, 0.5) # Neutral translucent dark slate grey
 	style_box.corner_radius_bottom_left = 0
 	style_box.corner_radius_bottom_right = 0
 	style_box.corner_radius_top_left = 0
@@ -173,7 +173,7 @@ func _ready() -> void:
 	title_lbl.text = "PLAYER STATUS & DECK INVENTORY"
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_lbl.add_theme_font_size_override("font_size", 16)
-	title_lbl.modulate = Color(0.4, 0.7, 1.0, 1.0)
+	title_lbl.modulate = Color(0.9, 0.9, 0.9, 1.0) # Soft silver/white modulate
 	main_vbox.add_child(title_lbl)
 	
 	var header_spacer = Control.new()

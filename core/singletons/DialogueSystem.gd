@@ -68,7 +68,7 @@ func _update_ui_style() -> void:
 		style_box.shadow_offset = Vector2(2, 2)
 		
 		text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-		speaker_label.add_theme_color_override("font_color", Color(0.4, 0.7, 1.0, 1.0)) # Sky blue badge
+		speaker_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0)) # Soft silver speaker badge
 		continue_indicator.add_theme_color_override("font_color", Color(0.6, 0.7, 0.8, 1.0))
 		
 	dialogue_panel.add_theme_stylebox_override("panel", style_box)
@@ -239,10 +239,11 @@ func _play_node(node_id: String) -> void:
 			body_text = parts[1]
 	
 	if speaker != "":
+		# RATIONALE: Strip brackets if the name is wrapped in them, and do not add brackets to speaker names.
 		if speaker.begins_with("[") and speaker.ends_with("]"):
-			speaker_label.text = speaker
+			speaker_label.text = speaker.substr(1, speaker.length() - 2)
 		else:
-			speaker_label.text = "[" + speaker + "]"
+			speaker_label.text = speaker
 	else:
 		speaker_label.text = ""
 		
@@ -250,20 +251,24 @@ func _play_node(node_id: String) -> void:
 	text_label.text = body_text
 	
 	# Style-specific text modulations for high contrast and readability.
-	if speaker_label.text == "[System]":
+	if speaker_label.text == "System":
 		if _is_dream_world:
-			text_label.add_theme_color_override("font_color", Color(0.55, 0.4, 0.1, 1.0)) # Golden-brown system text in dream
-			speaker_label.add_theme_color_override("font_color", Color(0.55, 0.4, 0.1, 1.0))
+			# RATIONALE: Use a neutral graphite/pencil-grey color for the system speaker and system message text
+			# to fit cleanly into the warm beige sketch style of the dream world without dirty green/brown tints.
+			text_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.35, 1.0))
+			speaker_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.35, 1.0))
 		else:
-			text_label.add_theme_color_override("font_color", Color(0.8, 0.7, 0.4, 1.0)) # Muted gold system text in reality
-			speaker_label.add_theme_color_override("font_color", Color(0.8, 0.7, 0.4, 1.0))
+			# RATIONALE: Use a neutral light silver-grey color for the system speaker and system message text
+			# to stand out clearly but elegantly in the dark slate reality style without jarring amber highlights.
+			text_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85, 1.0))
+			speaker_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85, 1.0))
 	else:
 		if _is_dream_world:
 			text_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0)) # Dark slate body in dream
 			speaker_label.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0)) # Warm brick-red speaker in dream
 		else:
 			text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0)) # White body in reality
-			speaker_label.add_theme_color_override("font_color", Color(0.4, 0.7, 1.0, 1.0)) # Sky blue speaker in reality
+			speaker_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0)) # Soft silver speaker in reality
 	
 	# Print to console for editor debugging.
 	print("[Dialogue Node ID: ", node_id, "] ", raw_text)
@@ -324,8 +329,8 @@ func _play_node(node_id: String) -> void:
 				style_normal.shadow_size = 2
 				style_normal.shadow_offset = Vector2(1, 1)
 				
-				style_hover.bg_color = Color(0.14, 0.18, 0.26, 0.6)
-				style_hover.border_color = Color(0.3, 0.6, 0.9, 0.5) # Soft ice blue outline
+				style_hover.bg_color = Color(0.18, 0.18, 0.22, 0.6) # Translucent grey glass hover background
+				style_hover.border_color = Color(0.8, 0.8, 0.8, 0.5) # Soft silver highlight outline
 				style_hover.shadow_color = Color(0, 0, 0, 0.15)
 				style_hover.shadow_size = 2
 				style_hover.shadow_offset = Vector2(1, 1)
@@ -335,7 +340,7 @@ func _play_node(node_id: String) -> void:
 				style_pressed.shadow_offset = Vector2(0, 0)
 				
 				btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-				btn.add_theme_color_override("font_hover_color", Color(0.4, 0.7, 1.0, 1.0))
+				btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0)) # Crisp white hover text
 				btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0, 1.0))
 				
 			btn.add_theme_stylebox_override("normal", style_normal)

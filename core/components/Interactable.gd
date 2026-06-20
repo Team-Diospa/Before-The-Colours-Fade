@@ -18,6 +18,9 @@ var is_player_near: bool = false
 # Programmatic UI prompt label.
 var prompt_label: Label
 
+# Accumulate elapsed time for the vertical bobbing animation.
+var _time: float = 0.0
+
 func _ready() -> void:
 	# Create and configure visual prompt label.
 	prompt_label = Label.new()
@@ -32,6 +35,12 @@ func _ready() -> void:
 	# Connect local Area2D signals to handle proximity detection.
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+
+func _process(delta: float) -> void:
+	# Gently bob the prompt label vertically when the player is nearby to draw visual attention.
+	if is_player_near and prompt_label.visible:
+		_time += delta
+		prompt_label.position.y = -95.0 + sin(_time * 4.0) * 4.0
 
 func _input(event: InputEvent) -> void:
 	# Check if player is near and presses the mapped interaction key 'e'.
@@ -51,8 +60,20 @@ func _on_body_entered(body: Node2D) -> void:
 	if body is ExplorationPlayer:
 		is_player_near = true
 		prompt_label.visible = true
+		prompt_label.modulate.a = 0.0
+		# Reset positions and run a smooth fade-in tween
+		_time = 0.0
+		prompt_label.position.y = -95.0
+		var tw = create_tween()
+		tw.tween_property(prompt_label, "modulate:a", 1.0, 0.15)
 
 func _on_body_exited(body: Node2D) -> void:
 	if body is ExplorationPlayer:
 		is_player_near = false
-		prompt_label.visible = false
+		# Run a smooth fade-out tween to avoid harsh visual popping
+		var tw = create_tween()
+		tw.tween_property(prompt_label, "modulate:a", 0.0, 0.12)
+		await tw.finished
+		# Ensure player hasn't quickly re-entered the zone before hiding
+		if not is_player_near:
+			prompt_label.visible = false
