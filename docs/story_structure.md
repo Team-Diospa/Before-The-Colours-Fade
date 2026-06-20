@@ -1,61 +1,56 @@
-# Theoretical Story Structure and Narrative Progression
+# Theoretical Narrative Structure and Information Theory Guidebook
 
-This document details the abstract design, logical layers, and progression mechanics of the narrative system for \"Before the Colours Fade\". It provides a theoretical framework for pacing mystery and utilizing trivial hints to foster player-led deduction.
+This document details the scientific and theoretical frameworks governing narrative structure, information distribution, progression pacing, and reader-led cognitive assembly in interactive mediums.
 
-## 1. Logical Layers of the Narrative Arc
+## 1. Information Entropy and Narrative Anchoring
 
-The narrative does not follow a traditional hero's journey. Instead, it operates as a structured descent through cognitive layers:
+Narrative progression is the controlled dissipation of information entropy. At the beginning of a system (Chapter 1), information entropy is high, meaning the reader faces a wide spectrum of possible states. 
 
-### Layer 0: The Mundane Baseline
-- **Focus:** Grounded reality.
-- **Narrative State:** The player experiences a quiet, cold, and slow-paced grey world. The environment is filled with standard, everyday tasks (preparing for class, dealing with peers, dealing with messy drawers).
-- **Function:** Establish normalcy. There are no dramatic declarations of grief. The absence of details (empty space, quietness) is the primary driver of atmosphere.
+### The Anchor Hypothesis
+To prevent cognitive overload or detachment, the system must deploy semantic anchors.
+- **Mundane Anchoring:** Anchors must appear trivial and integrated into the default environment (noise). If an anchor stands out too sharply, its salience increases, causing the reader to identify it as a narrative device, which destroys the illusion of reality.
+- **Cognitive Reconstruction:** The reader is an active processing unit. A narrative does not deliver meaning; it delivers raw data points. Meaning is generated when the reader connects these data points using their own cognitive schemas.
 
-### Layer 1: The Delusional Haven
-- **Focus:** The high-fantasy dream state.
-- **Narrative State:** A colorful, vibrant, and high-stakes deckbuilder world. Actions are clear: attack, defend, defeat the boss. Hilbert feels capable and empowered.
-- **Function:** Provide catharsis and mechanical rewards. The player is incentivized to stay in this layer because it is visually pleasing, active, and fun.
+## 2. Pacing Framework: The Three Phases of Epistemic Progression
 
-### Layer 2: The Cognitive Friction
-- **Focus:** The boundary between dimensions.
-- **Narrative State:** The crossover points where the fantasy world's rules begin to break down. The enemy intents are described in classroom terminology, or the combat requires shifting back to reality.
-- **Function:** Introduce discrepancies. The player starts to notice that the anomalies in the fantasy world correspond directly to mundane stresses in the grey world.
-
-### Layer 3: The Narrative Trade-Off
-- **Focus:** Progression versus Erasure.
-- **Narrative State:** The core progression loop. To progress through battles, the player must shift back to reality and inspect objects, which adds powerful cards to their deck. However, this process slowly strips away the subtle hints of the past.
-- **Function:** Mechanical growth comes at the cost of narrative detail. The stronger the deck becomes, the more the grey world loses its specific history, replacing it with empty, dusty spaces.
-
-### Layer 4: The Silent Collapse
-- **Focus:** The resolution.
-- **Narrative State:** The final state of the game. The player achieves the goal (surviving the day, passing the quiz), but the narrative details that connected Hilbert to his past are gone. The contact list is blank, the desk is empty, and only initials remain.
-- **Function:** Subversion of victory. The player realizes that escaping the pain through mechanical progression resulted in the complete deletion of the source of that pain.
-
-## 2. The Mechanics of the Trivial Hint
-
-To keep the narrative engaging and avoid predictability, clues must be treated as minor, mundane details rather than heavy plot points:
-
-### The Excused Anomaly
-- Hilbert must always have a logical, mundane excuse for anything that is out of place. 
-- If a face is scratched out in a photo, he assumes it is a tea smudge. If a guitar is tuned differently, he assumes he forgot how he left it.
-- This prevents Hilbert from appearing self-aware of his memory loss, keeping the player in the same state of uncertainty.
-
-### The Fragmented Margin
-- Clues should be placed in marginalia (messy handwriting on blueprints, small scratches on desks, light flickers).
-- By keeping the hints small, the player does not feel forced into a specific conclusion early. They treat them as background flavor until the pieces begin to connect.
-
-### The Relatable Anchor
-- All tension must remain anchored in simple, relatable conflicts (procrastination, social awkwardness, school anxiety). 
-- Avoid using dramatic, high-energy emotional language. Relatability builds empathy, which makes the subsequent psychological horror of losing memory feel personal and unsettling.
-
-## 3. Narrative Progression Model
+A multi-chapter narrative structure moves through three distinct operational phases:
 
 ```mermaid
 graph TD
-    A["Layer 0: Mundane Reality (Classroom/Apartment)"] -->|Dimension Shift| B["Layer 1: Fantasy Haven (Combat)"]
-    B -->|Shift Charge Ready| C["Layer 2: Friction (Warp to Reality mid-battle)"]
-    C -->|Loot items/talk to peers| D["Layer 3: Progression (New cards, buffs)"]
-    D -->|Foreshadowing hints vanish| E["Layer 4: Silent Collapse (Memory erasure, blank slots)"]
+    A["Phase I: Information Scarcity"] --> B["Phase II: Tension Acceleration"]
+    B --> C["Phase III: Epistemic Realignment"]
 ```
 
-By structuring the game around these theoretical layers, the narrative remains a puzzle for the player to assemble, ensuring that the climax delivers a genuine shock rather than a predictable resolution.
+### Phase I: Information Scarcity and Local Anchors
+- **Objective:** Establish the status quo and seed latent anomalies.
+- **Constraints:** The local environment must seem functional and self-contained. Discrepancies must be explainable by natural system errors (such as smudges, tuning errors, or misplacements).
+- **Tension:** Low but persistent. The conflict is local, mundane, and relatable (such as academic or social friction).
+
+### Phase II: Systemic Discrepancy and Tension Acceleration
+- **Objective:** Reveal that the status quo is incomplete or systematically flawed.
+- **Constraints:** Local explanation mechanisms begin to fail. The discrepancies grow in frequency and scale, colliding with the mechanical gameplay loops.
+- **Tension:** Accelerating. The local conflicts escalate as the reader realizes the boundaries of the system are unstable.
+
+### Phase III: Resolution and Epistemic Realignment
+- **Objective:** Integrate all previous clues into a single, cohesive structural paradigm.
+- **Constraints:** The final clue must not be an explanation. It must act as the missing operator in an equation, allowing the reader to instantly re-evaluate every previous clue under a new framework.
+- **Tension:** Culmination followed by structural closure. The mystery resolves not through external exposition, but through internal realization.
+
+## 3. The Science of Seeded Clues (Semantic Anchors)
+
+The effectiveness of a narrative mystery is determined by the relationship between three variables: **Salience**, **Density**, and **Deductive Utility**.
+
+| Variable | Definition | Pacing Target |
+| :--- | :--- | :--- |
+| **Salience** | How easily a clue is noticed by the reader. | Minimum in early phases; scaling upward. |
+| **Density** | The volume of clues distributed in a single space. | Low, to avoid cluttering cognitive capacity. |
+| **Deductive Utility** | The logical weight a clue holds in solving the puzzle. | Latent initially; active only when grouped. |
+
+### The Triviality Constraint
+A clue must have high deductive utility but low immediate salience. The player should register the detail as a standard part of the environment, storing it in working memory without immediately processing it. The disclosure of a second, complementary clue later increases the salience of the first, forcing the player to retrieve and integrate it.
+
+## 4. Ludonarrative Symbiosis
+
+In interactive systems, story progression must align with mechanical progression.
+- **Mechanical Action as Narrative Choice:** When a player performs a gameplay mechanic (such as deck construction, stat modification, or dimension shifting), they are executing a narrative choice.
+- **Systemic Friction:** Narrative tension is reinforced when the mechanical cost of survival (such as using resources or shifting states) directly corresponds to the thematic decay of the narrative environment. The player's mechanical optimization of the game should drive the thematic progression of the story.
