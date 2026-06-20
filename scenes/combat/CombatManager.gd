@@ -416,19 +416,19 @@ func _resolve_victory() -> void:
 	if enemy_name == "Castle Boss":
 		DialogueSystem.start_dialogue({
 			"start": {
-				"text": "n.n.: Wow, that was awesome Hilbert! You fought with so much courage.",
+				"text": "n.n.: Wow, that was awesome Hilbert! I didn't know you could do that.",
 				"next": "win_step2"
 			},
 			"win_step2": {
-				"text": "n.n.: But... the colors are starting to flicker. It's time to wake up. We have to go back to the grey reality.",
+				"text": "Hilbert: Well, me neither. But, somehow I just had the courage to do it. I haven't had this much fun in a while.",
 				"next": "win_step3"
 			},
 			"win_step3": {
-				"text": "Hilbert: My eyes feel dry. And the sky looks... pixelated.",
+				"text": "n.n.: Yes there is, but you have to wake up too. This is only a dream, you need to go back to reality.",
 				"next": "win_step4"
 			},
 			"win_step4": {
-				"text": "n.n.: That's just the classroom ceiling calling you back. Let's go, Hilbert.",
+				"text": "Hilbert: No, wait, I can't, I don't want to...",
 				"next": ""
 			}
 		}, "start")
@@ -439,34 +439,30 @@ func _resolve_victory() -> void:
 	elif enemy_name == "Pack Leader":
 		DialogueSystem.start_dialogue({
 			"start": {
-				"text": "n.n.: The fire is gone. The village is peaceful now, Hilbert. You did it.",
+				"text": "n.n.: The fire is gone. The village is peaceful again, Hilbert.",
 				"next": "win_step2"
 			},
 			"win_step2": {
-				"text": "Hilbert: n.n., why do you look so faint? I... I can't see your propeller anymore.",
+				"text": "Hilbert: I... I actually solved it. It felt so real.",
 				"next": "win_step3"
 			},
 			"win_step3": {
-				"text": "n.n.: Because the quiz is ending, Hilbert. You passed. Or did you?",
+				"text": "n.n.: Every victory here makes you stronger out there. But remember... reality is waiting.",
 				"next": "win_step4"
 			},
 			"win_step4": {
-				"text": "Hilbert: Wait. Who did I draw you with again? I thought I was alone.",
+				"text": "Hilbert: Just a little longer. Let the colors stay for a bit.",
 				"next": "win_step5"
 			},
 			"win_step5": {
-				"text": "n.n.: Maybe you were. Maybe you weren't. Wake up...",
+				"text": "You open your eyes. The classroom is quiet. The quiz paper in front of you is fully filled out in neat handwriting.",
 				"next": "win_step6"
 			},
 			"win_step6": {
-				"text": "You wake up at your desk. The test paper in front of you is fully solved. You passed.",
+				"text": "You check your phone. No new notifications, just the time and a blank reminder.",
 				"next": "win_step7"
 			},
 			"win_step7": {
-				"text": "But the seat next to you has a notebook with a drawing of a rocket-powered toaster. The margin says: 'H.H. & ...' The other name is smudged.",
-				"next": "win_step8"
-			},
-			"win_step8": {
 				"text": "Demo Complete. Thank you for playing 'Before the Colours Fade'.",
 				"next": ""
 			}

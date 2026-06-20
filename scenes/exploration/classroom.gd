@@ -6,26 +6,26 @@ extends Node2D
 # Dialogue trees for the classroom actors with split beats and isolated system notices.
 var peer1_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 1: Hilbert? You look like a ghost. Did you... forget again?",
+		"text": "Peer 1: Hilbert? You look like a ghost. Did you... study at all?",
 		"options": [
-			{"text": "\"Forget what?\"", "next": "forget_what"},
+			{"text": "\"Study what?\"", "next": "forget_what"},
 			{"text": "\"I'm just stressed about the quiz.\"", "next": "stressed"}
 		]
 	},
 	"forget_what": {
-		"text": "Hilbert: Forget what?",
+		"text": "Hilbert: Study what?",
 		"next": "forget_what_2"
 	},
 	"forget_what_2": {
-		"text": "Peer 1: Your notebook. You left it under the cafeteria microwave. Again.",
+		"text": "Peer 1: The quiz, Hilbert. The one worth half our grade. You know, the one the professor has been warning us about for weeks.",
 		"next": "forget_what_3"
 	},
 	"forget_what_3": {
-		"text": "Hilbert: Why would I leave it under the microwave?",
+		"text": "Hilbert: Oh. Right. I lost my notebook.",
 		"next": "forget_what_4"
 	},
 	"forget_what_4": {
-		"text": "Peer 1: Maybe you wanted to warm up your drawings? Honestly, Hilbert, nobody knows how your brain works.",
+		"text": "Peer 1: Well, I saw it in your locker. You should grab it before the test starts.",
 		"next": "peer1_healed_sys"
 	},
 	"stressed": {
@@ -44,7 +44,7 @@ var peer1_dialogue: Dictionary = {
 
 var peer2_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 2: Stop staring at my desk! If you want a cheese cracker, just ask. Don't stare at it like it's a math problem.",
+		"text": "Peer 2: Stop staring at me! You've been spacing out and whispering to thin air. It's creepy.",
 		"options": [
 			{"text": "\"Sorry, just spaced out.\"", "next": "apologize"},
 			{"text": "Ignore them.", "next": "ignore"}
@@ -55,7 +55,7 @@ var peer2_dialogue: Dictionary = {
 		"next": "apologize_2"
 	},
 	"apologize_2": {
-		"text": "You swallow your pride to defuse the tension. You promise not to look at the crackers.",
+		"text": "Peer 2: Yeah, well, space out somewhere else. I'm trying to cram.",
 		"next": "apologize_sys"
 	},
 	"apologize_sys": {
@@ -67,7 +67,7 @@ var peer2_dialogue: Dictionary = {
 		"next": "ignore_2"
 	},
 	"ignore_2": {
-		"text": "You focus inward, blocking out the classroom noise. The crackers are not real anyway.",
+		"text": "Peer 2: Whatever. Weirdo.",
 		"next": "ignore_sys"
 	},
 	"ignore_sys": {
@@ -78,11 +78,11 @@ var peer2_dialogue: Dictionary = {
 
 var locker_dialogue: Dictionary = {
 	"start": {
-		"text": "You open the locker. Inside is an old notebook covered in brave drawings of inventions.",
+		"text": "You open the locker. Inside is your old notebook covered in drawings of flying machines.",
 		"next": "locker_2"
 	},
 	"locker_2": {
-		"text": "Hilbert: A blueprint of a rocket-powered toaster. Yes, this will definitely revolutionize breakfast.",
+		"text": "Hilbert: These doodles... they make me feel like I can build anything.",
 		"next": "locker_sys"
 	},
 	"locker_sys": {
@@ -134,7 +134,7 @@ var paper_monster_dialogue: Dictionary = {
 		"next": "use_yes_2"
 	},
 	"use_yes_2": {
-		"text": "Paper Monster: THE ANSWER TO QUESTION FOUR IS NOT 'BANANA'! CHOOSE A, B, OR C, HILBERT!",
+		"text": "Paper Monster: CHOOSE A, B, OR C! FAILURE IS NOT AN OPTION!",
 		"next": "use_yes_3"
 	},
 	"use_yes_3": {

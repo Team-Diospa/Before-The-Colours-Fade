@@ -17,16 +17,12 @@ var bed_dialogue: Dictionary = {
 	"start": {
 		"text": "Close my eyes and escape back to the dark? Or face the grey morning?",
 		"options": [
-			{"text": "Sleep again (Avoid pain)", "next": "bed_yes_1"},
+			{"text": "Sleep again (Avoid reality)", "next": "bed_yes_1"},
 			{"text": "Get up (Force alertness)", "next": "bed_no_1"}
 		]
 	},
 	"bed_yes_1": {
-		"text": "n.n.: Hilbert, did you remember to water the plastic plant?",
-		"next": "bed_yes_2"
-	},
-	"bed_yes_2": {
-		"text": "You drift back into a light slumber, waking up late and rushed.",
+		"text": "You drift back into a light slumber, dreaming of green grass and flying gears.",
 		"next": "bed_yes_sys"
 	},
 	"bed_yes_sys": {
@@ -34,7 +30,7 @@ var bed_dialogue: Dictionary = {
 		"next": ""
 	},
 	"bed_no_1": {
-		"text": "Hilbert: No. I need to stay awake. I think there is a test today.",
+		"text": "Hilbert: No. I need to get up. Today is the quiz, and the floor is too cold anyway.",
 		"next": "bed_no_sys"
 	},
 	"bed_no_sys": {
@@ -52,11 +48,11 @@ var desk_dialogue: Dictionary = {
 		]
 	},
 	"open_drawer_1": {
-		"text": "Sketches of old childhood inventions... and a framed photograph of a boy holding a giant cabbage.",
+		"text": "An old sketchbook full of bizarre blueprints: a mechanical bird, a steam-powered toothbrush, and a smiling robot.",
 		"next": "open_drawer_2"
 	},
 	"open_drawer_2": {
-		"text": "Hilbert: Why did we take a picture with a cabbage? And why is the cabbage wearing a tie?",
+		"text": "Hilbert: I drew these a long time ago. They look so full of energy... unlike this room.",
 		"next": "open_drawer_sys"
 	},
 	"open_drawer_sys": {
@@ -64,7 +60,7 @@ var desk_dialogue: Dictionary = {
 		"next": ""
 	},
 	"close_drawer": {
-		"text": "You leave the drawings untouched on the desk. The memories are too painful.",
+		"text": "You leave the drawings untouched on the desk. They belong in the past.",
 		"next": ""
 	}
 }
@@ -78,11 +74,11 @@ var guitar_dialogue: Dictionary = {
 		]
 	},
 	"guitar_yes_1": {
-		"text": "A soft chord hums in the room. You try to play the intro to an old cartoon theme song.",
+		"text": "You pluck the dusty strings. A single, out-of-tune chord rings out.",
 		"next": "guitar_yes_2"
 	},
 	"guitar_yes_2": {
-		"text": "Hilbert: I forgot the third chord. It always went... boing? Or was it plink?",
+		"text": "Hilbert: I used to play this more often. The sound lingers in the quiet room.",
 		"next": "guitar_yes_sys"
 	},
 	"guitar_yes_sys": {
@@ -90,7 +86,7 @@ var guitar_dialogue: Dictionary = {
 		"next": ""
 	},
 	"guitar_no": {
-		"text": "You don't feel like playing. The silence in the apartment is too heavy.",
+		"text": "You don't feel like playing. The silence in the apartment is heavy enough.",
 		"next": ""
 	}
 }
