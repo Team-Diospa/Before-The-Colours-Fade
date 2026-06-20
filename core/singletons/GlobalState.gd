@@ -42,6 +42,15 @@ func _ready() -> void:
 	player_current_hp = player_max_hp
 	dimension_charge = 0
 	acquired_fragments = 0
+	
+	# RATIONALE: Pre-populate master deck with basic cards so they are visible in HUD before combat starts.
+	var strike_res = load("res://data/cards/strike.tres")
+	var defend_res = load("res://data/cards/defend.tres")
+	if strike_res and defend_res and master_deck.is_empty():
+		master_deck = [
+			strike_res, strike_res, strike_res, strike_res,
+			defend_res, defend_res, defend_res, defend_res
+		]
 
 # Check if a narrative flag is set.
 func has_flag(flag_name: String) -> bool:
@@ -75,3 +84,13 @@ func reset_state() -> void:
 	starting_block_modifier = 0
 	starting_draw_modifier = 0
 	master_deck.clear()
+	
+	# Repopulate baseline cards on reset.
+	var strike_res = load("res://data/cards/strike.tres")
+	var defend_res = load("res://data/cards/defend.tres")
+	if strike_res and defend_res:
+		master_deck = [
+			strike_res, strike_res, strike_res, strike_res,
+			defend_res, defend_res, defend_res, defend_res
+		]
+

@@ -163,7 +163,13 @@ func _play_node(node_id: String) -> void:
 			speaker = parts[0]
 			body_text = parts[1]
 	
-	speaker_label.text = "[" + speaker + "]" if speaker != "" else ""
+	if speaker != "":
+		if speaker.begins_with("[") and speaker.ends_with("]"):
+			speaker_label.text = speaker
+		else:
+			speaker_label.text = "[" + speaker + "]"
+	else:
+		speaker_label.text = ""
 	speaker_label.visible = speaker != ""
 	text_label.text = body_text
 	
