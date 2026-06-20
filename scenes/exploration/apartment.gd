@@ -9,9 +9,6 @@ extends Node2D
 const COLOR_MORNING = Color(1.0, 0.95, 0.9, 1.0) # Warm morning sun
 const COLOR_DEPRESSION = Color(0.3, 0.3, 0.4, 1.0) # Cold, dark, and gloomy
 
-# Tracking progress flag.
-var has_showered: bool = false
-
 # Dictionary representing dialogue structures with split beats and isolated system notices.
 var bed_dialogue: Dictionary = {
 	"start": {
@@ -208,8 +205,11 @@ var door_locked_dialogue: Dictionary = {
 }
 
 func _ready() -> void:
-	# Set baseline color.
-	CanvasModulateNode.color = COLOR_MORNING
+	# Set baseline color based on previous choices (Visual/Ludonarrative consistency).
+	if GlobalState.has_flag("has_showered") or GlobalState.has_flag("window_closed"):
+		CanvasModulateNode.color = COLOR_DEPRESSION
+	else:
+		CanvasModulateNode.color = COLOR_MORNING
 	
 	# Connect local interactable node signals.
 	if has_node("Bed"): $Bed.interacted.connect(_on_bed_interacted)
@@ -302,10 +302,10 @@ func _on_shower_interacted(_id: String) -> void:
 	DialogueSystem.start_dialogue(shower_dialogue, "start")
 	var tween = create_tween()
 	tween.tween_property(CanvasModulateNode, "color", COLOR_DEPRESSION, 4.0)
-	has_showered = true
+	GlobalState.set_flag("has_showered", true)
 
 func _on_exit_door_interacted(_id: String) -> void:
-	if not has_showered:
+	if not GlobalState.has_flag("has_showered"):
 		DialogueSystem.start_dialogue(door_locked_dialogue, "start")
 	else:
 		DialogueSystem.start_dialogue(door_dialogue, "start")

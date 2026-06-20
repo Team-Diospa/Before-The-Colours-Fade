@@ -17,6 +17,8 @@ const FLAG_NAMES: Array = [
 	"bed_slept",
 	"peer1_talked",
 	"peer2_talked",
+	"window_closed",
+	"has_showered",
 	# Combat-specific flags (reset between combats via reset_combat_flags).
 	"enemy_burning",             # Fireball secondary effect: enemy skips Defend next turn.
 	"pack_leader_hint_shown",    # Pack Leader immunity hint fired once.
@@ -38,6 +40,8 @@ var narrative_flags: Dictionary = {
 	"bed_slept": false,
 	"peer1_talked": false,
 	"peer2_talked": false,
+	"window_closed": false,
+	"has_showered": false,
 	
 	# Combat-specific flags.
 	"enemy_burning": false,
@@ -110,6 +114,8 @@ func reset_state() -> void:
 		"bed_slept": false,
 		"peer1_talked": false,
 		"peer2_talked": false,
+		"window_closed": false,
+		"has_showered": false,
 		"enemy_burning": false,
 		"pack_leader_hint_shown": false,
 	}
