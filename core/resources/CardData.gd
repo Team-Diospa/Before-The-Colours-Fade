@@ -70,11 +70,13 @@ func execute_effect(user: Node, targets: Array) -> void:
 		"Fireball":
 			# RATIONALE: Fireball deals damage to all targets AND applies a burning flag.
 			# On the enemy's next turn, the burning flag cancels their Defend intent, forcing an Attack.
-			# This gives Fireball a secondary tactical role even against a single enemy.
+			# We also immediately cancel any pending Defend action on the current turn.
 			for t in targets:
 				var dmg = int(base_value * damage_multiplier)
 				t.take_damage(dmg)
 			GlobalState.set_flag("enemy_burning", true)
+			if user.has_method("cancel_enemy_defend"):
+				user.cancel_enemy_defend()
 			
 		"Thunder":
 			# RATIONALE: Thunder is momentum and acceleration. It deals damage AND generates

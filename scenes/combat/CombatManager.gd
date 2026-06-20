@@ -44,6 +44,10 @@ var enemy_intent_value: int = 0
 @onready var retain_btn = $UI/ActionPanel/VBox/RetainButton
 @onready var feedback_label = $UI/FeedbackLabel
 
+# Slay the Spire style circular energy orb widgets.
+var energy_orb: Panel
+var energy_orb_label: Label
+
 # RATIONALE: Retain mode flag - when true, the next card click retains instead of plays.
 var _retain_mode_active: bool = false
 
@@ -179,6 +183,136 @@ var pack_leader_hint_dialogue: Dictionary = {
 }
 
 func _ready() -> void:
+	# Instantiate and add the custom sketch-style combat visuals.
+	var visuals_script = load("res://scenes/combat/CombatVisuals.gd")
+	if visuals_script:
+		var visuals = Node2D.new()
+		visuals.name = "CombatVisuals"
+		visuals.set_script(visuals_script)
+		add_child(visuals)
+
+	# Warm beige background for dream child world combat sketch.
+	if $UI/Background:
+		$UI/Background.color = Color(0.95, 0.93, 0.87, 1.0)
+
+	# Style HandPanel and ActionPanel with warm tan paper styleboxes and drop shadows.
+	# Restyled to translucent glassmorphism with square corners and a thin highlight.
+	var panel_bg = Color(0.95, 0.93, 0.88, 0.5) # Translucent beige glass base
+	var panel_border = Color(1.0, 1.0, 1.0, 0.25) # Thin white glass shine border
+	
+	var style_panel = StyleBoxFlat.new()
+	style_panel.bg_color = panel_bg
+	style_panel.border_width_left = 2
+	style_panel.border_width_top = 2
+	style_panel.border_width_right = 2
+	style_panel.border_width_bottom = 2
+	style_panel.border_color = panel_border
+	style_panel.anti_aliasing = false
+	style_panel.corner_radius_top_left = 0
+	style_panel.corner_radius_top_right = 0
+	style_panel.corner_radius_bottom_left = 0
+	style_panel.corner_radius_bottom_right = 0
+	style_panel.shadow_color = Color(0, 0, 0, 0.1) # Soft subtle shadow
+	style_panel.shadow_size = 2
+	style_panel.shadow_offset = Vector2(2, 2)
+	
+	$UI/HandPanel.add_theme_stylebox_override("panel", style_panel)
+	$UI/ActionPanel.add_theme_stylebox_override("panel", style_panel)
+
+	# Transparent empty stylebox for Player and Enemy panel to float floating labels.
+	var empty_style = StyleBoxEmpty.new()
+	$UI/PlayerPanel.add_theme_stylebox_override("panel", empty_style)
+	$UI/EnemyPanel.add_theme_stylebox_override("panel", empty_style)
+
+	# Reposition PlayerPanel and EnemyPanel to float above the health lines.
+	$UI/PlayerPanel.position = Vector2(150, 150)
+	$UI/PlayerPanel.size = Vector2(200, 100)
+	$UI/EnemyPanel.position = Vector2(800, 150)
+	$UI/EnemyPanel.size = Vector2(200, 100)
+
+	# Make labels dark slate for high contrast readability against light sketch paper.
+	var label_color = Color(0.12, 0.12, 0.15, 1.0)
+	for label in [
+		$UI/PlayerPanel/VBox/NameLabel,
+		$UI/PlayerPanel/VBox/HPLabel,
+		$UI/PlayerPanel/VBox/BlockLabel,
+		$UI/EnemyPanel/VBox/NameLabel,
+		$UI/EnemyPanel/VBox/HPLabel,
+		$UI/EnemyPanel/VBox/BlockLabel,
+		$UI/EnemyPanel/VBox/IntentLabel,
+		$UI/FeedbackLabel
+	]:
+		if label:
+			label.add_theme_color_override("font_color", label_color)
+
+	# Hide default energy label inside VBox since we have a dedicated circular energy orb.
+	player_energy_label.visible = false
+	
+	# Apply sketched paper styling to the action buttons (with dark text and brick red hover).
+	# Restyled to match the translucent, square-cornered glossy aesthetic.
+	var btn_bg_normal = Color(0.92, 0.90, 0.84, 0.65)
+	var btn_bg_hover = Color(0.97, 0.95, 0.90, 0.75)
+	var btn_border_normal = Color(0.12, 0.12, 0.15, 0.15)
+	var btn_border_hover = Color(0.65, 0.25, 0.15, 0.4) # Muted brick red outline
+	var btn_border_pressed = Color(0.12, 0.12, 0.15, 0.15)
+	
+	var style_btn_normal = StyleBoxFlat.new()
+	style_btn_normal.bg_color = btn_bg_normal
+	style_btn_normal.border_width_left = 2
+	style_btn_normal.border_width_top = 2
+	style_btn_normal.border_width_right = 2
+	style_btn_normal.border_width_bottom = 2
+	style_btn_normal.border_color = btn_border_normal
+	style_btn_normal.anti_aliasing = false
+	style_btn_normal.corner_radius_top_left = 0
+	style_btn_normal.corner_radius_top_right = 0
+	style_btn_normal.corner_radius_bottom_left = 0
+	style_btn_normal.corner_radius_bottom_right = 0
+	style_btn_normal.shadow_color = Color(0, 0, 0, 0.08)
+	style_btn_normal.shadow_size = 1
+	style_btn_normal.shadow_offset = Vector2(1, 1)
+	
+	var style_btn_hover = style_btn_normal.duplicate()
+	style_btn_hover.bg_color = btn_bg_hover
+	style_btn_hover.border_color = btn_border_hover
+	
+	var style_btn_pressed = style_btn_normal.duplicate()
+	style_btn_pressed.bg_color = Color(0.85, 0.83, 0.77, 0.7)
+	style_btn_pressed.border_color = btn_border_pressed
+	style_btn_pressed.shadow_offset = Vector2(0, 0) # Pressed state shifts shadow flat
+	
+	for btn in [end_turn_btn, reroll_btn, shift_btn, retain_btn]:
+		if btn:
+			btn.add_theme_stylebox_override("normal", style_btn_normal)
+			btn.add_theme_stylebox_override("hover", style_btn_hover)
+			btn.add_theme_stylebox_override("pressed", style_btn_pressed)
+			btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+			# Add high contrast dark font colors for the beige buttons
+			btn.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+			btn.add_theme_color_override("font_hover_color", Color(0.65, 0.25, 0.15, 1.0))
+			btn.add_theme_color_override("font_pressed_color", Color(0.12, 0.12, 0.15, 1.0))
+			btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.5, 1.0))
+			
+			btn.resized.connect(func(): btn.pivot_offset = btn.size / 2)
+			btn.mouse_entered.connect(func():
+				if not btn.text.begins_with("▼ "):
+					btn.text = "▼ " + btn.text
+				var tw = btn.create_tween().set_parallel(true)
+				tw.tween_property(btn, "scale", Vector2(1.05, 1.05), 0.1)
+			)
+			btn.mouse_exited.connect(func():
+				if btn.text.begins_with("▼ "):
+					btn.text = btn.text.substr(2)
+				var tw = btn.create_tween().set_parallel(true)
+				tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1)
+			)
+
+	# Create Slay the Spire style Energy Orb.
+	_create_energy_orb()
+
+	# Entry animations: slide character panels from off-screen into their layout position.
+	call_deferred("_animate_combat_entry")
+
 	# Reset combat-specific flags at the start of each combat.
 	GlobalState.reset_combat_flags()
 	
@@ -236,13 +370,6 @@ func transition_to(new_state: State) -> void:
 			player_energy = MAX_ENERGY + GlobalState.starting_energy_modifier
 			player_block = GlobalState.starting_block_modifier
 			
-			# RATIONALE: Enemy block fully decays each round, not just at execute time.
-			# Previously block only reset inside execute_enemy_action(), meaning a Defend
-			# intent resolved in the previous ENEMY_TURN would persist visually into the next
-			# player turn and remain until execute ran again. Resetting here ensures the
-			# displayed block is always the fresh value for the coming enemy action.
-			enemy_block = 0
-			
 			# Reset round-specific deck mechanics.
 			DeckManager.can_reroll = true
 			DeckManager.can_retain = true
@@ -278,13 +405,13 @@ func transition_to(new_state: State) -> void:
 		State.ENEMY_TURN:
 			animate_feedback("ENEMY TURN", true)
 			
-			# RATIONALE: Delay enemy action by 1.0s to allow player to register the transition.
-			var enemy_timer = get_tree().create_timer(1.0)
+			# Fastened delays for snappier pacing.
+			var enemy_timer = get_tree().create_timer(0.4)
 			await enemy_timer.timeout
 			execute_enemy_action()
 			
 			# Wait a moment before starting the next player turn.
-			var timer = get_tree().create_timer(1.2)
+			var timer = get_tree().create_timer(0.5)
 			await timer.timeout
 			
 			if current_state == State.ENEMY_TURN:
@@ -337,13 +464,29 @@ func _on_defeat_dialogue_finished() -> void:
 func decide_enemy_intent() -> void:
 	var hp_ratio: float = float(enemy_hp) / float(enemy_max_hp)
 	
-	# RATIONALE: Fireball burning flag overrides intent - forces Attack, cancels Defend.
-	# This makes Fireball tactically relevant against defensive enemies.
+	# RATIONALE: Fireball burning flag overrides intent. If they try to Defend,
+	# they are forced to Idle instead of Attack, so the player is not penalized.
 	if GlobalState.has_flag("enemy_burning"):
-		enemy_intent = "Attack"
-		enemy_intent_value = _get_phase_attack_value(hp_ratio)
-		GlobalState.set_flag("enemy_burning", false)  # Consume the burn flag.
-		animate_feedback("The enemy is burning - they can't defend!")
+		var attack_chance: float
+		var attack_val: int
+		if hp_ratio > 0.66:
+			attack_chance = 0.6
+			attack_val = enemy_phase1_atk
+		elif hp_ratio > 0.33:
+			attack_chance = 0.75
+			attack_val = enemy_phase2_atk
+		else:
+			attack_chance = 1.0
+			attack_val = enemy_phase3_atk
+			
+		if randf() < attack_chance:
+			enemy_intent = "Attack"
+			enemy_intent_value = attack_val
+		else:
+			enemy_intent = "Idle"
+			enemy_intent_value = 0
+			GlobalState.set_flag("enemy_burning", false)  # Consume the burn flag.
+			animate_feedback("The enemy is burning - defense cancelled!")
 		update_ui()
 		return
 	
@@ -406,6 +549,7 @@ func execute_enemy_action() -> void:
 			
 			# RATIONALE: Shaking player panel on taking damage to improve visual feedback (juice).
 			shake_node($UI/PlayerPanel)
+			flash_red($UI/PlayerPanel)
 			update_stats_pulsed(true, false)
 			
 		if player_hp <= 0:
@@ -414,7 +558,10 @@ func execute_enemy_action() -> void:
 	elif enemy_intent == "Defend":
 		enemy_block += enemy_intent_value
 		animate_feedback(enemy_name + " gains " + str(enemy_intent_value) + " block.")
+		flash_blue($UI/EnemyPanel)
 		update_stats_pulsed(false, true)
+	elif enemy_intent == "Idle":
+		animate_feedback(enemy_name + " struggles through the flames and does nothing.")
 
 # Triggered when playing a card button in UI.
 func play_card(card: CardData) -> void:
@@ -489,6 +636,7 @@ func take_damage(amount: int) -> void:
 		
 	# RATIONALE: Shaking enemy panel on taking damage to feel responsive.
 	shake_node($UI/EnemyPanel)
+	flash_red($UI/EnemyPanel)
 	update_stats_pulsed(false, true)
 
 # Called by Heavy Slash to strip enemy block before dealing damage.
@@ -499,7 +647,17 @@ func clear_block() -> void:
 
 func gain_block(amount: int) -> void:
 	player_block += amount
+	flash_blue($UI/PlayerPanel)
 	update_stats_pulsed(true, false)
+
+# Called by Fireball to immediately override a pending Defend action.
+func cancel_enemy_defend() -> void:
+	if enemy_intent == "Defend":
+		enemy_intent = "Idle"
+		enemy_intent_value = 0
+		GlobalState.set_flag("enemy_burning", false) # Consume the burn flag
+		animate_feedback("The enemy is burning - defense cancelled!")
+		update_ui()
 
 # Reroll hand option button.
 func _on_reroll_pressed() -> void:
@@ -514,7 +672,7 @@ func _on_retain_pressed() -> void:
 	if DeckManager.can_retain and not _retain_mode_active:
 		_retain_mode_active = true
 		animate_feedback("Select a card to retain for next turn.")
-		retain_btn.text = "Retaining...\n(Click a card)"
+		_update_btn_text(retain_btn, "Retaining...\n(Click a card)")
 		update_ui()
 
 # Dimension Shift option button.
@@ -587,10 +745,10 @@ func update_ui() -> void:
 		shift_btn.visible = true
 		if ShiftManager.can_shift():
 			shift_btn.disabled = false
-			shift_btn.text = "Shift to Reality\n(READY)"
+			_update_btn_text(shift_btn, "Shift to Reality\n(READY)")
 		else:
 			shift_btn.disabled = true
-			shift_btn.text = "Shift to Reality\n(" + str(GlobalState.dimension_charge) + "/3)"
+			_update_btn_text(shift_btn, "Shift to Reality\n(" + str(GlobalState.dimension_charge) + "/3)")
 	else:
 		shift_btn.visible = false
 		
@@ -601,38 +759,120 @@ func update_ui() -> void:
 	if retain_btn:
 		retain_btn.disabled = not DeckManager.can_retain or _retain_mode_active
 		if not _retain_mode_active:
-			retain_btn.text = "Retain Card"
+			_update_btn_text(retain_btn, "Retain Card")
+
+	# Update circular energy orb label
+	if energy_orb_label:
+		energy_orb_label.text = str(player_energy) + "/" + str(MAX_ENERGY)
+		
+	# Redraw custom combat visuals (Shift eye, health bars, drop shadows)
+	var visuals = get_node_or_null("CombatVisuals")
+	if visuals:
+		visuals.queue_redraw()
 	
 	# Redraw card hand buttons with hover animations.
 	for child in hand_container.get_children():
 		child.queue_free()
 		
+	var card_index = 0
 	for card in DeckManager.hand:
 		var btn = Button.new()
-		# RATIONALE: SIZE_EXPAND_FILL distributes buttons proportionally across the panel.
-		# Fixed 130px min caused horizontal overflow with 5 cards. Minimum is now a floor only.
-		# Full description is accessible via Tab overlay where space is available.
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.custom_minimum_size = Vector2(80, 90)
-		btn.text = card.card_name + " (" + str(card.energy_cost) + "E)\n" + card.description
+		# Shrink cards to 95x45 and remove description to eliminate cognitive fatigue.
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		btn.custom_minimum_size = Vector2(95, 45)
+		btn.text = card.card_name + " (" + str(card.energy_cost) + "E)"
 		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		btn.pressed.connect(func(): play_card(card))
 		hand_container.add_child(btn)
 		
-		# RATIONALE: Center the scaling pivot and add smooth hover scale transitions.
-		# Pivot is set after add_child so btn.size is resolved by the layout engine.
-		btn.pivot_offset = Vector2(btn.custom_minimum_size.x / 2, btn.custom_minimum_size.y)
+		# Simple flat retro pixel stylebox for card (with retro drop shadow).
+		# Stylized as sketched translucent notebook card pieces with soft outlines.
+		var card_style = StyleBoxFlat.new()
+		card_style.bg_color = Color(0.96, 0.95, 0.92, 0.75) # Translucent light cream sketch paper
+		card_style.border_width_left = 2
+		card_style.border_width_top = 2
+		card_style.border_width_right = 2
+		card_style.border_width_bottom = 2
+		card_style.anti_aliasing = false
+		card_style.corner_radius_top_left = 0
+		card_style.corner_radius_top_right = 0
+		card_style.corner_radius_bottom_left = 0
+		card_style.corner_radius_bottom_right = 0
+		card_style.shadow_color = Color(0, 0, 0, 0.08) # Muted shadow for paper cards
+		card_style.shadow_size = 1
+		card_style.shadow_offset = Vector2(1, 1)
+		
+		# Hand-colored pigments for borders: Crimson (Attack), Cobalt (Defense), Amber (Special)
+		var border_color = Color(0.4, 0.4, 0.4, 0.5)
+		if card.card_type == "Attack":
+			border_color = Color(0.8, 0.3, 0.3, 0.5)
+		elif card.card_type == "Defense":
+			border_color = Color(0.3, 0.5, 0.8, 0.5)
+		elif card.card_type == "Special":
+			border_color = Color(0.8, 0.55, 0.2, 0.5)
+		card_style.border_color = border_color
+		
+		var card_style_hover = card_style.duplicate()
+		card_style_hover.bg_color = Color(0.99, 0.98, 0.95, 0.85)
+		card_style_hover.border_color = border_color.lightened(0.15)
+		
+		var card_style_pressed = card_style.duplicate()
+		card_style_pressed.bg_color = Color(0.88, 0.87, 0.84, 0.75)
+		card_style_pressed.border_color = border_color.darkened(0.15)
+		card_style_pressed.shadow_offset = Vector2(0, 0) # Shunts down when clicked
+		
+		btn.add_theme_stylebox_override("normal", card_style)
+		btn.add_theme_stylebox_override("hover", card_style_hover)
+		btn.add_theme_stylebox_override("pressed", card_style_pressed)
+		btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+		
+		# Force dark charcoal text overrides on the light beige cards for high-contrast legibility
+		btn.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+		btn.add_theme_color_override("font_hover_color", Color(0.65, 0.25, 0.15, 1.0)) # Highlight on hover
+		btn.add_theme_color_override("font_pressed_color", Color(0.12, 0.12, 0.15, 1.0))
+		btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.5, 1.0))
+		
+		# Center the scaling pivot and set snappy hover transitions
+		btn.pivot_offset = Vector2(47.5, 22.5)
+		btn.resized.connect(func(): btn.pivot_offset = btn.size / 2)
+		
+		# Set mouse enter/exit: shows description in the main FeedbackLabel, scales up and rotates.
+		var base_btn_text = card.card_name + " (" + str(card.energy_cost) + "E)"
+		var tilt_angle = deg_to_rad(3.0)
+		
+		# Capture a unique hover tween state for this button closure.
+		var active_tweens = { "tween": null }
+		
 		btn.mouse_entered.connect(func():
-			var tween = btn.create_tween().set_parallel(true)
-			# Shklovsky's Defamiliarization: Slower, tactile 3% scale up to make the cards feel heavy.
-			tween.tween_property(btn, "scale", Vector2(1.03, 1.03), 0.5).set_trans(Tween.TRANS_SINE)
-			tween.tween_property(btn, "modulate", Color(1.2, 1.2, 1.2, 1.0), 0.5)
+			if active_tweens["tween"]:
+				active_tweens["tween"].kill()
+			btn.text = "▼ " + base_btn_text
+			feedback_label.text = card.description
+			active_tweens["tween"] = btn.create_tween().set_parallel(true)
+			active_tweens["tween"].tween_property(btn, "scale", Vector2(1.1, 1.1), 0.12).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "rotation", tilt_angle, 0.12).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "modulate", Color(1.2, 1.2, 1.2, 1.0), 0.12)
 		)
 		btn.mouse_exited.connect(func():
-			var tween = btn.create_tween().set_parallel(true)
-			tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_SINE)
-			tween.tween_property(btn, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.2)
+			if active_tweens["tween"]:
+				active_tweens["tween"].kill()
+			btn.text = base_btn_text
+			feedback_label.text = ""
+			active_tweens["tween"] = btn.create_tween().set_parallel(true)
+			active_tweens["tween"].tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "rotation", 0.0, 0.1).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.1)
 		)
+		
+		# Sequential dynamic pop-in bounce animation for card drawing.
+		var delay = card_index * 0.04
+		btn.scale = Vector2(0.5, 0.5)
+		btn.modulate.a = 0.0
+		var pop_tw = btn.create_tween().set_parallel(true)
+		pop_tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(delay)
+		pop_tw.tween_property(btn, "modulate:a", 1.0, 0.2).set_delay(delay)
+		
+		card_index += 1
 
 func set_buttons_disabled(disabled: bool) -> void:
 	end_turn_btn.disabled = disabled
@@ -677,14 +917,14 @@ func animate_feedback(text: String, is_turn_banner: bool = false) -> void:
 	if is_turn_banner:
 		feedback_label.scale = Vector2(0.7, 0.7)
 		feedback_label.modulate.a = 0.0
-		tween.tween_property(feedback_label, "modulate:a", 1.0, 0.15)
-		tween.tween_property(feedback_label, "scale", Vector2(1.4, 1.4), 0.15)
-		tween.tween_interval(0.6)
-		tween.tween_property(feedback_label, "modulate:a", 0.8, 0.2)
-		tween.tween_property(feedback_label, "scale", Vector2(1.0, 1.0), 0.2)
+		tween.tween_property(feedback_label, "modulate:a", 1.0, 0.1)
+		tween.tween_property(feedback_label, "scale", Vector2(1.4, 1.4), 0.1)
+		tween.tween_interval(0.3)
+		tween.tween_property(feedback_label, "modulate:a", 0.8, 0.1)
+		tween.tween_property(feedback_label, "scale", Vector2(1.0, 1.0), 0.1)
 	else:
 		feedback_label.scale = Vector2(1.1, 1.1)
-		tween.tween_property(feedback_label, "scale", Vector2(1.0, 1.0), 0.10)
+		tween.tween_property(feedback_label, "scale", Vector2(1.0, 1.0), 0.08)
 
 # Resolve transition after victory.
 func _resolve_victory() -> void:
@@ -796,3 +1036,68 @@ func _on_pack_victory_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_pack_victory_finished)
 	GlobalState.reset_state()
 	SceneManager.transition_to_state("S_apt")
+
+# Helper to update button text while maintaining the selection indicator if hovered.
+func _update_btn_text(btn: Button, text: String) -> void:
+	if not btn: return
+	if btn.is_hovered():
+		btn.text = "▼ " + text
+	else:
+		btn.text = text
+
+# Visual flash helper for damage impact.
+func flash_red(node: Control) -> void:
+	if not node: return
+	var original_modulate = node.modulate
+	var tween = create_tween()
+	tween.tween_property(node, "modulate", Color(1.8, 0.4, 0.4, 1.0), 0.08)
+	tween.tween_property(node, "modulate", original_modulate, 0.08)
+
+# Visual flash helper for block gain.
+func flash_blue(node: Control) -> void:
+	if not node: return
+	var original_modulate = node.modulate
+	var tween = create_tween()
+	tween.tween_property(node, "modulate", Color(0.4, 0.7, 1.8, 1.0), 0.08)
+	tween.tween_property(node, "modulate", original_modulate, 0.08)
+
+# Slides character panels into the screen when combat starts.
+func _animate_combat_entry() -> void:
+	var p_panel = $UI/PlayerPanel
+	if p_panel:
+		var target_x = p_panel.position.x
+		p_panel.position.x = -320
+		var p_tween = create_tween()
+		p_tween.tween_property(p_panel, "position:x", target_x, 0.55).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		
+	var e_panel = $UI/EnemyPanel
+	if e_panel:
+		var target_x = e_panel.position.x
+		e_panel.position.x = 1180
+		var e_tween = create_tween()
+		e_tween.tween_property(e_panel, "position:x", target_x, 0.55).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+# Creates the Slay the Spire style Energy Orb programmatically.
+func _create_energy_orb() -> void:
+	energy_orb = Panel.new()
+	energy_orb.custom_minimum_size = Vector2(64, 64)
+	energy_orb.position = Vector2(90, 480) # Next to the cards layout
+	
+	# Transparent stylebox since CombatVisuals.gd renders the sketchy orb backgrounds
+	var empty_style = StyleBoxEmpty.new()
+	energy_orb.add_theme_stylebox_override("panel", empty_style)
+	$UI.add_child(energy_orb)
+	
+	energy_orb_label = Label.new()
+	energy_orb_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	energy_orb_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	energy_orb_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	energy_orb_label.text = "3/3"
+	energy_orb_label.add_theme_font_size_override("font_size", 18)
+	# High contrast bold text with a dark drop shadow for maximum readability over sketchy rays
+	energy_orb_label.add_theme_color_override("font_color", Color.WHITE)
+	energy_orb_label.add_theme_color_override("font_shadow_color", Color(0.12, 0.12, 0.15, 1.0))
+	energy_orb_label.add_theme_constant_override("shadow_offset_x", 1)
+	energy_orb_label.add_theme_constant_override("shadow_offset_y", 1)
+	energy_orb_label.add_theme_constant_override("shadow_outline_size", 3)
+	energy_orb.add_child(energy_orb_label)

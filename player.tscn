@@ -75,6 +75,23 @@ region = Rect2(300, 37, 50, 37)
 animations = [{
 "frames": [{
 "duration": 1.0,
+"texture": ExtResource("3_crc00")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_crc01")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_crc02")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_crc03")
+}],
+"loop": true,
+"name": &"Crouch",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_hqtel")
 }, {
 "duration": 1.0,
@@ -140,23 +157,6 @@ animations = [{
 "loop": true,
 "name": &"Run",
 "speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("3_crc00")
-}, {
-"duration": 1.0,
-"texture": ExtResource("4_crc01")
-}, {
-"duration": 1.0,
-"texture": ExtResource("5_crc02")
-}, {
-"duration": 1.0,
-"texture": ExtResource("6_crc03")
-}],
-"loop": true,
-"name": &"Crouch",
-"speed": 5.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_i3pqv"]
@@ -168,6 +168,7 @@ position = Vector2(316, 143)
 script = ExtResource("1_onrkg")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=812080781]
+texture_filter = 1
 position = Vector2(66, -40.75)
 scale = Vector2(3.64, 3.2027028)
 sprite_frames = SubResource("SpriteFrames_pbfsw")

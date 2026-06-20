@@ -28,6 +28,9 @@ var guide_label: Label
 var is_visible: bool = false
 var is_deck_overlay_open: bool = false
 
+# Accumulated time for the HUD float bobbing animation.
+var _time: float = 0.0
+
 func _ready() -> void:
 	# Build the HUD interface overlay.
 	canvas_layer = CanvasLayer.new()
@@ -40,18 +43,23 @@ func _ready() -> void:
 	root_control.visible = false
 	canvas_layer.add_child(root_control)
 	
-	# Premium dark styling.
+	# Premium dark pixel styling (no rounded corners, disabled anti-aliasing, retro shadow).
+	# Restyled to translucent glassmorphism with square corners and a thin white highlight border.
 	var style_box = StyleBoxFlat.new()
-	style_box.bg_color = Color(0.08, 0.08, 0.1, 0.75)
-	style_box.corner_radius_bottom_left = 6
-	style_box.corner_radius_bottom_right = 6
-	style_box.corner_radius_top_left = 6
-	style_box.corner_radius_top_right = 6
-	style_box.border_width_left = 1
-	style_box.border_width_top = 1
-	style_box.border_width_right = 1
-	style_box.border_width_bottom = 1
-	style_box.border_color = Color(0.2, 0.25, 0.35, 0.5)
+	style_box.bg_color = Color(0.04, 0.06, 0.1, 0.45) # Glossy translucent dark slate blue
+	style_box.corner_radius_bottom_left = 0
+	style_box.corner_radius_bottom_right = 0
+	style_box.corner_radius_top_left = 0
+	style_box.corner_radius_top_right = 0
+	style_box.border_width_left = 2
+	style_box.border_width_top = 2
+	style_box.border_width_right = 2
+	style_box.border_width_bottom = 2
+	style_box.border_color = Color(1.0, 1.0, 1.0, 0.15) # Thin white glass shine border
+	style_box.anti_aliasing = false
+	style_box.shadow_color = Color(0, 0, 0, 0.15) # Soft subtle shadow
+	style_box.shadow_size = 2
+	style_box.shadow_offset = Vector2(1, 1)
 	
 	# 1. Stats Panel (Top-Left).
 	stats_panel = Panel.new()
@@ -129,17 +137,23 @@ func _ready() -> void:
 	deck_overlay_panel.offset_right = 0
 	deck_overlay_panel.offset_bottom = 0
 	
+	# Retro pixel style box for deck overlay (with drop shadow).
+	# Restyled to match the translucent glassmorphism look.
 	var overlay_style = StyleBoxFlat.new()
-	overlay_style.bg_color = Color(0.05, 0.05, 0.07, 0.95)
-	overlay_style.corner_radius_top_left = 12
-	overlay_style.corner_radius_top_right = 12
-	overlay_style.corner_radius_bottom_left = 12
-	overlay_style.corner_radius_bottom_right = 12
+	overlay_style.bg_color = Color(0.04, 0.04, 0.06, 0.65) # Highly translucent dark slate
+	overlay_style.corner_radius_top_left = 0
+	overlay_style.corner_radius_top_right = 0
+	overlay_style.corner_radius_bottom_left = 0
+	overlay_style.corner_radius_bottom_right = 0
 	overlay_style.border_width_left = 2
 	overlay_style.border_width_top = 2
 	overlay_style.border_width_right = 2
 	overlay_style.border_width_bottom = 2
-	overlay_style.border_color = Color(0.3, 0.45, 0.6, 0.8) # Premium sky-blue border
+	overlay_style.border_color = Color(1.0, 1.0, 1.0, 0.15) # Thin white glass shine border
+	overlay_style.anti_aliasing = false
+	overlay_style.shadow_color = Color(0, 0, 0, 0.3)
+	overlay_style.shadow_size = 4
+	overlay_style.shadow_offset = Vector2(3, 3)
 	deck_overlay_panel.add_theme_stylebox_override("panel", overlay_style)
 	deck_overlay_panel.visible = false
 	root_control.add_child(deck_overlay_panel)
@@ -339,20 +353,20 @@ func update_hud() -> void:
 	if not is_visible:
 		return
 		
-	# 1. Update stats indicators.
-	hp_label.text = "HP: " + str(GlobalState.player_current_hp) + "/" + str(GlobalState.player_max_hp)
-	fragments_label.text = "Dream Fragments: " + str(GlobalState.acquired_fragments)
+	# 1. Update stats indicators with diamond icons for clean listing.
+	hp_label.text = "◆ HP: " + str(GlobalState.player_current_hp) + "/" + str(GlobalState.player_max_hp)
+	fragments_label.text = "◆ Fragments: " + str(GlobalState.acquired_fragments)
 	
 	var active_buffs = []
 	if GlobalState.has_flag("buff_courage_active"):
-		active_buffs.append("Courage (1.5x Dmg)")
+		active_buffs.append("Courage")
 	if GlobalState.has_flag("buff_confidence_active"):
-		active_buffs.append("Confidence (2.0x Dmg)")
+		active_buffs.append("Confidence")
 		
 	if active_buffs.is_empty():
-		buffs_label.text = "Active Buffs: None"
+		buffs_label.text = "◆ Buffs: None"
 	else:
-		buffs_label.text = "Active Buffs: " + ", ".join(active_buffs)
+		buffs_label.text = "◆ Buffs: " + ", ".join(active_buffs)
 		
 	# 2. Update dynamic objectives depending on the scene tree.
 	var current_scene_name = get_tree().current_scene.name
@@ -373,4 +387,33 @@ func update_hud() -> void:
 			else:
 				objective_text = "Objective: Search the lockers for buffs, then sit at your desk to start the quiz."
 				
+	# Pulse objective panel when objective text changes to alert the player.
+	var old_objective = objective_label.text
 	objective_label.text = objective_text
+	
+	if old_objective != objective_text and old_objective != "":
+		# Center the label pivot for proper scale scaling
+		objective_label.pivot_offset = objective_label.size / 2
+		var pulse_tw = create_tween()
+		pulse_tw.tween_property(objective_label, "scale", Vector2(1.06, 1.06), 0.12).set_trans(Tween.TRANS_SINE)
+		pulse_tw.tween_property(objective_label, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_SINE)
+
+func _process(delta: float) -> void:
+	# Gently float HUD panels up and down when visible to make the overlay feel alive
+	if is_visible and root_control and root_control.visible:
+		_time += delta
+		
+		# stats_panel floats gently on a slow sine wave
+		if stats_panel:
+			stats_panel.position.y = 20.0 + sin(_time * 1.5) * 3.0
+			
+		# objective_panel and controls_panel are anchored controls; update their vertical offsets instead of position
+		if objective_panel:
+			var obj_offset = cos(_time * 1.5) * 3.0
+			objective_panel.offset_top = 20.0 + obj_offset
+			objective_panel.offset_bottom = 70.0 + obj_offset
+			
+		if controls_panel:
+			var ctrl_offset = sin(_time * 1.5 + 1.0) * 3.0
+			controls_panel.offset_top = 20.0 + ctrl_offset
+			controls_panel.offset_bottom = 70.0 + ctrl_offset
