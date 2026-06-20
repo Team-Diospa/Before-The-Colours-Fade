@@ -6,26 +6,26 @@ extends Node2D
 # Dialogue trees for the classroom actors with split beats and isolated system notices.
 var peer1_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 1: Hilbert? You look extremely tired. Did you get any study time in last night?",
+		"text": "Peer 1: Hilbert? You look like a ghost. Did you... forget again?",
 		"options": [
-			{"text": "\"Not really. I lost my notebook.\"", "next": "forget_what"},
+			{"text": "\"Forget what?\"", "next": "forget_what"},
 			{"text": "\"I'm just stressed about the quiz.\"", "next": "stressed"}
 		]
 	},
 	"forget_what": {
-		"text": "Hilbert: Not really. I lost my notebook.",
+		"text": "Hilbert: Forget what?",
 		"next": "forget_what_2"
 	},
 	"forget_what_2": {
-		"text": "Peer 1: The one with the blueprint sketches? I think you left it in the library last week.",
+		"text": "Peer 1: Your notebook. You left it in the workshop. The one on 4th street.",
 		"next": "forget_what_3"
 	},
 	"forget_what_3": {
-		"text": "Hilbert: The library? I don't remember going there.",
+		"text": "Hilbert: The workshop? I haven't been there in months.",
 		"next": "forget_what_4"
 	},
 	"forget_what_4": {
-		"text": "Peer 1: Chloe saw it and put it in your locker so it wouldn't get lost. You should check there.",
+		"text": "Peer 1: Really? I could have sworn I saw the lights on yesterday. Anyway, take care.",
 		"next": "peer1_healed_sys"
 	},
 	"stressed": {
@@ -44,7 +44,7 @@ var peer1_dialogue: Dictionary = {
 
 var peer2_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 2: Stop staring at me! You've been spacing out and whispering to thin air. It's creepy.",
+		"text": "Peer 2: Hilbert, are you reciting formulas or what? You keep humming that same chord under your breath.",
 		"options": [
 			{"text": "\"Sorry, just spaced out.\"", "next": "apologize"},
 			{"text": "Ignore them.", "next": "ignore"}
@@ -78,11 +78,11 @@ var peer2_dialogue: Dictionary = {
 
 var locker_dialogue: Dictionary = {
 	"start": {
-		"text": "You open the locker. Inside is an old notebook covered in drawings of mechanical gadgets.",
+		"text": "You open the locker. Inside is an old notebook covered in brave drawings of inventions.",
 		"next": "locker_2"
 	},
 	"locker_2": {
-		"text": "Hilbert: These drawings... They look like designs for flying drones. I must have sketched this last semester.",
+		"text": "Hilbert: Old blueprints for a solar-powered bicycle. The handwriting in the margins is so messy. I can barely read the calculations.",
 		"next": "locker_sys"
 	},
 	"locker_sys": {
@@ -134,11 +134,11 @@ var paper_monster_dialogue: Dictionary = {
 		"next": "use_yes_2"
 	},
 	"use_yes_2": {
-		"text": "Paper Monster: TIME IS UP. PUT DOWN YOUR PENCILS. THE TEST CANNOT BE REDONE.",
+		"text": "Paper Monster: REDUCE TO SIMPLEST TERMS. ELIMINATE THE FRACTIONS. ERASE THE REMAINDER.",
 		"next": "use_yes_3"
 	},
 	"use_yes_3": {
-		"text": "The monster shatters into fading light, dissolving the heavy fog in the classroom.",
+		"text": "The monster shatters into fading light. The writing on its pages looks like your own handwriting.",
 		"next": "use_yes_sys"
 	},
 	"use_yes_sys": {

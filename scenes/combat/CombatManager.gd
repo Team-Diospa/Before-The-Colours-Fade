@@ -416,15 +416,19 @@ func _resolve_victory() -> void:
 	if enemy_name == "Castle Boss":
 		DialogueSystem.start_dialogue({
 			"start": {
-				"text": "n.n.: We did it, Hilbert! The castle is secure again.",
+				"text": "n.n.: Wow, that was awesome Hilbert! You fought with so much courage.",
 				"next": "win_step2"
 			},
 			"win_step2": {
-				"text": "Hilbert: Yeah. But my head feels weirdly light. Like I'm forgetting what class we have next.",
+				"text": "n.n.: But... the colors are starting to flicker. It's time to wake up. We have to go back to the grey reality.",
 				"next": "win_step3"
 			},
 			"win_step3": {
-				"text": "n.n.: Don't worry about it! Just focus on the morning. Let's wake up.",
+				"text": "Hilbert: n.n., look at the parapet. Did we draw it with crenellations or flat?",
+				"next": "win_step4"
+			},
+			"win_step4": {
+				"text": "n.n.: Flat, Hilbert! But the pencil was blunt. Let's sharpen it in the morning. Wake up...",
 				"next": ""
 			}
 		}, "start")
@@ -435,30 +439,38 @@ func _resolve_victory() -> void:
 	elif enemy_name == "Pack Leader":
 		DialogueSystem.start_dialogue({
 			"start": {
-				"text": "n.n.: The fire is out, Hilbert. The valley is quiet.",
+				"text": "n.n.: The fire is gone. The village is peaceful now, Hilbert. You did it.",
 				"next": "win_step2"
 			},
 			"win_step2": {
-				"text": "Hilbert: It is. But I feel... like I left something behind in the classroom. A notebook? A pen?",
+				"text": "Hilbert: n.n., the fire is out. But... why is the sky turning white?",
 				"next": "win_step3"
 			},
 			"win_step3": {
-				"text": "n.n.: It is fine. You do not need it anymore. You passed. Let's head home.",
+				"text": "n.n.: The graphite is smudging, Hilbert. It's time to hand in the paper.",
 				"next": "win_step4"
 			},
 			"win_step4": {
-				"text": "You wake up at your desk in the classroom. The quiz paper in front of you is fully solved. You passed.",
+				"text": "Hilbert: Wait. I drew you with... there was a second signature on the cover page. A cursive 'L'...",
 				"next": "win_step5"
 			},
 			"win_step5": {
-				"text": "But the seat next to you is empty and covered in a thin layer of dust. You pull out your phone.",
+				"text": "n.n.: The bell is ringing, Hilbert. Wake up...",
 				"next": "win_step6"
 			},
 			"win_step6": {
-				"text": "Your contact list has a blank entry named 'n.n.' that you do not recognize. You stare at it blankly.",
+				"text": "You wake up at your desk. The exam paper in front of you is completed in your own handwriting, but you don't remember solving a single question.",
 				"next": "win_step7"
 			},
 			"win_step7": {
+				"text": "The desk next to you is covered in a layer of dust, with a faint pencil scratch on the wood: 'H.H. + L.G. 2024'. You pull out your phone.",
+				"next": "win_step8"
+			},
+			"win_step8": {
+				"text": "Your contacts app has an entry with a phone number, but no name. The caller ID simply reads: 'n.n.'.",
+				"next": "win_step9"
+			},
+			"win_step9": {
 				"text": "Demo Complete. Thank you for playing 'Before the Colours Fade'.",
 				"next": ""
 			}

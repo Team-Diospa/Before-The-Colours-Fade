@@ -15,18 +15,18 @@ var has_showered: bool = false
 # Dictionary representing dialogue structures with split beats and isolated system notices.
 var bed_dialogue: Dictionary = {
 	"start": {
-		"text": "Close my eyes for a few more minutes? Or face the grey morning?",
+		"text": "The blanket is heavy. Sleep another ten minutes, or get up?",
 		"options": [
-			{"text": "Sleep a bit longer", "next": "bed_yes_1"},
-			{"text": "Get out of bed", "next": "bed_no_1"}
+			{"text": "Sleep (Avoid the morning)", "next": "bed_yes_1"},
+			{"text": "Get up (Face the cold)", "next": "bed_no_1"}
 		]
 	},
 	"bed_yes_1": {
-		"text": "You close your eyes. The room is quiet. Just a faint, distant hum of static.",
+		"text": "n.n.: Hilbert, did you check the battery? I feel a bit drafty.",
 		"next": "bed_yes_2"
 	},
 	"bed_yes_2": {
-		"text": "You drift back into a light slumber, waking up late and rushed.",
+		"text": "You drift back into a light slumber, waking up with a stiff neck.",
 		"next": "bed_yes_sys"
 	},
 	"bed_yes_sys": {
@@ -34,7 +34,7 @@ var bed_dialogue: Dictionary = {
 		"next": ""
 	},
 	"bed_no_1": {
-		"text": "Hilbert: No. I need to get up. The alarm is getting annoying.",
+		"text": "Hilbert: No. I need to make it to the lecture hall on time.",
 		"next": "bed_no_sys"
 	},
 	"bed_no_sys": {
@@ -52,11 +52,11 @@ var desk_dialogue: Dictionary = {
 		]
 	},
 	"open_drawer_1": {
-		"text": "Scribbles of old childhood gadgets... and a blurry polaroid of a backyard treehouse.",
+		"text": "Sketches of old childhood inventions... and a framed photograph of two boys holding a trophy.",
 		"next": "open_drawer_2"
 	},
 	"open_drawer_2": {
-		"text": "Hilbert: An old polaroid. The lighting is bad, and the focus is completely blurry. I must have taken this years ago.",
+		"text": "Hilbert: Why is there a grey smudge over the kid on the right? I must have spilled tea on it.",
 		"next": "open_drawer_sys"
 	},
 	"open_drawer_sys": {
@@ -64,7 +64,7 @@ var desk_dialogue: Dictionary = {
 		"next": ""
 	},
 	"close_drawer": {
-		"text": "You decide to leave them on the desk. You don't have time to browse through old papers.",
+		"text": "You leave the drawing notebook on the desk. You don't feel like sketching today.",
 		"next": ""
 	}
 }
@@ -78,11 +78,11 @@ var guitar_dialogue: Dictionary = {
 		]
 	},
 	"guitar_yes_1": {
-		"text": "One of the strings is slightly out of tune. You play a simple three-note riff.",
+		"text": "A soft chord hums in the quiet room.",
 		"next": "guitar_yes_2"
 	},
 	"guitar_yes_2": {
-		"text": "Hilbert: It sounds familiar. Like a song from a cartoon I used to watch, though I can't place the name.",
+		"text": "Hilbert: Still out of tune. Someone set the fourth string to D. I don't remember doing that.",
 		"next": "guitar_yes_sys"
 	},
 	"guitar_yes_sys": {
@@ -90,7 +90,7 @@ var guitar_dialogue: Dictionary = {
 		"next": ""
 	},
 	"guitar_no": {
-		"text": "You leave the guitar alone. You should get ready.",
+		"text": "You leave the guitar in the corner. The strings are too dusty.",
 		"next": ""
 	}
 }
