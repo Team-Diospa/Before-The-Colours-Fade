@@ -91,6 +91,17 @@ func _build_ui() -> void:
 	start_btn.pressed.connect(_on_start_pressed)
 	vbox.add_child(start_btn)
 	
+	# Small gap.
+	var gap_c = Control.new()
+	gap_c.custom_minimum_size.y = 8
+	vbox.add_child(gap_c)
+	
+	# Continue button (disabled if no save is present).
+	var continue_btn = _make_button("Continue")
+	continue_btn.disabled = not SaveManager.has_save()
+	continue_btn.pressed.connect(_on_continue_pressed)
+	vbox.add_child(continue_btn)
+	
 	# Small gap between buttons.
 	var btn_gap = Control.new()
 	btn_gap.custom_minimum_size.y = 8
@@ -128,23 +139,31 @@ func _make_button(label_text: String) -> Button:
 	var style_pressed = style_normal.duplicate()
 	style_pressed.bg_color = Color(0.06, 0.06, 0.08, 0.7)
 	
+	var style_disabled = style_normal.duplicate()
+	style_disabled.bg_color = Color(0.08, 0.08, 0.1, 0.3)
+	style_disabled.border_color = Color(1.0, 1.0, 1.0, 0.05)
+	
 	btn.add_theme_stylebox_override("normal", style_normal)
 	btn.add_theme_stylebox_override("hover", style_hover)
 	btn.add_theme_stylebox_override("pressed", style_pressed)
+	btn.add_theme_stylebox_override("disabled", style_disabled)
 	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
 	btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
 	btn.add_theme_color_override("font_pressed_color", Color(0.7, 0.7, 0.75, 1.0))
+	btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.45, 0.6))
 	
 	# Subtle scale micro-animation on hover.
 	btn.pivot_offset = Vector2(100, 15)
 	btn.mouse_entered.connect(func():
-		var tw = btn.create_tween()
-		tw.tween_property(btn, "scale", Vector2(1.03, 1.03), 0.1)
+		if not btn.disabled:
+			var tw = btn.create_tween()
+			tw.tween_property(btn, "scale", Vector2(1.03, 1.03), 0.1)
 	)
 	btn.mouse_exited.connect(func():
-		var tw = btn.create_tween()
-		tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1)
+		if not btn.disabled:
+			var tw = btn.create_tween()
+			tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1)
 	)
 	
 	return btn
@@ -153,6 +172,11 @@ func _on_start_pressed() -> void:
 	# RATIONALE: Reset all persistent state to guarantee a clean run.
 	GlobalState.reset_state()
 	SceneManager.transition_to_state("S_apt")
+
+func _on_continue_pressed() -> void:
+	# RATIONALE: Load the saved game state and restore gameplay.
+	if SaveManager.has_save():
+		SaveManager.load_game()
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()

@@ -28,6 +28,12 @@ var guide_label: Label
 var is_visible: bool = false
 var is_deck_overlay_open: bool = false
 
+# Fragments/memories column reference for the Tab overlay.
+var fragments_container: VBoxContainer
+
+# Current objective text set by exploration scenes.
+var _current_objective_text: String = "Explore."
+
 # Accumulated time for the HUD float bobbing animation.
 var _time: float = 0.0
 
@@ -239,15 +245,50 @@ func _ready() -> void:
 	
 	# Close footer hint
 	var footer_lbl = Label.new()
-	footer_lbl.text = "[Press TAB to close stats overlay]"
+	footer_lbl.text = "[Press TAB to close]"
 	footer_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	footer_lbl.add_theme_font_size_override("font_size", 11)
 	footer_lbl.modulate = Color(0.6, 0.6, 0.6, 1.0)
 	main_vbox.add_child(footer_lbl)
 	
+	# Build the memories/fragments column.
+	_build_fragments_column(content_hbox)
+	
 	# Connect to Global Event Bus to refresh HUD stats on interaction.
 	EventBus.player_interacted.connect(func(_id): update_hud())
 	EventBus.dialogue_finished.connect(update_hud)
+
+# Build the right-side 'Memories' column for the Tab overlay.
+# Shows all 9 narrative puzzle pieces with found/unknown status.
+func _build_fragments_column(parent_hbox: HBoxContainer) -> void:
+	var col = VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.custom_minimum_size.x = 240
+	parent_hbox.add_child(col)
+	
+	var col_title = Label.new()
+	col_title.text = "Memories"
+	col_title.add_theme_font_size_override("font_size", 13)
+	col_title.modulate = Color(0.8, 0.9, 1.0, 1.0)
+	col.add_child(col_title)
+	
+	var col_sub = Label.new()
+	col_sub.text = "Fragments of what was real."
+	col_sub.add_theme_font_size_override("font_size", 10)
+	col_sub.modulate = Color(0.55, 0.55, 0.6, 1.0)
+	col.add_child(col_sub)
+	
+	var gap = Control.new()
+	gap.custom_minimum_size.y = 6
+	col.add_child(gap)
+	
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	col.add_child(scroll)
+	
+	fragments_container = VBoxContainer.new()
+	fragments_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(fragments_container)
 
 # Check for Tab key input to toggle inventory deck view.
 func _input(event: InputEvent) -> void:
@@ -330,6 +371,76 @@ func update_deck_overlay() -> void:
 		"+" if GlobalState.starting_draw_modifier >= 0 else "",
 		GlobalState.starting_draw_modifier
 	]
+	_update_fragments_column()
+
+# Allow exploration scenes to push a new objective string directly.
+func set_objective(text: String) -> void:
+	_current_objective_text = text
+	update_hud()
+
+# Populate the Memories column with all 9 narrative puzzle pieces.
+func _update_fragments_column() -> void:
+	if not fragments_container:
+		return
+	for child in fragments_container.get_children():
+		child.queue_free()
+	
+	# Nine puzzle pieces: name, flag, teaser text shown when found.
+	var pieces: Array = [
+		{"name": "The Blanket",         "flag": "bed_slept",           "hint": "Reluctance has a weight."},
+		{"name": "The Smudged Photo",   "flag": "desk_searched",       "hint": "A grey smudge over the kid on the right."},
+		{"name": "The Guitar Tuning",   "flag": "guitar_played",       "hint": "Fourth string tuned to open D. Not by me."},
+		{"name": "The Workshop Lights", "flag": "peer1_talked",        "hint": "Lights on at the 4th street workshop. Yesterday."},
+		{"name": "The Humming Chord",   "flag": "peer2_talked",        "hint": "The same chord, under my breath, without noticing."},
+		{"name": "The Marginalia",      "flag": "locker_searched",     "hint": "Handwriting barely readable. Not mine."},
+		{"name": "The Exam Monster",    "flag": "quiz_started",        "hint": "It spoke in exam commands. It sounded like a teacher."},
+		{"name": "The Completed Paper", "flag": "buff_confidence_active", "hint": "Finished. In my handwriting. I don't remember any of it."},
+		# The 9th piece (The Scratch) is unlocked when the player defeats the final boss and accepts/dreams.
+		{"name": "The Scratch",         "flag": "scratch_found",       "hint": "H.H. + L.G. 2024."}
+	]
+	
+	var found_count: int = 0
+	for piece in pieces:
+		var found = piece["flag"] != "" and GlobalState.has_flag(piece["flag"])
+		if found:
+			found_count += 1
+		
+		var row = HBoxContainer.new()
+		
+		var dot = Label.new()
+		dot.text = "[*]" if found else "[ ]"
+		dot.add_theme_font_size_override("font_size", 10)
+		if found:
+			dot.modulate = Color(0.8, 0.85, 0.9, 1.0)
+		else:
+			dot.modulate = Color(0.35, 0.35, 0.4, 1.0)
+		row.add_child(dot)
+		
+		var name_lbl = Label.new()
+		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_lbl.add_theme_font_size_override("font_size", 10)
+		if found:
+			name_lbl.text = piece["name"] + "\n  " + piece["hint"]
+			name_lbl.modulate = Color(0.9, 0.9, 0.95, 1.0)
+		else:
+			name_lbl.text = piece["name"] + "\n  ?????"
+			name_lbl.modulate = Color(0.4, 0.4, 0.45, 1.0)
+		row.add_child(name_lbl)
+		
+		fragments_container.add_child(row)
+		
+		var sep = Control.new()
+		sep.custom_minimum_size.y = 4
+		fragments_container.add_child(sep)
+	
+	# Add a count summary at the top by inserting a label before all rows.
+	var count_lbl = Label.new()
+	count_lbl.text = "%d / 9 found" % found_count
+	count_lbl.add_theme_font_size_override("font_size", 11)
+	count_lbl.modulate = Color(0.65, 0.72, 0.8, 1.0)
+	fragments_container.add_child(count_lbl)
+	fragments_container.move_child(count_lbl, 0)
 
 # Show the HUD and run a refresh.
 func show_hud() -> void:
@@ -368,24 +479,21 @@ func update_hud() -> void:
 	else:
 		buffs_label.text = "◆ Buffs: " + ", ".join(active_buffs)
 		
-	# 2. Update dynamic objectives depending on the scene tree.
-	var current_scene_name = get_tree().current_scene.name
-	var objective_text = "Objective: Explore."
+	# 2. Update dynamic objectives - use _current_objective_text set by scenes.
+	var objective_text = "Objective: " + _current_objective_text
 	
-	match current_scene_name:
-		"Apartment":
-			var apt_node = get_tree().current_scene
-			if apt_node and not apt_node.has_showered:
-				objective_text = "Objective: Interact with the shower to prepare for the Monday quiz."
-			else:
-				objective_text = "Objective: Walk to the door and exit the apartment to attend class."
-		"Hallway":
-			objective_text = "Objective: Head down the faculty building hallway to your quiz."
-		"Classroom":
-			if ShiftManager.cached_combat_exists:
-				objective_text = "Objective: A strange Paper Monster has appeared! Use your Dream Fragment on it."
-			else:
-				objective_text = "Objective: Search the lockers for buffs, then sit at your desk to start the quiz."
+	# Override with scene-specific context if no explicit objective has been pushed.
+	if _current_objective_text == "Explore.":
+		var current_scene = get_tree().current_scene
+		if current_scene:
+			match current_scene.name:
+				"Hallway":
+					objective_text = "Objective: Head down the hallway to your quiz."
+				"Classroom":
+					if ShiftManager.cached_combat_exists:
+						objective_text = "Objective: A Paper Monster appeared. Use your Dream Fragment."
+					else:
+						objective_text = "Objective: Search the lockers, then sit at your desk to start the quiz."
 				
 	# Pulse objective panel when objective text changes to alert the player.
 	var old_objective = objective_label.text

@@ -6,6 +6,11 @@ extends Node
 var overlay_layer: CanvasLayer
 var fade_rect: ColorRect
 
+# Persistent tracking of the last exploration scene visited.
+# RATIONALE: Used during saving/loading to ensure that saving mid-combat
+# restores the game to the exploration scene prior to the battle.
+var last_exploration_scene_path: String = "res://scenes/exploration/apartment.tscn"
+
 func _ready() -> void:
 	# Programmatically construct overlay UI to avoid scene dependencies.
 	overlay_layer = CanvasLayer.new()
@@ -53,12 +58,26 @@ func transition_to_state(target_state: String) -> void:
 			target_scene_path = "res://scenes/combat/burning_village.tscn"
 			if has_node("/root/ExplorationHUD"):
 				get_node("/root/ExplorationHUD").hide_hud()
+		"S_ending":
+			# Transition to the custom ending screen that handles visual novel ending feedback.
+			target_scene_path = "res://scenes/ui/ending_screen.tscn"
+			if has_node("/root/ExplorationHUD"):
+				get_node("/root/ExplorationHUD").hide_hud()
 		_:
 			push_error("SceneManager: Unknown target state: " + target_state)
 			return
 			
 	# Trigger the transition process with fade effect.
 	_change_scene_with_fade(target_scene_path)
+
+# Transition directly to a scene path, used during loading to bypass match-state mapping.
+func transition_to_scene_path(scene_path: String) -> void:
+	if has_node("/root/ExplorationHUD"):
+		if scene_path.contains("scenes/exploration/"):
+			get_node("/root/ExplorationHUD").show_hud()
+		else:
+			get_node("/root/ExplorationHUD").hide_hud()
+	_change_scene_with_fade(scene_path)
 
 # Return to the main menu. Called by PauseManager when the player selects Main Menu.
 func transition_to_state_menu() -> void:
@@ -68,6 +87,10 @@ func transition_to_state_menu() -> void:
 
 # Perform fade-out, scene change, and fade-in.
 func _change_scene_with_fade(scene_path: String) -> void:
+	# Keep track of exploration scenes for the save-load system.
+	if scene_path.contains("scenes/exploration/"):
+		last_exploration_scene_path = scene_path
+
 	# Block user input during transition.
 	fade_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 	

@@ -6,33 +6,33 @@ extends Node2D
 # Dialogue trees for the classroom actors with split beats and isolated system notices.
 var peer1_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 1: Hilbert? You look like a ghost. Did you... forget again?",
+		"text": "Peer 1: Uhh... You okay?",
 		"options": [
-			{"text": "\"Forget what?\"", "next": "forget_what"},
+			{"text": "\"Uhh, yeah. Why?\"", "next": "look_ghost"},
 			{"text": "\"I'm just stressed about the quiz.\"", "next": "stressed"}
 		]
 	},
+	"look_ghost": {
+		"text": "Peer 1: You look like a ghost. Did you... forget again?",
+		"options": [
+			{"text": "\"Forget what?\"", "next": "forget_what"},
+			{"text": "\"No, I'm fine.\"", "next": "stressed"}
+		]
+	},
 	"forget_what": {
-		"text": "Hilbert: Forget what?",
+		"text": "Peer 1: Your notebook. You left it in the workshop. The one on 4th street.",
 		"next": "forget_what_2"
 	},
 	"forget_what_2": {
-		"text": "Peer 1: Your notebook. You left it in the workshop. The one on 4th street.",
+		"speaker": "Hilbert",
+		"text": "The workshop? I haven't been there in months.",
 		"next": "forget_what_3"
 	},
 	"forget_what_3": {
-		"text": "Hilbert: The workshop? I haven't been there in months.",
-		"next": "forget_what_4"
-	},
-	"forget_what_4": {
 		"text": "Peer 1: Really? I could have sworn I saw the lights on yesterday. Anyway, take care.",
 		"next": "peer1_healed_sys"
 	},
 	"stressed": {
-		"text": "Hilbert: I'm just stressed about the quiz.",
-		"next": "stressed_2"
-	},
-	"stressed_2": {
 		"text": "Peer 1: Don't worry, it's just a quiz. Take it slow, Hilbert.",
 		"next": "peer1_healed_sys"
 	},
@@ -47,17 +47,20 @@ var peer1_dialogue: Dictionary = {
 
 var peer2_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 2: Hilbert, are you reciting formulas or what? You keep humming that same chord under your breath.",
+		"text": "Peer 2: Stop looking at me! Weirdo.",
 		"options": [
 			{"text": "\"Sorry, just spaced out.\"", "next": "apologize"},
+			{"text": "\"I wasn't looking at you.\"", "next": "reciting"}
+		]
+	},
+	"reciting": {
+		"text": "Peer 2: Right. Hilbert, are you reciting formulas or what? You keep humming that same chord under your breath.",
+		"options": [
+			{"text": "\"Sorry.\"", "next": "apologize"},
 			{"text": "Ignore them.", "next": "ignore"}
 		]
 	},
 	"apologize": {
-		"text": "Hilbert: Sorry, just spaced out.",
-		"next": "apologize_2"
-	},
-	"apologize_2": {
 		"text": "You swallow your pride to defuse the tension.",
 		"next": "apologize_sys"
 	},
@@ -66,10 +69,6 @@ var peer2_dialogue: Dictionary = {
 		"next": ""
 	},
 	"ignore": {
-		"text": "You ignore the comment and turn away.",
-		"next": "ignore_2"
-	},
-	"ignore_2": {
 		"text": "You focus inward, blocking out the classroom noise.",
 		"next": "ignore_sys"
 	},
@@ -113,7 +112,12 @@ var desk_dialogue: Dictionary = {
 		]
 	},
 	"quiz_yes": {
-		"text": "Professor: This quiz is worth 50% of your grade. No phones, pull out your stationery.",
+		# RATIONALE: Full professor speech verbatim from the script docs.
+		"text": "Professor: Alright sit down everyone. Like I said last week, we are going to have a quiz, mind you, this quiz is worth 50% of your grade, so I want you all to be in your best shape and mind.",
+		"next": "quiz_yes_2"
+	},
+	"quiz_yes_2": {
+		"text": "Professor: Do it slowly, but surely. If you don't know the answer skip it, and answer other questions. This quiz starts in 5 minutes, be sure to put all your phone and gadgets in the bag and pull out your stationery.",
 		"next": "quiz_fade"
 	},
 	"quiz_fade": {

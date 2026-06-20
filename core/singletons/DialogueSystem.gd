@@ -27,6 +27,9 @@ var active_options: Array = []
 var _is_typing: bool = false
 var _active_tween: Tween
 
+# Tracks the unique ID of the active typing coroutine to prevent race conditions when skipped.
+var _typing_session_id: int = 0
+
 # Tracks whether the dialogue is currently drawn in the dream/combat world.
 var _is_dream_world: bool = false
 
@@ -179,13 +182,21 @@ func _input(event: InputEvent) -> void:
 		# A subsequent press is required to advance nodes, preventing skipping.
 		if _is_typing:
 			_is_typing = false # Will break the typing coroutine
-			text_label.visible_characters = -1 # Show all text
+			var speaker = dialogue_tree.get(current_node_id, {}).get("speaker", "")
+			if speaker != "" and BubbleManager.is_npc_speaker(speaker):
+				BubbleManager.get_text_label().visible_characters = -1
+				BubbleManager.show_continue_indicator(true)
+			else:
+				text_label.visible_characters = -1 # Show all text
+				if continue_indicator:
+					continue_indicator.visible = true
 			get_viewport().set_input_as_handled()
 			return
 			
 		if active_options.is_empty():
 			# Hide continuation indicator when advancing.
 			continue_indicator.visible = false
+			BubbleManager.show_continue_indicator(false)
 			# Fetch next node from current node data.
 			var node_data = dialogue_tree.get(current_node_id, {})
 			if node_data.has("next") and node_data["next"] != "":
@@ -217,6 +228,7 @@ func _play_node(node_id: String) -> void:
 	current_node_id = node_id
 	if continue_indicator:
 		continue_indicator.visible = false
+	BubbleManager.show_continue_indicator(false)
 	if not dialogue_tree.has(node_id):
 		close_dialogue()
 		return
@@ -246,9 +258,27 @@ func _play_node(node_id: String) -> void:
 			speaker_label.text = speaker
 	else:
 		speaker_label.text = ""
+	
+	# RATIONALE: NPC speakers (Landlady, n.n., Peer 1, Peer 2, Professor) show in the speech bubble
+	# rather than the panel speaker label. This creates two distinct visual registers:
+	# bubble = "someone is talking to me", panel = "I am thinking / narration".
+	var _is_npc_line = speaker != "" and BubbleManager.is_npc_speaker(speaker)
+	if _is_npc_line:
+		# Hide the panel speaker label - the bubble handles speaker identification.
+		speaker_label.visible = false
+		speaker_label.text = ""
+		BubbleManager.show_bubble(speaker, body_text)
+		# Clear the panel text for NPC lines - the bubble shows the content.
+		text_label.text = ""
+	else:
+		# Non-NPC: hide bubble if it was showing from a previous node.
+		BubbleManager.hide_bubble()
 		
-	speaker_label.visible = speaker != ""
-	text_label.text = body_text
+	speaker_label.visible = speaker != "" and not _is_npc_line
+	# RATIONALE: For NPC lines, the bubble already shows the text.
+	# Only write to the panel text label for Hilbert / narration / System lines.
+	if not _is_npc_line:
+		text_label.text = body_text
 	
 	# Style-specific text modulations for high contrast and readability.
 	if speaker_label.text == "System":
@@ -374,14 +404,20 @@ func _play_node(node_id: String) -> void:
 			
 	EventBus.dialogue_text_updated.emit(raw_text, active_options)
 	
+	var active_text_label = BubbleManager.get_text_label() if _is_npc_line else text_label
+	
 	# Fastened dialogue typewriter pacing.
+	# Increment the typing session ID to signal any running coroutines to exit immediately.
+	_typing_session_id += 1
+	var current_session = _typing_session_id
 	_is_typing = true
-	text_label.visible_characters = 0
+	active_text_label.visible_characters = 0
 	
 	for i in range(body_text.length()):
-		if not _is_typing:
-			break # User skipped animation
-		text_label.visible_characters = i + 1
+		# If the typing state has been cleared or a new session has started, abort the typewriter loop.
+		if not _is_typing or current_session != _typing_session_id:
+			break # User skipped animation or advanced node
+		active_text_label.visible_characters = i + 1
 		
 		var char_delay = 0.01
 		var c = body_text[i]
@@ -392,8 +428,10 @@ func _play_node(node_id: String) -> void:
 			
 		await get_tree().create_timer(char_delay).timeout
 		
-	_is_typing = false
-	_show_continue_indicator()
+	# Only mark typing as finished and show indicators if this is the active session.
+	if current_session == _typing_session_id:
+		_is_typing = false
+		_show_continue_indicator()
 
 # Callback when user presses an option button.
 func select_option(index: int) -> void:
@@ -401,14 +439,21 @@ func select_option(index: int) -> void:
 		var target_node = active_options[index]
 		_play_node(target_node)
 
-# Pulses the upside-down continue triangle indicator at the bottom-right of the box.
+# Pulses the upside-down continue triangle indicator at the bottom-right of the active box.
 func _show_continue_indicator() -> void:
-	if active_options.is_empty() and continue_indicator:
-		continue_indicator.visible = true
-		continue_indicator.modulate.a = 1.0
-		var tw = continue_indicator.create_tween().set_loops()
-		tw.tween_property(continue_indicator, "modulate:a", 0.2, 0.4)
-		tw.tween_property(continue_indicator, "modulate:a", 1.0, 0.4)
+	var speaker = dialogue_tree.get(current_node_id, {}).get("speaker", "")
+	var is_npc = speaker != "" and BubbleManager.is_npc_speaker(speaker)
+	
+	if active_options.is_empty():
+		if is_npc:
+			BubbleManager.show_continue_indicator(true)
+		elif continue_indicator:
+			continue_indicator.visible = true
+			continue_indicator.modulate.a = 1.0
+			var tw = continue_indicator.create_tween().set_loops()
+			tw.tween_property(continue_indicator, "modulate:a", 0.2, 0.4)
+			tw.tween_property(continue_indicator, "modulate:a", 1.0, 0.4)
+
 
 # Close dialogue and hide overlay.
 func close_dialogue() -> void:
@@ -417,6 +462,9 @@ func close_dialogue() -> void:
 	_is_typing = false
 	if continue_indicator:
 		continue_indicator.visible = false
+	
+	# Hide NPC speech bubble when dialogue closes.
+	BubbleManager.hide_bubble()
 	
 	# Smooth fade-out before hiding
 	var tw = create_tween()

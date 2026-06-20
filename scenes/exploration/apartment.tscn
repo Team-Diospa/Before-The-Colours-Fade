@@ -61,7 +61,7 @@ interaction_id = "shower"
 prompt_message = "Press E to use Shower"
 
 [node name="Toilet" parent="." unique_id=724969966 instance=ExtResource("3_interactable")]
-position = Vector2(980, 500)
+position = Vector2(1040, 500)
 interaction_id = "toilet"
 prompt_message = "Press E to use Toilet"
 
@@ -86,6 +86,6 @@ interaction_id = "papers"
 prompt_message = "Press E to inspect Papers"
 
 [node name="Kitchen" parent="." instance=ExtResource("3_interactable")]
-position = Vector2(900, 500)
+position = Vector2(960, 500)
 interaction_id = "kitchen"
 prompt_message = "Press E to check Kitchen"

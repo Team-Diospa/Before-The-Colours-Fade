@@ -25,6 +25,8 @@ DeckManager="*res://core/singletons/DeckManager.gd"
 ShiftManager="*res://core/singletons/ShiftManager.gd"
 ExplorationHUD="*res://core/singletons/ExplorationHUD.gd"
 PauseManager="*res://core/singletons/PauseManager.gd"
+BubbleManager="*res://core/singletons/BubbleManager.gd"
+SaveManager="*res://core/singletons/SaveManager.gd"
 
 
 [dotnet]

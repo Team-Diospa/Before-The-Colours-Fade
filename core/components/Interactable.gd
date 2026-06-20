@@ -27,9 +27,19 @@ func _ready() -> void:
 	prompt_label.text = prompt_message
 	prompt_label.visible = false
 	prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	# Position above the interaction indicator.
+	# Position above the interactable object.
 	prompt_label.position = Vector2(-100, -95)
 	prompt_label.custom_minimum_size = Vector2(200, 30)
+	
+	# RATIONALE: Apply consistent glossy-neutral styling.
+	# White text with a strong dark shadow reads clearly over both light (dream) and dark (reality) backgrounds.
+	prompt_label.add_theme_font_size_override("font_size", 12)
+	prompt_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.92))
+	prompt_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.75))
+	prompt_label.add_theme_constant_override("shadow_offset_x", 1)
+	prompt_label.add_theme_constant_override("shadow_offset_y", 1)
+	prompt_label.add_theme_constant_override("shadow_outline_size", 2)
+	
 	add_child(prompt_label)
 	
 	# Connect local Area2D signals to handle proximity detection.

@@ -21,6 +21,8 @@ const FLAG_NAMES: Array = [
 	"enemy_burning",             # Fireball secondary effect: enemy skips Defend next turn.
 	"pack_leader_hint_shown",    # Pack Leader immunity hint fired once.
 	"window_closed",             # Apartment window closed; triggers room darkening tween.
+	"has_showered",              # Player has used the shower; gated for exiting the apartment.
+	"scratch_found",             # Found the desk scratch after boss defeat; 9th fragment.
 ]
 
 # Dictionary to hold various narrative progression flags.
@@ -44,7 +46,12 @@ var narrative_flags: Dictionary = {
 	"enemy_burning": false,
 	"pack_leader_hint_shown": false,
 	"window_closed": false,
+	"has_showered": false,
+	"scratch_found": false,
 }
+
+# The ending branch selected by the player at the end of the chapter ("dream" or "wake").
+var chosen_ending: String = ""
 
 # Tracks how many attack cards the player has played against Pack Leader without the confidence buff.
 # Stored separately since it needs integer values, not booleans.
@@ -115,7 +122,10 @@ func reset_state() -> void:
 		"enemy_burning": false,
 		"pack_leader_hint_shown": false,
 		"window_closed": false,
+		"has_showered": false,
+		"scratch_found": false,
 	}
+	chosen_ending = ""
 	pack_leader_attack_count = 0
 	player_max_hp = 50
 	player_current_hp = player_max_hp
