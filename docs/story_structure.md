@@ -1,46 +1,61 @@
-# Logical Story Structure and Progression Guide
+# Theoretical Story Structure and Narrative Progression
 
-This document outlines the design logic, pacing structure, role of hints, and player progression framework for \"Before the Colours Fade\".
+This document details the abstract design, logical layers, and progression mechanics of the narrative system for \"Before the Colours Fade\". It provides a theoretical framework for pacing mystery and utilizing trivial hints to foster player-led deduction.
 
-## 1. The Dual-Reality Framework
+## 1. Logical Layers of the Narrative Arc
 
-The game's narrative logic is built on a split-plane structure:
+The narrative does not follow a traditional hero's journey. Instead, it operates as a structured descent through cognitive layers:
 
-- **Reality (The Grey Morning):** Dull, quiet, and stressful. It represents the physical environment where truth exists but is ignored.
-- **The Dream (The Child World):** Vibrant, colorful, and action-oriented. It represents the psychological sanctuary where memories are transformed into fantasy constructs.
+### Layer 0: The Mundane Baseline
+- **Focus:** Grounded reality.
+- **Narrative State:** The player experiences a quiet, cold, and slow-paced grey world. The environment is filled with standard, everyday tasks (preparing for class, dealing with peers, dealing with messy drawers).
+- **Function:** Establish normalcy. There are no dramatic declarations of grief. The absence of details (empty space, quietness) is the primary driver of atmosphere.
 
-The player's journey is a cycle between these two worlds. In combat, the player uses dimension shifting to step back to reality to gather solutions, linking the mechanical loop to the narrative tension of slipping in and out of dissociation.
+### Layer 1: The Delusional Haven
+- **Focus:** The high-fantasy dream state.
+- **Narrative State:** A colorful, vibrant, and high-stakes deckbuilder world. Actions are clear: attack, defend, defeat the boss. Hilbert feels capable and empowered.
+- **Function:** Provide catharsis and mechanical rewards. The player is incentivized to stay in this layer because it is visually pleasing, active, and fun.
 
-## 2. Pacing of Tension and Progression
+### Layer 2: The Cognitive Friction
+- **Focus:** The boundary between dimensions.
+- **Narrative State:** The crossover points where the fantasy world's rules begin to break down. The enemy intents are described in classroom terminology, or the combat requires shifting back to reality.
+- **Function:** Introduce discrepancies. The player starts to notice that the anomalies in the fantasy world correspond directly to mundane stresses in the grey world.
 
-The story progression avoids early narrative spikes. Tension must build gradually:
+### Layer 3: The Narrative Trade-Off
+- **Focus:** Progression versus Erasure.
+- **Narrative State:** The core progression loop. To progress through battles, the player must shift back to reality and inspect objects, which adds powerful cards to their deck. However, this process slowly strips away the subtle hints of the past.
+- **Function:** Mechanical growth comes at the cost of narrative detail. The stronger the deck becomes, the more the grey world loses its specific history, replacing it with empty, dusty spaces.
 
-1. **Mundane Beginnings (Low Tension):** The game starts with minor school worries (sleeping in, getting to a quiz). This establishes relatability.
-2. **Dissociative Escape (Comfort):** Shifting to the dream provides relief. The goals are simple: defeat the boss, protect the companion.
-3. **Reality Intrusions (Confusion):** When shifting mid-battle, reality intrudes into the dream space. Small discrepancies make the player question the nature of the child world.
-4. **Quiet Realization (Unsettling Resolution):** The chapter resolution ends without melodrama. The player is presented with clues (empty desks, blank contacts) and must form the final realization themselves.
+### Layer 4: The Silent Collapse
+- **Focus:** The resolution.
+- **Narrative State:** The final state of the game. The player achieves the goal (surviving the day, passing the quiz), but the narrative details that connected Hilbert to his past are gone. The contact list is blank, the desk is empty, and only initials remain.
+- **Function:** Subversion of victory. The player realizes that escaping the pain through mechanical progression resulted in the complete deletion of the source of that pain.
 
-## 3. The Logic and Necessity of Hints
+## 2. The Mechanics of the Trivial Hint
 
-Hints in Chapter 1 are designed as independent puzzle pieces. They must satisfy three criteria:
+To keep the narrative engaging and avoid predictability, clues must be treated as minor, mundane details rather than heavy plot points:
 
-- **Triviality:** Clues must seem ordinary and explainable on a first pass (such as a smudged photo explained as a tea spill). If a clue is too heavy or tragic, it breaks the mystery and forces the conclusion.
-- **Non-Redundancy:** Each clue must target a different aspect of the background (the photo targets faces; the guitar targets music; the workshop lights target space).
-- **Player-Driven Connection:** The game does not connect the dots for the player. The narrative remains silent, forcing the player's mind to bridge the gap.
+### The Excused Anomaly
+- Hilbert must always have a logical, mundane excuse for anything that is out of place. 
+- If a face is scratched out in a photo, he assumes it is a tea smudge. If a guitar is tuned differently, he assumes he forgot how he left it.
+- This prevents Hilbert from appearing self-aware of his memory loss, keeping the player in the same state of uncertainty.
 
-## 4. Narrative-Mechanics Integration
+### The Fragmented Margin
+- Clues should be placed in marginalia (messy handwriting on blueprints, small scratches on desks, light flickers).
+- By keeping the hints small, the player does not feel forced into a specific conclusion early. They treat them as background flavor until the pieces begin to connect.
 
-The player's exploration choices directly determine their combat capabilities:
+### The Relatable Anchor
+- All tension must remain anchored in simple, relatable conflicts (procrastination, social awkwardness, school anxiety). 
+- Avoid using dramatic, high-energy emotional language. Relatability builds empathy, which makes the subsequent psychological horror of losing memory feel personal and unsettling.
 
-- **Desk Drawers (Pencil & Notebook):** Adding Strike and Fireball cards represents utilizing basic academic tools as weapons in the dream.
-- **Guitar (Music):** Tuning/playing the guitar restores health and adds Heavy Slash and Thunder, representing musical chords translating to combat force.
-- **Locker (Messy marginalia):** Finding marginalia adds Fortress and Counter Stance, representing structural, logical thinking translating to defense.
-- **Peer 2 (Annoyance):** Defusing tension adds Block; ignoring adds Draw size, translating social strategies into tactical combat starts.
+## 3. Narrative Progression Model
 
-This structure ties Hilbert's real-world interactions directly to his survival in the dream world, demonstrating that coping requires fragments of reality.
+```mermaid
+graph TD
+    A["Layer 0: Mundane Reality (Classroom/Apartment)"] -->|Dimension Shift| B["Layer 1: Fantasy Haven (Combat)"]
+    B -->|Shift Charge Ready| C["Layer 2: Friction (Warp to Reality mid-battle)"]
+    C -->|Loot items/talk to peers| D["Layer 3: Progression (New cards, buffs)"]
+    D -->|Foreshadowing hints vanish| E["Layer 4: Silent Collapse (Memory erasure, blank slots)"]
+```
 
-## 5. Guidelines for Absurdist Contrast
-
-Absurdism is a structural necessity to balance the psychological horror and prevent the narrative from feeling edgy:
-- **Relatable Situations:** Classroom annoyances, failing grades, and strict professors ground the bizarre anomalies in relatable human experiences.
-- **Dry Delivery:** The dialogue and descriptions must remain dry and simple. High drama is avoided in favor of quiet, mundane observations.
+By structuring the game around these theoretical layers, the narrative remains a puzzle for the player to assemble, ensuring that the climax delivers a genuine shock rather than a predictable resolution.
