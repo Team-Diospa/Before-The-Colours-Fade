@@ -37,7 +37,10 @@ var peer1_dialogue: Dictionary = {
 		"next": "peer1_healed_sys"
 	},
 	"peer1_healed_sys": {
-		"text": "[System]: Their concern comforts you (Health restored by 15 HP).",
+		# RATIONALE: Peer1's concern is not a physical healing event.
+		# Their words open something - the player listens more carefully.
+		# A draw modifier (listening = attention = more options) is more grounded than HP restoration.
+		"text": "[System]: Someone noticed. You feel a little more present. (+1 card drawn on turn 1).",
 		"next": ""
 	}
 }
@@ -82,7 +85,10 @@ var locker_dialogue: Dictionary = {
 		"next": "locker_2"
 	},
 	"locker_2": {
-		"text": "Hilbert: Old blueprints for a solar-powered bicycle. The handwriting in the margins is so messy. I can barely read the calculations.",
+		# RATIONALE: The metaphor chain must be clear.
+		# Frame/load-bearing calculations -> Fortress (structural defense).
+		# Gear-brake margin note -> Counter Stance (converting momentum into resistance).
+		"text": "Hilbert: Old blueprints for a solar-powered bicycle. The frame design... load-bearing calculations in the margins. And a note: 'gear-brake converts momentum into resistance.' The handwriting is barely readable.",
 		"next": "locker_sys"
 	},
 	"locker_sys": {
@@ -134,10 +140,19 @@ var paper_monster_dialogue: Dictionary = {
 		"next": "use_yes_2"
 	},
 	"use_yes_2": {
-		"text": "Paper Monster: REDUCE TO SIMPLEST TERMS. ELIMINATE THE FRACTIONS. ERASE THE REMAINDER.",
+		# RATIONALE: Physical sensation beats per the script - the world paused, lighter, stronger.
+		"text": "The world around you is still. Grey. Paused. But something has shifted inside it.",
 		"next": "use_yes_3"
 	},
 	"use_yes_3": {
+		"text": "You feel lighter. Like something that was pressing on your chest has receded, just enough.",
+		"next": "use_yes_4"
+	},
+	"use_yes_4": {
+		"text": "Paper Monster: REDUCE TO SIMPLEST TERMS. ELIMINATE THE FRACTIONS. ERASE THE REMAINDER.",
+		"next": "use_yes_5"
+	},
+	"use_yes_5": {
 		"text": "The monster shatters into fading light. The writing on its pages looks like your own handwriting.",
 		"next": "use_yes_sys"
 	},
@@ -175,8 +190,9 @@ func _on_peer1_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_peer1_dialogue_finished)
 	if DialogueSystem.dialogue_tree == peer1_dialogue and DialogueSystem.current_node_id == "peer1_healed_sys":
 		GlobalState.set_flag("peer1_talked", true)
-		# RATIONALE: Compassion heals Hilbert's current HP by 15.
-		GlobalState.player_current_hp = min(GlobalState.player_current_hp + 15, GlobalState.player_max_hp)
+		# RATIONALE: Listening to someone's concern opens attention - draw 1 extra card on turn 1.
+		# This is more narratively grounded than HP restoration from a conversation.
+		GlobalState.starting_draw_modifier = max(GlobalState.starting_draw_modifier, 1)
 
 func _on_orang2_interacted(_id: String) -> void:
 	if GlobalState.has_flag("peer2_talked"):

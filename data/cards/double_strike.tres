@@ -8,5 +8,5 @@ card_name = "Double Strike"
 energy_cost = 1
 base_value = 4
 card_type = "Attack"
-description = "Deal 4 damage 2 times"
+description = "Hit twice for 2 damage each. Bypasses block twice"
 target_mode = "single"

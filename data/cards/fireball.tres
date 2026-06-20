@@ -8,5 +8,5 @@ card_name = "Fireball"
 energy_cost = 2
 base_value = 8
 card_type = "Special"
-description = "Deal 8 damage to all enemies"
+description = "Deal 8 damage. Burns the enemy - cancels their next Defend"
 target_mode = "all"

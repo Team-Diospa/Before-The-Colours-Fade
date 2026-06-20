@@ -75,6 +75,8 @@ func discard_hand() -> void:
 	retained_card = null # Clear the retain marker for the next turn
 
 # Reroll hand mechanic: discards the hand and draws 5 new cards. Available once per round.
+# RATIONALE: The once-per-round limit is the cost. No energy is spent - the player
+# sacrifices their current hand, not their action economy.
 func reroll_hand() -> void:
 	if not can_reroll:
 		return

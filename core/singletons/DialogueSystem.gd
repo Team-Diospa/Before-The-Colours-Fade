@@ -154,10 +154,15 @@ func _play_node(node_id: String) -> void:
 	var node_data = dialogue_tree[node_id]
 	var raw_text = node_data.get("text", "")
 	
-	# RATIONALE: Automatically separate name (e.g. "n.n.: Hilbert") from the dialog body.
+	# RATIONALE: Prefer explicit "speaker" field in node data over the split heuristic.
+	# Explicit field supports speaker names of any length and avoids false positives.
+	# Falls back to the heuristic for backward compatibility with all existing dialogue trees.
 	var speaker = ""
 	var body_text = raw_text
-	if ": " in raw_text:
+	if node_data.has("speaker"):
+		speaker = node_data["speaker"]
+		body_text = raw_text
+	elif ": " in raw_text:
 		var parts = raw_text.split(": ", false, 1)
 		if parts[0].length() < 16:
 			speaker = parts[0]

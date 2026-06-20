@@ -8,5 +8,5 @@ card_name = "Thunder"
 energy_cost = 2
 base_value = 5
 card_type = "Special"
-description = "Deal 5 damage to 2 random enemies"
+description = "Deal 5 damage. Generates 2 Dimension Shift charges"
 target_mode = "random"

@@ -77,6 +77,16 @@ func deserialize_combat() -> Dictionary:
 
 func clear_cache() -> void:
 	cached_combat_exists = false
+	cached_player_hp = 0
+	cached_player_energy = 3
+	cached_player_block = 0
+	cached_enemy_name = ""
+	cached_enemy_hp = 0
+	cached_enemy_max_hp = 0
+	cached_enemy_intent = ""
+	cached_enemy_intent_value = 0
+	cached_can_reroll = true
+	cached_can_retain = true
 	cached_draw_pile.clear()
 	cached_hand.clear()
 	cached_discard_pile.clear()

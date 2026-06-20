@@ -8,5 +8,5 @@ card_name = "Fortress"
 energy_cost = 2
 base_value = 12
 card_type = "Defense"
-description = "Gain 12 Block"
+description = "Gain 12 Block. Also charges the Dimension Shift"
 target_mode = "self"

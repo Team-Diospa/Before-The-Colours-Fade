@@ -8,5 +8,5 @@ card_name = "Heavy Slash"
 energy_cost = 2
 base_value = 10
 card_type = "Attack"
-description = "Deal 10 damage to single target"
+description = "Strip all enemy block, then deal 10 damage"
 target_mode = "single"

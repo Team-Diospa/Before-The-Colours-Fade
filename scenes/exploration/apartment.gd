@@ -22,7 +22,10 @@ var bed_dialogue: Dictionary = {
 		]
 	},
 	"bed_yes_1": {
-		"text": "n.n.: Hilbert, did you check the battery? I feel a bit drafty.",
+		# RATIONALE: n.n. cannot appear here - he has not been introduced yet in the narrative.
+		# The player first meets n.n. in the hallway-to-dream1 sequence. Any n.n. line before
+		# that is a continuity break. Replaced with an environmental beat.
+		"text": "You drift back into a half-sleep. Your phone buzzes - a calendar reminder you immediately dismiss without reading.",
 		"next": "bed_yes_2"
 	},
 	"bed_yes_2": {
@@ -135,7 +138,10 @@ var shower_dialogue: Dictionary = {
 		"next": "shower_step3"
 	},
 	"shower_step3": {
-		"text": "wouldn't it be nice to feel the silence forever, not worried about everything, finally in peace surrounded by darkness...",
+		# RATIONALE: The script explicitly writes "not realizing he drank the foam of his soap" as the
+		# key dissociation marker - it shows numbness without naming it. Keep this detail.
+		# The internal monologue (silence/darkness) from the original is moved to narration framing, not confession.
+		"text": "The water runs cold. You stare at the drain. You don't notice when you swallow a mouthful of soap foam. You don't move. The water is just water.",
 		"next": "shower_step4"
 	},
 	"shower_step4": {
