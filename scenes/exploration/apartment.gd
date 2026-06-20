@@ -22,7 +22,7 @@ var bed_dialogue: Dictionary = {
 		]
 	},
 	"bed_yes_1": {
-		"text": "n.n.: Don't let me fade, Hilbert...",
+		"text": "n.n.: Hilbert, did you remember to water the plastic plant?",
 		"next": "bed_yes_2"
 	},
 	"bed_yes_2": {
@@ -34,7 +34,7 @@ var bed_dialogue: Dictionary = {
 		"next": ""
 	},
 	"bed_no_1": {
-		"text": "Hilbert: No. I must remember him. I must stay awake.",
+		"text": "Hilbert: No. I need to stay awake. I think there is a test today.",
 		"next": "bed_no_sys"
 	},
 	"bed_no_sys": {
@@ -52,11 +52,11 @@ var desk_dialogue: Dictionary = {
 		]
 	},
 	"open_drawer_1": {
-		"text": "Sketches of old childhood inventions... and a framed photograph of two boys.",
+		"text": "Sketches of old childhood inventions... and a framed photograph of a boy holding a giant cabbage.",
 		"next": "open_drawer_2"
 	},
 	"open_drawer_2": {
-		"text": "Hilbert: My face is clear. But my friend's face is scratched out... I can't remember his face. Why can't I remember?",
+		"text": "Hilbert: Why did we take a picture with a cabbage? And why is the cabbage wearing a tie?",
 		"next": "open_drawer_sys"
 	},
 	"open_drawer_sys": {
@@ -78,11 +78,11 @@ var guitar_dialogue: Dictionary = {
 		]
 	},
 	"guitar_yes_1": {
-		"text": "A soft chord hums in the room. You try to play a brief melody your friend loved.",
+		"text": "A soft chord hums in the room. You try to play the intro to an old cartoon theme song.",
 		"next": "guitar_yes_2"
 	},
 	"guitar_yes_2": {
-		"text": "Hilbert: The notes echo, empty but warm. I... I can feel a faint spark again.",
+		"text": "Hilbert: I forgot the third chord. It always went... boing? Or was it plink?",
 		"next": "guitar_yes_sys"
 	},
 	"guitar_yes_sys": {

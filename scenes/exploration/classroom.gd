@@ -17,15 +17,15 @@ var peer1_dialogue: Dictionary = {
 		"next": "forget_what_2"
 	},
 	"forget_what_2": {
-		"text": "Peer 1: Your notebook. You left it at... well, his place. You know, before the accident.",
+		"text": "Peer 1: Your notebook. You left it under the cafeteria microwave. Again.",
 		"next": "forget_what_3"
 	},
 	"forget_what_3": {
-		"text": "Hilbert: Whose place?",
+		"text": "Hilbert: Why would I leave it under the microwave?",
 		"next": "forget_what_4"
 	},
 	"forget_what_4": {
-		"text": "Peer 1 looks at you with deep pity. 'Never mind. Just... take care.'",
+		"text": "Peer 1: Maybe you wanted to warm up your drawings? Honestly, Hilbert, nobody knows how your brain works.",
 		"next": "peer1_healed_sys"
 	},
 	"stressed": {
@@ -44,7 +44,7 @@ var peer1_dialogue: Dictionary = {
 
 var peer2_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 2: Stop staring at me! You've been spacing out and whispering to thin air. It's creepy.",
+		"text": "Peer 2: Stop staring at my desk! If you want a cheese cracker, just ask. Don't stare at it like it's a math problem.",
 		"options": [
 			{"text": "\"Sorry, just spaced out.\"", "next": "apologize"},
 			{"text": "Ignore them.", "next": "ignore"}
@@ -55,7 +55,7 @@ var peer2_dialogue: Dictionary = {
 		"next": "apologize_2"
 	},
 	"apologize_2": {
-		"text": "You swallow your pride to defuse the tension.",
+		"text": "You swallow your pride to defuse the tension. You promise not to look at the crackers.",
 		"next": "apologize_sys"
 	},
 	"apologize_sys": {
@@ -67,7 +67,7 @@ var peer2_dialogue: Dictionary = {
 		"next": "ignore_2"
 	},
 	"ignore_2": {
-		"text": "You focus inward, blocking out the classroom noise.",
+		"text": "You focus inward, blocking out the classroom noise. The crackers are not real anyway.",
 		"next": "ignore_sys"
 	},
 	"ignore_sys": {
@@ -82,7 +82,7 @@ var locker_dialogue: Dictionary = {
 		"next": "locker_2"
 	},
 	"locker_2": {
-		"text": "Hilbert: These drawings... we drew this together. I won't let his designs die.",
+		"text": "Hilbert: A blueprint of a rocket-powered toaster. Yes, this will definitely revolutionize breakfast.",
 		"next": "locker_sys"
 	},
 	"locker_sys": {
@@ -134,7 +134,7 @@ var paper_monster_dialogue: Dictionary = {
 		"next": "use_yes_2"
 	},
 	"use_yes_2": {
-		"text": "Paper Monster: IF YOU ERASE THE PAIN, YOU ERASE HIM. WAKE UP, HILBERT!",
+		"text": "Paper Monster: THE ANSWER TO QUESTION FOUR IS NOT 'BANANA'! CHOOSE A, B, OR C, HILBERT!",
 		"next": "use_yes_3"
 	},
 	"use_yes_3": {

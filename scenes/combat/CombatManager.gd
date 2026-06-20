@@ -424,11 +424,11 @@ func _resolve_victory() -> void:
 				"next": "win_step3"
 			},
 			"win_step3": {
-				"text": "Hilbert: Wait, why can't I remember your designer's name? I know I drew you with someone... but his face is just a blank.",
+				"text": "Hilbert: My eyes feel dry. And the sky looks... pixelated.",
 				"next": "win_step4"
 			},
 			"win_step4": {
-				"text": "n.n.: Wake up, Hilbert. Before you forget everything.",
+				"text": "n.n.: That's just the classroom ceiling calling you back. Let's go, Hilbert.",
 				"next": ""
 			}
 		}, "start")
@@ -447,23 +447,23 @@ func _resolve_victory() -> void:
 				"next": "win_step3"
 			},
 			"win_step3": {
-				"text": "n.n.: Because you've cleared the panic, Hilbert. You don't need to cope anymore. But... you also don't need to remember.",
+				"text": "n.n.: Because the quiz is ending, Hilbert. You passed. Or did you?",
 				"next": "win_step4"
 			},
 			"win_step4": {
-				"text": "Hilbert: No, wait! I remember his name. It started with... L... Leo? Is his name Leo?",
+				"text": "Hilbert: Wait. Who did I draw you with again? I thought I was alone.",
 				"next": "win_step5"
 			},
 			"win_step5": {
-				"text": "n.n.: That's a beautiful name. Hold onto it... before the colors fade entirely. Wake up...",
+				"text": "n.n.: Maybe you were. Maybe you weren't. Wake up...",
 				"next": "win_step6"
 			},
 			"win_step6": {
-				"text": "You wake up in the classroom. The test paper in front of you is fully solved in neat handwriting. You passed.",
+				"text": "You wake up at your desk. The test paper in front of you is fully solved. You passed.",
 				"next": "win_step7"
 			},
 			"win_step7": {
-				"text": "But the seat next to you is empty and covered in dust. You pull out your phone. The contact list has no name for 'Leo'. Just a blank entry named 'n.n.'.",
+				"text": "But the seat next to you has a notebook with a drawing of a rocket-powered toaster. The margin says: 'H.H. & ...' The other name is smudged.",
 				"next": "win_step8"
 			},
 			"win_step8": {
