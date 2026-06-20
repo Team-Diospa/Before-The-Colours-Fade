@@ -43,6 +43,29 @@ var bed_dialogue: Dictionary = {
 	}
 }
 
+var landlord_dialogue: Dictionary = {
+	"start": {
+		"text": "[Knock Knock]",
+		"next": "landlord_2"
+	},
+	"landlord_2": {
+		"text": "Voice: Mr. Hickman, Mr. Hilbert Hickman, are you there?",
+		"next": "landlord_3"
+	},
+	"landlord_3": {
+		"text": "Hilbert: Yes.",
+		"next": "landlord_4"
+	},
+	"landlord_4": {
+		"text": "Voice: Rent is due next week. Please pay on time. Also, clean up the room. The neighbors complained about the hallway clutter again.",
+		"next": "landlord_5"
+	},
+	"landlord_5": {
+		"text": "Hilbert: Yes, I understand. Thanks.",
+		"next": ""
+	}
+}
+
 var desk_dialogue: Dictionary = {
 	"start": {
 		"text": "A dusty drawing notebook and a pencil. Pick them up?",
@@ -184,6 +207,12 @@ func _on_bed_dialogue_finished() -> void:
 			GlobalState.player_max_hp = max(10, GlobalState.player_max_hp - 5)
 			GlobalState.player_current_hp = min(GlobalState.player_current_hp, GlobalState.player_max_hp)
 			GlobalState.starting_energy_modifier = 1
+		
+		# RATIONALE: Trigger landlord knock dialogue as per the script sequence.
+		call_deferred("_trigger_landlord_dialogue")
+
+func _trigger_landlord_dialogue() -> void:
+	DialogueSystem.start_dialogue(landlord_dialogue, "start")
 
 func _on_guitar_interacted(_id: String) -> void:
 	if GlobalState.has_flag("guitar_played"):
