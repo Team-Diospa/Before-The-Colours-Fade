@@ -15,82 +15,98 @@ var has_showered: bool = false
 # Dictionary representing dialogue structures with split beats and isolated system notices.
 var bed_dialogue: Dictionary = {
 	"start": {
-		"text": "Close my eyes and escape back to the dark? Or face the grey morning?",
+		"text": "The alarm screams. It feels like a drilling machine boring into your skull. Sink back into the warm, heavy dark? Or face the grey morning?",
 		"options": [
-			{"text": "Sleep again (Avoid pain)", "next": "bed_yes_1"},
-			{"text": "Get up (Force alertness)", "next": "bed_no_1"}
+			{"text": "Close your eyes. Just five more minutes.", "next": "bed_yes_1"},
+			{"text": "Force yourself up. Drag your bones out of bed.", "next": "bed_no_1"}
 		]
 	},
 	"bed_yes_1": {
-		"text": "n.n.: Don't let me fade, Hilbert...",
+		"text": "You pull the blanket over your head. The fabric smells faintly of old rain and copper.",
+		"next": "bed_yes_1_nn"
+	},
+	"bed_yes_1_nn": {
+		"text": "n.n.: If you close your eyes, I can stay. Please... don't let the light wash me away.",
 		"next": "bed_yes_2"
 	},
 	"bed_yes_2": {
-		"text": "You drift back into a light slumber, waking up late and rushed.",
+		"text": "You drift. The dream is a warm city of gold and clockwork, but when you gasp awake, the room is freezing, the clock shows 8:45 AM, and your limbs feel like lead.",
 		"next": "bed_yes_sys"
 	},
 	"bed_yes_sys": {
-		"text": "[System]: You feel physically rested (+10 Max HP), but start combat late (-1 starting Energy on turn 1).",
+		"text": "[System]: The extra sleep restores your physical reserves (+10 Max HP), but you wake up late and sluggish (-1 starting Energy on turn 1).",
 		"next": ""
 	},
 	"bed_no_1": {
-		"text": "Hilbert: No. I must remember him. I must stay awake.",
+		"text": "You kick the blanket off. Staring at the ceiling, your chest feels hollow, like someone scooped out the center of you while you slept.",
+		"next": "bed_no_2"
+	},
+	"bed_no_2": {
+		"text": "Hilbert: I'm awake. I'm still here. I have to stay awake.",
 		"next": "bed_no_sys"
 	},
 	"bed_no_sys": {
-		"text": "[System]: You force yourself out of bed. (+1 starting Energy on turn 1, but -5 Max HP).",
+		"text": "[System]: You force yourself into alertness (+1 starting Energy on turn 1), but the sudden shock drains your physical resilience (-5 Max HP).",
 		"next": ""
 	}
 }
 
 var desk_dialogue: Dictionary = {
 	"start": {
-		"text": "A dusty drawing notebook and a pencil. Pick them up?",
+		"text": "A wooden desk covered in a thin film of grey dust. A blunt pencil lies next to a worn drawing notebook.",
 		"options": [
-			{"text": "Yes", "next": "open_drawer_1"},
-			{"text": "No", "next": "close_drawer"}
+			{"text": "Open the drawer.", "next": "open_drawer_1"},
+			{"text": "Leave it alone.", "next": "close_drawer"}
 		]
 	},
 	"open_drawer_1": {
-		"text": "Sketches of old childhood inventions... and a framed photograph of two boys.",
+		"text": "The drawer screeches open. Inside is a framed photograph of two boys laughing in front of a half-finished mechanical project.",
+		"next": "open_drawer_1_photo"
+	},
+	"open_drawer_1_photo": {
+		"text": "You look at the boy on the right. His face is... gone. Not faded. It looks as if someone took a box cutter and aggressively carved his face out of the photo, leaving a jagged, white hole.",
 		"next": "open_drawer_2"
 	},
 	"open_drawer_2": {
-		"text": "Hilbert: My face is clear. But my friend's face is scratched out... I can't remember his face. Why can't I remember?",
+		"text": "Hilbert: Why did I scratch it? Did I do this? I... I can't remember what he looked like. My chest hurts. Why can't I remember his name?",
 		"next": "open_drawer_sys"
 	},
 	"open_drawer_sys": {
-		"text": "[System]: Pencil -> Sword (Double Strike added to deck). Notebook -> Spellbook (Fireball added to deck).",
+		"text": "[System]: Inventions Notebook acquired -> The pencil sharpens into a Sword (Double Strike added to deck). The notebook thickens into a Spellbook (Fireball added to deck).",
 		"next": ""
 	},
 	"close_drawer": {
-		"text": "You leave the drawings untouched on the desk. The memories are too painful.",
+		"text": "You pull your hand back. The dust on the wood looks like ashes. Some memories are better left buried.",
 		"next": ""
 	}
 }
 
 var guitar_dialogue: Dictionary = {
 	"start": {
-		"text": "An old guitar. Play a chord?",
+		"text": "An acoustic guitar rests in the corner, three of its strings snapped and curled like dead spiders. Touch the wood?",
 		"options": [
-			{"text": "Yes", "next": "guitar_yes_1"},
-			{"text": "No", "next": "guitar_no"}
+			{"text": "Pluck the remaining strings.", "next": "guitar_yes_1"},
+			{"text": "Ignore the dust.", "next": "guitar_no"}
 		]
 	},
 	"guitar_yes_1": {
-		"text": "A soft chord hums in the room. You try to play a brief melody your friend loved.",
+		"text": "You pluck a chord. The sound is flat, out of tune, yet it echoes through the apartment like a deep, vibrating bell.",
+		"next": "guitar_yes_1_whistle"
+	},
+	"guitar_yes_1_whistle": {
+		"text": "For a split second, you hear a second instrument harmonizing with you—a bright, mechanical whistle, humming a melody you used to know by heart.",
 		"next": "guitar_yes_2"
 	},
 	"guitar_yes_2": {
-		"text": "Hilbert: The notes echo, empty but warm. I... I can feel a faint spark again.",
+		"text": "Hilbert: That tune... we used to play it in the backyard when it rained. Who was... who was whistling?",
 		"next": "guitar_yes_sys"
 	},
 	"guitar_yes_sys": {
-		"text": "[System]: Guitar -> Hope (Health fully restored, Heavy Slash and Thunder added to deck).",
+		"text": "[System]: Faint melody recalled -> Your spirits lift (HP fully restored), and memories of battle take shape (Heavy Slash and Thunder added to deck).",
 		"next": ""
 	},
 	"guitar_no": {
-		"text": "You don't feel like playing. The silence in the apartment is too heavy.",
+		"text": "You turn away. The silence of the room is louder than any chord you could play.",
 		"next": ""
 	}
 }
