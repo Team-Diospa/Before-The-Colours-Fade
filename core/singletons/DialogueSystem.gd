@@ -94,10 +94,13 @@ func _ready() -> void:
 	text_vbox.add_child(speaker_label)
 	
 	# Label to render the text.
-	text_label = Label.new()
+	text_label = RichTextLabel.new()
 	text_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	text_label.add_theme_font_size_override("font_size", 16)
+	text_label.bbcode_enabled = true
+	text_label.fit_content = true
+	text_label.add_theme_font_size_override("normal_font_size", 16)
+	text_label.add_theme_font_size_override("bold_font_size", 16)
+	text_label.add_theme_font_size_override("italics_font_size", 16)
 	text_vbox.add_child(text_label)
 	
 	# VBoxContainer to render branch choice buttons.
@@ -140,7 +143,14 @@ func start_dialogue(tree: Dictionary, start_node: String = "start") -> void:
 	dialogue_tree = tree
 	is_active = true
 	root_control.visible = true # Enable full overlay control node
-	dialogue_panel.visible = true
+	
+	# RATIONALE: Premium fade-in for the UI to reduce jarring pops and enhance atmospheric immersion.
+	if not dialogue_panel.visible:
+		dialogue_panel.modulate.a = 0.0
+		dialogue_panel.visible = true
+		var fade_in = create_tween()
+		fade_in.tween_property(dialogue_panel, "modulate:a", 1.0, 0.3)
+		
 	EventBus.dialogue_started.emit(start_node)
 	_play_node(start_node)
 
@@ -205,9 +215,14 @@ func _play_node(node_id: String) -> void:
 			var opt = options[i]
 			var btn = Button.new()
 			btn.text = opt.get("text", "")
+			# Premium feature: fade in buttons slightly to draw attention after text finishes.
+			btn.modulate.a = 0.0
 			btn.pressed.connect(func(): EventBus.dialogue_option_selected.emit(i))
 			options_container.add_child(btn)
 			active_options.append(opt.get("next", ""))
+			
+			var btn_tween = create_tween()
+			btn_tween.tween_property(btn, "modulate:a", 1.0, 0.2).set_delay(duration + (i * 0.1))
 			
 	EventBus.dialogue_text_updated.emit(raw_text, active_options)
 
@@ -225,8 +240,15 @@ func close_dialogue() -> void:
 		_active_tween.kill()
 	_is_typing = false
 	root_control.visible = false # Disable overlay so click interactions pass through
-	dialogue_panel.visible = false
-	for child in options_container.get_children():
-		child.queue_free()
+	
+	# Premium fade-out transition.
+	var fade_out = create_tween()
+	fade_out.tween_property(dialogue_panel, "modulate:a", 0.0, 0.3)
+	fade_out.finished.connect(func():
+		dialogue_panel.visible = false
+		for child in options_container.get_children():
+			child.queue_free()
+	)
+	
 	active_options.clear()
 	EventBus.dialogue_finished.emit()

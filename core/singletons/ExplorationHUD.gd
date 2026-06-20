@@ -246,13 +246,19 @@ func _input(event: InputEvent) -> void:
 # Toggle visibility of the inventory overlay panel and freeze player movement.
 func toggle_deck_overlay() -> void:
 	is_deck_overlay_open = not is_deck_overlay_open
-	deck_overlay_panel.visible = is_deck_overlay_open
 	
 	if is_deck_overlay_open:
 		EventBus.lock_player_ui.emit()
 		update_deck_overlay()
+		deck_overlay_panel.modulate.a = 0.0
+		deck_overlay_panel.visible = true
+		var fade_in = create_tween()
+		fade_in.tween_property(deck_overlay_panel, "modulate:a", 1.0, 0.2)
 	else:
 		EventBus.unlock_player_ui.emit()
+		var fade_out = create_tween()
+		fade_out.tween_property(deck_overlay_panel, "modulate:a", 0.0, 0.2)
+		fade_out.finished.connect(func(): deck_overlay_panel.visible = false)
 
 # Build the scrollable deck list and populate status labels.
 func update_deck_overlay() -> void:
