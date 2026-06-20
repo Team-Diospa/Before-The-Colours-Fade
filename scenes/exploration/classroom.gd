@@ -3,24 +3,90 @@ extends Node2D
 # Implements interactables for Orang 1, Orang 2, Locker (collect buff), and Desk (starts the quiz and shifts to S_dream2).
 # Also handles returning from combat with a fragment to use on the Paper Monster.
 
-# Dialogue trees for the classroom actors.
+# Dialogue trees for the classroom actors with split beats and isolated system notices.
 var peer1_dialogue: Dictionary = {
 	"start": {
-		"text": "Orang 1: Uhh... You okay?",
+		"text": "Peer 1: Hilbert? You look like a ghost. Did you... forget again?",
+		"options": [
+			{"text": "\"Forget what?\"", "next": "forget_what"},
+			{"text": "\"I'm just stressed about the quiz.\"", "next": "stressed"}
+		]
+	},
+	"forget_what": {
+		"text": "Hilbert: Forget what?",
+		"next": "forget_what_2"
+	},
+	"forget_what_2": {
+		"text": "Peer 1: Your notebook. You left it at... well, his place. You know, before the accident.",
+		"next": "forget_what_3"
+	},
+	"forget_what_3": {
+		"text": "Hilbert: Whose place?",
+		"next": "forget_what_4"
+	},
+	"forget_what_4": {
+		"text": "Peer 1 looks at you with deep pity. 'Never mind. Just... take care.'",
+		"next": "peer1_healed_sys"
+	},
+	"stressed": {
+		"text": "Hilbert: I'm just stressed about the quiz.",
+		"next": "stressed_2"
+	},
+	"stressed_2": {
+		"text": "Peer 1: Don't worry, it's just a quiz. You'll do fine. Take it slow, Hilbert.",
+		"next": "peer1_healed_sys"
+	},
+	"peer1_healed_sys": {
+		"text": "[System]: Their concern comforts you (Health restored by 15 HP).",
 		"next": ""
 	}
 }
 
 var peer2_dialogue: Dictionary = {
 	"start": {
-		"text": "Orang 2: Stop looking at me! Weirdo.",
+		"text": "Peer 2: Stop staring at me! You've been spacing out and whispering to thin air. It's creepy.",
+		"options": [
+			{"text": "\"Sorry, just spaced out.\"", "next": "apologize"},
+			{"text": "Ignore them.", "next": "ignore"}
+		]
+	},
+	"apologize": {
+		"text": "Hilbert: Sorry, just spaced out.",
+		"next": "apologize_2"
+	},
+	"apologize_2": {
+		"text": "You swallow your pride to defuse the tension.",
+		"next": "apologize_sys"
+	},
+	"apologize_sys": {
+		"text": "[System]: Defusing tension clears your head (+5 starting Block on turn 1 of combat).",
+		"next": ""
+	},
+	"ignore": {
+		"text": "You ignore the comment and turn away.",
+		"next": "ignore_2"
+	},
+	"ignore_2": {
+		"text": "You focus inward, blocking out the classroom noise.",
+		"next": "ignore_sys"
+	},
+	"ignore_sys": {
+		"text": "[System]: Inward focus improves concentration (Draw +1 card on turn 1 of combat).",
 		"next": ""
 	}
 }
 
 var locker_dialogue: Dictionary = {
 	"start": {
-		"text": "You open the locker. Found a Courage Buff card!",
+		"text": "You open the locker. Inside is an old notebook covered in brave drawings of inventions.",
+		"next": "locker_2"
+	},
+	"locker_2": {
+		"text": "Hilbert: These drawings... we drew this together. I won't let his designs die.",
+		"next": "locker_sys"
+	},
+	"locker_sys": {
+		"text": "[System]: Locker -> Courage (Fortress and Counter Stance added to deck. Courage Buff active).",
 		"next": ""
 	}
 }
@@ -64,7 +130,19 @@ var paper_monster_dialogue: Dictionary = {
 		]
 	},
 	"use_yes": {
-		"text": "You place the fragment onto the Paper Monster. It shatters into glowing dust! You feel lighter and stronger. (Confidence Buff Active)",
+		"text": "You place the glowing fragment onto the Paper Monster.",
+		"next": "use_yes_2"
+	},
+	"use_yes_2": {
+		"text": "Paper Monster: IF YOU ERASE THE PAIN, YOU ERASE HIM. WAKE UP, HILBERT!",
+		"next": "use_yes_3"
+	},
+	"use_yes_3": {
+		"text": "The monster shatters into fading light. You feel a sudden, numb lightness in your chest.",
+		"next": "use_yes_sys"
+	},
+	"use_yes_sys": {
+		"text": "[System]: Reality countered (Confidence Buff active, attacks deal 2.0x damage).",
 		"next": ""
 	},
 	"use_no": {
@@ -72,9 +150,6 @@ var paper_monster_dialogue: Dictionary = {
 		"next": ""
 	}
 }
-
-var is_locker_searched: bool = false
-var is_paper_monster_defeated: bool = false
 
 func _ready() -> void:
 	# Connect to local interactable node signals.
@@ -84,52 +159,89 @@ func _ready() -> void:
 	$Desk.interacted.connect(_on_desk_interacted)
 	
 	# Configure the Paper Monster depending on whether we are mid-combat.
-	# We can use the Desk interactable as the Paper Monster when returning.
 	if ShiftManager.cached_combat_exists and GlobalState.acquired_fragments > 0:
 		$Desk.prompt_message = "Press E to use Fragment on Paper Monster"
 		$Desk.interaction_id = "paper_monster"
 
 func _on_orang1_interacted(_id: String) -> void:
+	if GlobalState.has_flag("peer1_talked"):
+		DialogueSystem.start_dialogue({"start": {"text": "Peer 1 is quiet, reviewing notes.", "next": ""}}, "start")
+		return
 	DialogueSystem.start_dialogue(peer1_dialogue, "start")
+	if not EventBus.dialogue_finished.is_connected(_on_peer1_dialogue_finished):
+		EventBus.dialogue_finished.connect(_on_peer1_dialogue_finished)
+
+func _on_peer1_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_peer1_dialogue_finished)
+	if DialogueSystem.dialogue_tree == peer1_dialogue and DialogueSystem.current_node_id == "peer1_healed_sys":
+		GlobalState.set_flag("peer1_talked", true)
+		# RATIONALE: Compassion heals Hilbert's current HP by 15.
+		GlobalState.player_current_hp = min(GlobalState.player_current_hp + 15, GlobalState.player_max_hp)
 
 func _on_orang2_interacted(_id: String) -> void:
+	if GlobalState.has_flag("peer2_talked"):
+		DialogueSystem.start_dialogue({"start": {"text": "Peer 2 ignores you, annoyed.", "next": ""}}, "start")
+		return
 	DialogueSystem.start_dialogue(peer2_dialogue, "start")
+	if not EventBus.dialogue_finished.is_connected(_on_peer2_dialogue_finished):
+		EventBus.dialogue_finished.connect(_on_peer2_dialogue_finished)
+
+func _on_peer2_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_peer2_dialogue_finished)
+	if DialogueSystem.dialogue_tree == peer2_dialogue:
+		if DialogueSystem.current_node_id == "apologize_sys":
+			GlobalState.set_flag("peer2_talked", true)
+			# RATIONALE: Defusing tension grants defensive starting block.
+			GlobalState.starting_block_modifier = 5
+		elif DialogueSystem.current_node_id == "ignore_sys":
+			GlobalState.set_flag("peer2_talked", true)
+			# RATIONALE: Inward focus grants starting card draw.
+			GlobalState.starting_draw_modifier = 1
 
 func _on_locker_interacted(_id: String) -> void:
-	if not is_locker_searched:
-		is_locker_searched = true
-		GlobalState.set_flag("buff_courage_active", true)
+	# RATIONALE: locker searched flag is stored globally, preventing the locker re-loot exploit after shifting.
+	if not GlobalState.has_flag("locker_searched"):
 		DialogueSystem.start_dialogue(locker_dialogue, "start")
+		if not EventBus.dialogue_finished.is_connected(_on_locker_dialogue_finished):
+			EventBus.dialogue_finished.connect(_on_locker_dialogue_finished)
 	else:
 		DialogueSystem.start_dialogue(locker_empty_dialogue, "start")
+
+func _on_locker_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_locker_dialogue_finished)
+	if DialogueSystem.dialogue_tree == locker_dialogue and DialogueSystem.current_node_id == "locker_sys":
+		GlobalState.set_flag("locker_searched", true)
+		GlobalState.set_flag("buff_courage_active", true)
+		
+		# Adds Fortress and Counter Stance to master deck
+		var fortress_res = load("res://data/cards/fortress.tres")
+		var cstance_res = load("res://data/cards/counter_stance.tres")
+		if fortress_res and not GlobalState.master_deck.has(fortress_res):
+			GlobalState.master_deck.append(fortress_res)
+		if cstance_res and not GlobalState.master_deck.has(cstance_res):
+			GlobalState.master_deck.append(cstance_res)
 
 func _on_desk_interacted(id: String) -> void:
 	if id == "paper_monster":
 		DialogueSystem.start_dialogue(paper_monster_dialogue, "start")
-		# Connect class method to dialogue finish to consume fragment and resume.
 		if not EventBus.dialogue_finished.is_connected(_on_paper_monster_dialogue_finished):
 			EventBus.dialogue_finished.connect(_on_paper_monster_dialogue_finished)
 	else:
 		DialogueSystem.start_dialogue(desk_dialogue, "start")
-		# Connect class method to dialogue finish to start quiz and transition.
 		if not EventBus.dialogue_finished.is_connected(_on_desk_dialogue_finished):
 			EventBus.dialogue_finished.connect(_on_desk_dialogue_finished)
 
-# Bound listener callback to avoid signal reference leaks.
 func _on_paper_monster_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_paper_monster_dialogue_finished)
-	if DialogueSystem.dialogue_tree == paper_monster_dialogue and DialogueSystem.current_node_id == "use_yes":
+	if DialogueSystem.dialogue_tree == paper_monster_dialogue and DialogueSystem.current_node_id == "use_yes_sys":
 		GlobalState.acquired_fragments -= 1
 		GlobalState.set_flag("buff_confidence_active", true)
-		# Warp back to S_dream2 to resume combat.
 		SceneManager.transition_to_state("S_dream2_resume")
 
-# Bound listener callback to avoid signal reference leaks.
 func _on_desk_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_desk_dialogue_finished)
 	if DialogueSystem.dialogue_tree == desk_dialogue and DialogueSystem.current_node_id == "quiz_fade":
 		GlobalState.set_flag("quiz_started", true)
-		# Transition to S_dream2 (Burning Village combat).
 		SceneManager.transition_to_state("S_dream2")
 
 

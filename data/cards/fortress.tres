@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/resources/CardData.gd" id="1_fortress"]
+
+[resource]
+script = ExtResource("1_fortress")
+card_name = "Fortress"
+energy_cost = 2
+base_value = 12
+card_type = "Defense"
+description = "Gain 12 Block"
+target_mode = "self"

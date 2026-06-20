@@ -18,13 +18,13 @@ class_name CardData
 
 # Execute the card's specific action in combat.
 func execute_effect(user: Node, targets: Array) -> void:
-	# Check for active confidence or courage buffs to scale player damage.
+	# RATIONALE: The player acts through the CombatManager context itself rather than a separate "Player" node.
+	# Thus, we directly query GlobalState for active buffs to scale player card values accordingly.
 	var damage_multiplier: float = 1.0
-	if user.name == "Player":
-		if GlobalState.has_flag("buff_confidence_active"):
-			damage_multiplier = 2.0 # Confident buff doubles player damage
-		elif GlobalState.has_flag("buff_courage_active"):
-			damage_multiplier = 1.5 # Courage buff multiplies player damage
+	if GlobalState.has_flag("buff_confidence_active"):
+		damage_multiplier = 2.0 # Confident buff doubles player card damage (2.0x multiplier)
+	elif GlobalState.has_flag("buff_courage_active"):
+		damage_multiplier = 1.5 # Courage buff increases player card damage by 1.5x
 
 	match card_name:
 		"Strike":
@@ -46,6 +46,9 @@ func execute_effect(user: Node, targets: Array) -> void:
 			user.gain_block(base_value)
 		"Counter Stance":
 			user.gain_block(base_value)
+			# RATIONALE: Counter Stance offers high hybrid value by defending and dealing 4 counter damage.
+			if not targets.is_empty():
+				targets[0].take_damage(4)
 		"Fireball":
 			# Deal damage to all targets in the list.
 			for t in targets:

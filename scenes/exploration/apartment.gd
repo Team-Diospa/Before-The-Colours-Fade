@@ -12,53 +12,92 @@ const COLOR_DEPRESSION = Color(0.3, 0.3, 0.4, 1.0) # Cold, dark, and gloomy
 # Tracking progress flag.
 var has_showered: bool = false
 
-# Dictionary representing dialogue structures.
+# Dictionary representing dialogue structures with split beats and isolated system notices.
 var bed_dialogue: Dictionary = {
 	"start": {
-		"text": "Sleep Again?",
+		"text": "Close my eyes and escape back to the dark? Or face the grey morning?",
 		"options": [
-			{"text": "Yes", "next": "bed_yes"},
-			{"text": "No", "next": "bed_no"}
+			{"text": "Sleep again (Avoid pain)", "next": "bed_yes_1"},
+			{"text": "Get up (Force alertness)", "next": "bed_no_1"}
 		]
 	},
-	"bed_yes": {
-		"text": "Your alarm rings loudly! Morning call reminder: you must attend the monday lecture quiz today.",
+	"bed_yes_1": {
+		"text": "n.n.: Don't let me fade, Hilbert...",
+		"next": "bed_yes_2"
+	},
+	"bed_yes_2": {
+		"text": "You drift back into a light slumber, waking up late and rushed.",
+		"next": "bed_yes_sys"
+	},
+	"bed_yes_sys": {
+		"text": "[System]: You feel physically rested (+10 Max HP), but start combat late (-1 starting Energy on turn 1).",
 		"next": ""
 	},
-	"bed_no": {
-		"text": "Probably later.",
+	"bed_no_1": {
+		"text": "Hilbert: No. I must remember him. I must stay awake.",
+		"next": "bed_no_sys"
+	},
+	"bed_no_sys": {
+		"text": "[System]: You force yourself out of bed. (+1 starting Energy on turn 1, but -5 Max HP).",
 		"next": ""
 	}
 }
 
 var desk_dialogue: Dictionary = {
 	"start": {
-		"text": "Papers... Unfinished... Not Much. Open Drawer?",
+		"text": "A dusty drawing notebook and a pencil. Pick them up?",
 		"options": [
-			{"text": "Yes", "next": "open_drawer"},
+			{"text": "Yes", "next": "open_drawer_1"},
 			{"text": "No", "next": "close_drawer"}
 		]
 	},
-	"open_drawer": {
-		"text": "A Picture... Not Important.",
+	"open_drawer_1": {
+		"text": "Sketches of old childhood inventions... and a framed photograph of two boys.",
+		"next": "open_drawer_2"
+	},
+	"open_drawer_2": {
+		"text": "Hilbert: My face is clear. But my friend's face is scratched out... I can't remember his face. Why can't I remember?",
+		"next": "open_drawer_sys"
+	},
+	"open_drawer_sys": {
+		"text": "[System]: Pencil -> Sword (Double Strike added to deck). Notebook -> Spellbook (Fireball added to deck).",
 		"next": ""
 	},
 	"close_drawer": {
-		"text": "You leave the drawer shut.",
+		"text": "You leave the drawings untouched on the desk. The memories are too painful.",
 		"next": ""
 	}
 }
 
 var guitar_dialogue: Dictionary = {
 	"start": {
-		"text": "Not really in the mood to play.",
+		"text": "An old guitar. Play a chord?",
+		"options": [
+			{"text": "Yes", "next": "guitar_yes_1"},
+			{"text": "No", "next": "guitar_no"}
+		]
+	},
+	"guitar_yes_1": {
+		"text": "A soft chord hums in the room. You try to play a brief melody your friend loved.",
+		"next": "guitar_yes_2"
+	},
+	"guitar_yes_2": {
+		"text": "Hilbert: The notes echo, empty but warm. I... I can feel a faint spark again.",
+		"next": "guitar_yes_sys"
+	},
+	"guitar_yes_sys": {
+		"text": "[System]: Guitar -> Hope (Health fully restored, Heavy Slash and Thunder added to deck).",
+		"next": ""
+	},
+	"guitar_no": {
+		"text": "You don't feel like playing. The silence in the apartment is too heavy.",
 		"next": ""
 	}
 }
 
 var toilet_dialogue: Dictionary = {
 	"start": {
-		"text": "Just a toilet. Nothing Much.",
+		"text": "Just a dirty toilet. Empty, like everything else here.",
 		"next": ""
 	}
 }
@@ -124,38 +163,86 @@ func _ready() -> void:
 	$ExitDoor.interacted.connect(_on_exit_door_interacted)
 
 func _on_bed_interacted(_id: String) -> void:
+	if GlobalState.has_flag("bed_slept"):
+		DialogueSystem.start_dialogue({"start": {"text": "You've already made your choice about the bed.", "next": ""}}, "start")
+		return
 	DialogueSystem.start_dialogue(bed_dialogue, "start")
+	if not EventBus.dialogue_finished.is_connected(_on_bed_dialogue_finished):
+		EventBus.dialogue_finished.connect(_on_bed_dialogue_finished)
+
+func _on_bed_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_bed_dialogue_finished)
+	if DialogueSystem.dialogue_tree == bed_dialogue:
+		GlobalState.set_flag("bed_slept", true)
+		if DialogueSystem.current_node_id == "bed_yes_sys":
+			# RATIONALE: Sleeping in adds to max/current health but penalizes energy for a sluggish start.
+			GlobalState.player_max_hp += 10
+			GlobalState.player_current_hp += 10
+			GlobalState.starting_energy_modifier = -1
+		elif DialogueSystem.current_node_id == "bed_no_sys":
+			# RATIONALE: Rising immediately gives a quick-thinking alert bonus at the cost of physical exhaustion.
+			GlobalState.player_max_hp = max(10, GlobalState.player_max_hp - 5)
+			GlobalState.player_current_hp = min(GlobalState.player_current_hp, GlobalState.player_max_hp)
+			GlobalState.starting_energy_modifier = 1
 
 func _on_guitar_interacted(_id: String) -> void:
+	if GlobalState.has_flag("guitar_played"):
+		DialogueSystem.start_dialogue({"start": {"text": "You don't feel like playing the guitar again.", "next": ""}}, "start")
+		return
 	DialogueSystem.start_dialogue(guitar_dialogue, "start")
+	if not EventBus.dialogue_finished.is_connected(_on_guitar_dialogue_finished):
+		EventBus.dialogue_finished.connect(_on_guitar_dialogue_finished)
+
+func _on_guitar_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_guitar_dialogue_finished)
+	if DialogueSystem.dialogue_tree == guitar_dialogue and DialogueSystem.current_node_id == "guitar_yes_sys":
+		GlobalState.set_flag("guitar_played", true)
+		# RATIONALE: Music provides healing (Hope) and unlocks heavy attack cards in Hilbert's dream.
+		GlobalState.player_current_hp = GlobalState.player_max_hp
+		var hslash_res = load("res://data/cards/heavy_slash.tres")
+		var thunder_res = load("res://data/cards/thunder.tres")
+		if hslash_res and not GlobalState.master_deck.has(hslash_res):
+			GlobalState.master_deck.append(hslash_res)
+		if thunder_res and not GlobalState.master_deck.has(thunder_res):
+			GlobalState.master_deck.append(thunder_res)
 
 func _on_desk_interacted(_id: String) -> void:
+	if GlobalState.has_flag("desk_searched"):
+		DialogueSystem.start_dialogue({"start": {"text": "The desk drawer has been cleared.", "next": ""}}, "start")
+		return
 	DialogueSystem.start_dialogue(desk_dialogue, "start")
+	if not EventBus.dialogue_finished.is_connected(_on_desk_dialogue_finished):
+		EventBus.dialogue_finished.connect(_on_desk_dialogue_finished)
+
+func _on_desk_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_desk_dialogue_finished)
+	if DialogueSystem.dialogue_tree == desk_dialogue and DialogueSystem.current_node_id == "open_drawer_sys":
+		GlobalState.set_flag("desk_searched", true)
+		# RATIONALE: Searching notes adds structural knowledge (Double Strike & Fireball) to the deck.
+		var dstrike_res = load("res://data/cards/double_strike.tres")
+		var fireball_res = load("res://data/cards/fireball.tres")
+		if dstrike_res and not GlobalState.master_deck.has(dstrike_res):
+			GlobalState.master_deck.append(dstrike_res)
+		if fireball_res and not GlobalState.master_deck.has(fireball_res):
+			GlobalState.master_deck.append(fireball_res)
 
 func _on_toilet_interacted(_id: String) -> void:
 	DialogueSystem.start_dialogue(toilet_dialogue, "start")
 
 func _on_shower_interacted(_id: String) -> void:
-	# Trigger the shower dialogue progression.
 	DialogueSystem.start_dialogue(shower_dialogue, "start")
-	
-	# Linear color transition of the room representing mood shift.
 	var tween = create_tween()
 	tween.tween_property(CanvasModulateNode, "color", COLOR_DEPRESSION, 4.0)
-	
 	has_showered = true
 
 func _on_exit_door_interacted(_id: String) -> void:
 	if not has_showered:
-		# Block leaving.
 		DialogueSystem.start_dialogue(door_locked_dialogue, "start")
 	else:
 		DialogueSystem.start_dialogue(door_dialogue, "start")
-		# Connect class method to dialogue finish to perform transition.
 		if not EventBus.dialogue_finished.is_connected(_on_door_dialogue_finished):
 			EventBus.dialogue_finished.connect(_on_door_dialogue_finished)
 
-# Bound listener callback to avoid signal reference leaks.
 func _on_door_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_door_dialogue_finished)
 	if DialogueSystem.dialogue_tree == door_dialogue and DialogueSystem.current_node_id == "exit_yes":

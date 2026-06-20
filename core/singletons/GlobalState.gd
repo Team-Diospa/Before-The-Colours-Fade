@@ -8,7 +8,16 @@ var narrative_flags: Dictionary = {
 	"rent_reminder_heard": false,
 	"shift_1_done": false,
 	"quiz_started": false,
-	"buff_confidence_active": false
+	"buff_courage_active": false,
+	"buff_confidence_active": false,
+	
+	# RATIONALE: Tracking exploration interactions globally to prevent exploits and re-triggering.
+	"locker_searched": false,
+	"desk_searched": false,
+	"guitar_played": false,
+	"bed_slept": false,
+	"peer1_talked": false,
+	"peer2_talked": false
 }
 
 # Player health tracking.
@@ -19,6 +28,11 @@ var player_current_hp: int = 50
 var acquired_fragments: int = 0
 var dimension_charge: int = 0
 const MAX_CHARGE: int = 3
+
+# RATIONALE: Temporary stat modifiers earned from exploration choices, applied to the first turn of combat.
+var starting_energy_modifier: int = 0
+var starting_block_modifier: int = 0
+var starting_draw_modifier: int = 0
 
 # Persistent master deck list.
 var master_deck: Array = []
@@ -44,9 +58,20 @@ func reset_state() -> void:
 		"rent_reminder_heard": false,
 		"shift_1_done": false,
 		"quiz_started": false,
-		"buff_confidence_active": false
+		"buff_courage_active": false,
+		"buff_confidence_active": false,
+		"locker_searched": false,
+		"desk_searched": false,
+		"guitar_played": false,
+		"bed_slept": false,
+		"peer1_talked": false,
+		"peer2_talked": false
 	}
+	player_max_hp = 50
 	player_current_hp = player_max_hp
 	dimension_charge = 0
 	acquired_fragments = 0
+	starting_energy_modifier = 0
+	starting_block_modifier = 0
+	starting_draw_modifier = 0
 	master_deck.clear()

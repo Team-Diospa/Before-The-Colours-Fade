@@ -21,22 +21,20 @@ func initialize_deck() -> void:
 	discard_pile.clear()
 	retained_card = null
 	
-	# Load cards.
+	# Load baseline cards.
 	var strike_res = load("res://data/cards/strike.tres")
 	var defend_res = load("res://data/cards/defend.tres")
-	var dstrike_res = load("res://data/cards/double_strike.tres")
-	var fireball_res = load("res://data/cards/fireball.tres")
-	var thunder_res = load("res://data/cards/thunder.tres")
 	
-	# Assemble master deck of 10 cards.
-	var master_deck = [
-		strike_res, strike_res, strike_res, strike_res,
-		defend_res, defend_res, defend_res,
-		dstrike_res, fireball_res, thunder_res
-	]
+	# RATIONALE: Players start with a baseline deck of Strikes and Defends. Advanced cards (Double Strike,
+	# Heavy Slash, Fireball, Thunder, etc.) are earned by inspecting their real-world representations in reality.
+	if GlobalState.master_deck.is_empty():
+		GlobalState.master_deck = [
+			strike_res, strike_res, strike_res, strike_res,
+			defend_res, defend_res, defend_res, defend_res
+		]
 	
 	# Shuffle and assign to draw pile.
-	draw_pile = fisher_yates(master_deck)
+	draw_pile = fisher_yates(GlobalState.master_deck)
 
 # Fisher-Yates shuffle algorithm for unbiased probability.
 func fisher_yates(array: Array) -> Array:
