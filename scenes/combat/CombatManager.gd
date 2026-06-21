@@ -1151,7 +1151,9 @@ func _resolve_victory() -> void:
 				"next": "win_step6"
 			},
 			"win_step6": {
+				# RATIONALE: Shift to reality styling (cinematic near-black canvas) to match the classroom desk setting.
 				"text": "You are back at your desk. The exam paper in front of you is completed, every answer filled in your own handwriting. You don't remember solving a single question.",
+				"dream_world": false,
 				"next": "win_step7"
 			},
 			"win_step7": {
@@ -1188,7 +1190,9 @@ func _resolve_victory() -> void:
 				"next": "win_step15"
 			},
 			"win_step15": {
+				# RATIONALE: Shift back to dream styling (warm sketch paper canvas) to represent the bleeding of the two worlds.
 				"text": "The two worlds are bleeding into each other. The green grass grows through the linoleum floor. The burning wood smell of the village mixes with the scent of floor wax.",
+				"dream_world": true,
 				"next": "win_step16"
 			},
 			"win_step16": {
@@ -1295,7 +1299,9 @@ func _resolve_victory() -> void:
 				"next": "wake_ending_6"
 			},
 			"wake_ending_6": {
+				# RATIONALE: Return to reality styling (cinematic near-black canvas) as the dream world shatters and Hilbert wakes up.
 				"text": "You open your eyes. The classroom is loud. The students are whispering. The professor is collecting the papers.",
+				"dream_world": false,
 				"next": "wake_ending_7"
 			},
 			"wake_ending_7": {

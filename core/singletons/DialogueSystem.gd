@@ -43,13 +43,8 @@ var _is_dream_world: bool = false
 # Dynamically updates the dialogue styling depending on whether the scene is dream or reality.
 # Ensures seamless visual transitions between the warm beige sketch and cold slate aesthetics.
 func _update_ui_style() -> void:
-	# Detect if current scene is in the dream world based on file path.
-	_is_dream_world = false
-	if get_tree() and get_tree().current_scene:
-		var path = get_tree().current_scene.scene_file_path
-		if path != "" and ("combat" in path or "field" in path or "village" in path):
-			_is_dream_world = true
-			
+	# RATIONALE: We no longer auto-detect the scene path here to respect per-node overrides.
+	# The initial state is set in start_dialogue(), and per-node overrides update the variables.
 	var style_box = StyleBoxFlat.new()
 	style_box.corner_radius_top_left = 0
 	style_box.corner_radius_top_right = 0
@@ -301,8 +296,29 @@ func _input(event: InputEvent) -> void:
 			BubbleManager.show_continue_indicator(false)
 			# Fetch next node from current node data.
 			var node_data = dialogue_tree.get(current_node_id, {})
-			if node_data.has("next") and node_data["next"] != "":
-				_play_node(node_data["next"])
+			var next_node_id = node_data.get("next", "")
+			
+			if next_node_id != "":
+				var next_node_data = dialogue_tree.get(next_node_id, {})
+				var current_fade = node_data.get("fade_out", false)
+				var will_layout_change = false
+				
+				# Check layout change
+				if next_node_data.has("fullscreen"):
+					if next_node_data["fullscreen"] != _is_fullscreen_mode:
+						will_layout_change = true
+				# Check dream world style change
+				if next_node_data.has("dream_world"):
+					if next_node_data["dream_world"] != _is_dream_world:
+						will_layout_change = true
+						
+				if current_fade or will_layout_change:
+					# RATIONALE: Fade out dialogue panel to hide visual snaps during layout/state shifts.
+					var fade_tw = create_tween()
+					fade_tw.tween_property(dialogue_panel, "modulate:a", 0.0, 0.25).set_trans(Tween.TRANS_SINE)
+					await fade_tw.finished
+					
+				_play_node(next_node_id)
 			else:
 				# End of dialogue tree reached.
 				close_dialogue()
@@ -315,6 +331,14 @@ func start_dialogue(tree: Dictionary, start_node: String = "start", is_fullscree
 	dialogue_tree = tree
 	is_active = true
 	_is_fullscreen_mode = is_fullscreen_narration
+	
+	# RATIONALE: Initialize default dream world state from scene file path.
+	_is_dream_world = false
+	if get_tree() and get_tree().current_scene:
+		var path = get_tree().current_scene.scene_file_path
+		if path != "" and ("combat" in path or "field" in path or "village" in path):
+			_is_dream_world = true
+			
 	root_control.visible = true # Enable full overlay control node
 	dialogue_panel.visible = true
 	
@@ -340,14 +364,27 @@ func _play_node(node_id: String) -> void:
 		
 	var node_data = dialogue_tree[node_id]
 	
-	# RATIONALE: Support per-node fullscreen overrides so a dialogue sequence can transition
-	# seamlessly from fullscreen narration (e.g. intro black screen) to standard bottom-docked
-	# dialogue (e.g. character waking up in the room) mid-sequence.
+	# RATIONALE: Support per-node fullscreen and dream world overrides so a dialogue sequence can transition
+	# layouts and background aesthetics dynamically mid-sequence.
+	var changed = false
 	if node_data.has("fullscreen"):
-		var node_fullscreen = node_data["fullscreen"]
-		if node_fullscreen != _is_fullscreen_mode:
-			_is_fullscreen_mode = node_fullscreen
-			_update_ui_style()
+		var f = node_data["fullscreen"]
+		if f != _is_fullscreen_mode:
+			_is_fullscreen_mode = f
+			changed = true
+	if node_data.has("dream_world"):
+		var d = node_data["dream_world"]
+		if d != _is_dream_world:
+			_is_dream_world = d
+			changed = true
+			
+	if changed:
+		_update_ui_style()
+		
+	# RATIONALE: Fade dialogue panel back in if it was faded out during layout/aesthetic transitions.
+	if dialogue_panel.modulate.a < 1.0:
+		var fade_in_tw = create_tween()
+		fade_in_tw.tween_property(dialogue_panel, "modulate:a", 1.0, 0.25).set_trans(Tween.TRANS_SINE)
 			
 	var raw_text = node_data.get("text", "")
 	

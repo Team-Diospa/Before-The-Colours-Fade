@@ -83,7 +83,8 @@ var opening_narration: Dictionary = {
 	"open_10": {
 		"speaker": "Hilbert",
 		"text": "I'll change it later.",
-		"next": "open_11"
+		# RATIONALE: Bypass redundant room summaries to escalate tension immediately into the landlord's knock.
+		"next": "knock_1"
 	},
 	"open_11": {
 		# Source: "He stands up with his two weak legs, limping around the room with no purpose,
