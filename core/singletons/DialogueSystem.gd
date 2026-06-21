@@ -339,6 +339,16 @@ func _play_node(node_id: String) -> void:
 		return
 		
 	var node_data = dialogue_tree[node_id]
+	
+	# RATIONALE: Support per-node fullscreen overrides so a dialogue sequence can transition
+	# seamlessly from fullscreen narration (e.g. intro black screen) to standard bottom-docked
+	# dialogue (e.g. character waking up in the room) mid-sequence.
+	if node_data.has("fullscreen"):
+		var node_fullscreen = node_data["fullscreen"]
+		if node_fullscreen != _is_fullscreen_mode:
+			_is_fullscreen_mode = node_fullscreen
+			_update_ui_style()
+			
 	var raw_text = node_data.get("text", "")
 	
 	# RATIONALE: Prefer explicit "speaker" field in node data over the split heuristic.

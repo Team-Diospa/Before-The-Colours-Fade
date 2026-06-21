@@ -64,7 +64,9 @@ var opening_narration: Dictionary = {
 	"open_7": {
 		# Source: "He sits on his small creaking bed, staring at those dust covered floor,
 		# 'i'll clean later' he murmured."
+		# RATIONALE: Disable fullscreen cutscene overlay here to reveal the morning room transition.
 		"text": "He sits on his small creaking bed, staring at the dust-covered floor.",
+		"fullscreen": false,
 		"next": "open_8"
 	},
 	"open_8": {
