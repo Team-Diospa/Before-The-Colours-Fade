@@ -280,7 +280,8 @@ func _input(event: InputEvent) -> void:
 		if _is_typing:
 			_is_typing = false # Will break the typing coroutine
 			var speaker = dialogue_tree.get(current_node_id, {}).get("speaker", "")
-			if speaker != "" and BubbleManager.is_npc_speaker(speaker):
+			# RATIONALE: Speech bubbles are disabled in the dream/combat world to keep the arena uncluttered.
+			if speaker != "" and BubbleManager.is_npc_speaker(speaker) and not _is_dream_world:
 				BubbleManager.get_text_label().visible_characters = -1
 				BubbleManager.show_continue_indicator(true)
 			else:
@@ -411,10 +412,9 @@ func _play_node(node_id: String) -> void:
 	else:
 		speaker_label.text = ""
 	
-	# RATIONALE: NPC speakers (Landlady, n.n., Peer 1, Peer 2, Professor) show in the speech bubble
-	# rather than the panel speaker label. This creates two distinct visual registers:
-	# bubble = "someone is talking to me", panel = "I am thinking / narration".
-	var _is_npc_line = speaker != "" and BubbleManager.is_npc_speaker(speaker)
+	# RATIONALE: NPC speakers show in bubbles during exploration reality, but are shown
+	# in the dialogue panel during dream/combat scenes to keep the combat UI clean and focused.
+	var _is_npc_line = speaker != "" and BubbleManager.is_npc_speaker(speaker) and not _is_dream_world
 	if _is_npc_line:
 		# Hide the panel speaker label - the bubble handles speaker identification.
 		speaker_label.visible = false
@@ -594,7 +594,8 @@ func select_option(index: int) -> void:
 # Pulses the upside-down continue triangle indicator at the bottom-right of the active box.
 func _show_continue_indicator() -> void:
 	var speaker = dialogue_tree.get(current_node_id, {}).get("speaker", "")
-	var is_npc = speaker != "" and BubbleManager.is_npc_speaker(speaker)
+	# RATIONALE: Respect the dream world speech bubble override when displaying continue indicators.
+	var is_npc = speaker != "" and BubbleManager.is_npc_speaker(speaker) and not _is_dream_world
 	
 	if active_options.is_empty():
 		if is_npc:
