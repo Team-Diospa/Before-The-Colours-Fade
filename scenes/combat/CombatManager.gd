@@ -54,6 +54,41 @@ var energy_orb_label: Label
 # RATIONALE: Retain mode flag - when true, the next card click retains instead of plays.
 var _retain_mode_active: bool = false
 
+# UI controls for top bar and Booklet Deck Viewer.
+var top_bar: Panel
+var progress_label: Label
+var gold_label: Label
+var deck_booklet_btn: Button
+var deck_viewer_panel: Panel
+var deck_scroll_container: ScrollContainer
+var deck_grid: GridContainer
+var current_viewer_pile: String = "Deck" # Current active tab: "Deck", "Draw", or "Discard"
+var _transitioning_wave: bool = false # Gate to prevent double-clearing of wave states
+var deck_viewer_layer: CanvasLayer # Dedicated layer for deck viewer modal to avoid mouse blocking
+
+# Programmatic wave stages, targeting, and sprite variables.
+var current_stage_idx: int = 0
+var stages_data: Array = []
+var active_enemies: Array = []
+var selected_enemy_idx: int = 0
+var player_sprite: Sprite2D = null
+
+# RATIONALE: Inner class helper to route damage and block-clearing actions to specific wave enemies.
+class EnemyTarget:
+	var manager: Node2D
+	var index: int
+	
+	func _init(m: Node2D, idx: int) -> void:
+		manager = m
+		index = idx
+		
+	func take_damage(amount: int) -> void:
+		manager.damage_enemy(index, amount)
+		
+	func clear_block() -> void:
+		manager.clear_enemy_block(index)
+
+
 # Castle Boss: Full n.n. introduction + world arrival + tutorial hints.
 # RATIONALE: Follows the script beat-for-beat. n.n.'s 'mission log' framing is the key character detail -
 # he is a machine that was activated, following installed instructions. This is a mystery anchor.
@@ -186,6 +221,24 @@ var pack_leader_hint_dialogue: Dictionary = {
 }
 
 func _ready() -> void:
+	# Initialize wave stages data structures
+	_init_stages_data()
+	
+	# Hide default enemy panel template since wave panels are spawned programmatically
+	$UI/EnemyPanel.visible = false
+	
+	# Programmatically spawn player sprite facing right
+	player_sprite = Sprite2D.new()
+	player_sprite.texture = load("res://Assets/Sprites/character3.png")
+	player_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	player_sprite.scale = Vector2(5.0, 5.0)
+	player_sprite.position = Vector2(250, 360)
+	add_child(player_sprite)
+	
+	# Create top bar progression and booklet deck viewer UI
+	_create_top_bar()
+	_create_deck_viewer()
+
 	# Programmatically spawn the RetainButton if it is missing from the scene tree.
 	# RATIONALE: Avoids binary scene file corruption by instantiating the UI control in code.
 	var action_vbox = $UI/ActionPanel/VBox
@@ -336,10 +389,23 @@ func _ready() -> void:
 		player_energy = restored["player_energy"]
 		player_block = restored["player_block"]
 		enemy_name = restored["enemy_name"]
-		enemy_hp = restored["enemy_hp"]
-		enemy_max_hp = restored["enemy_max_hp"]
-		enemy_intent = restored["enemy_intent"]
-		enemy_intent_value = restored["enemy_intent_value"]
+		
+		# RATIONALE: Restore wave stages from the deserialized cache, recreating sprites and panel layouts.
+		current_stage_idx = restored.get("current_stage_idx", 0)
+		_start_wave(current_stage_idx)
+		
+		var saved_enemies = restored.get("active_enemies", [])
+		for idx in range(min(saved_enemies.size(), active_enemies.size())):
+			active_enemies[idx]["hp"] = saved_enemies[idx]["hp"]
+			active_enemies[idx]["block"] = saved_enemies[idx]["block"]
+			active_enemies[idx]["intent"] = saved_enemies[idx]["intent"]
+			active_enemies[idx]["intent_value"] = saved_enemies[idx]["intent_value"]
+			if active_enemies[idx]["hp"] <= 0:
+				if active_enemies[idx]["sprite"]: active_enemies[idx]["sprite"].visible = false
+				if active_enemies[idx]["panel"]: active_enemies[idx]["panel"].visible = false
+				if active_enemies[idx]["target_btn"]: active_enemies[idx]["target_btn"].visible = false
+				
+		_auto_select_alive_enemy()
 		
 		# Let feedback know.
 		feedback_label.text = "Back in the dream. Something feels different now."
@@ -357,12 +423,8 @@ func _ready() -> void:
 		DeckManager.initialize_deck()
 		GlobalState.dimension_charge = 0
 		
-		# RATIONALE: Enforce balanced enemy stats programmatically for strategic depth in Chapter 1,
-		# extending combat length and testing player defense mechanics.
-		if enemy_name == "Castle Boss":
-			enemy_max_hp = 60
-			enemy_hp = 60
-			enemy_phase3_atk = 12
+		# RATIONALE: Start first wave stage.
+		_start_wave(0)
 		
 		# Arrival sequence and companion advice.
 		call_deferred("_trigger_companion_tutorial")
@@ -511,117 +573,112 @@ func _on_defeat_dialogue_finished() -> void:
 	SceneManager.transition_to_state("S_apt")
 
 # Decides what the enemy will do on its turn.
-# RATIONALE: Three-phase system based on HP thresholds.
-# Phase 1 (HP > 66%): Balanced pressure, defends often.
-# Phase 2 (HP 33-66%): Increased aggression, more attacks.
-# Phase 3 (HP < 33%): Always attacks at maximum damage - no more defending.
+# RATIONALE: Three-phase system based on HP thresholds, executed for each active wave enemy.
 func decide_enemy_intent() -> void:
-	var hp_ratio: float = float(enemy_hp) / float(enemy_max_hp)
+	var is_burning = GlobalState.has_flag("enemy_burning")
 	
-	# RATIONALE: Fireball burning flag overrides intent. If they try to Defend,
-	# they are forced to Idle instead of Attack, so the player is not penalized.
-	if GlobalState.has_flag("enemy_burning"):
-		var attack_chance: float
-		var attack_val: int
-		if hp_ratio > 0.66:
-			attack_chance = 0.6
-			attack_val = enemy_phase1_atk
-		elif hp_ratio > 0.33:
-			attack_chance = 0.75
-			attack_val = enemy_phase2_atk
-		else:
-			attack_chance = 1.0
-			attack_val = enemy_phase3_atk
+	for idx in range(active_enemies.size()):
+		var enemy = active_enemies[idx]
+		if enemy["hp"] <= 0:
+			continue
 			
-		if randf() < attack_chance:
-			enemy_intent = "Attack"
-			enemy_intent_value = attack_val
+		var hp_ratio: float = float(enemy["hp"]) / float(enemy["max_hp"])
+		
+		# RATIONALE: Fireball burning flag overrides intent. Defends are cancelled and converted to Attacks/Idles.
+		if is_burning:
+			var attack_chance: float
+			var attack_val: int
+			if hp_ratio > 0.66:
+				attack_chance = 0.6
+				attack_val = enemy["phase1_atk"]
+			elif hp_ratio > 0.33:
+				attack_chance = 0.75
+				attack_val = enemy["phase2_atk"]
+			else:
+				attack_chance = 1.0
+				attack_val = enemy["phase3_atk"]
+				
+			if randf() < attack_chance:
+				enemy["intent"] = "Attack"
+				enemy["intent_value"] = attack_val
+			else:
+				enemy["intent"] = "Idle"
+				enemy["intent_value"] = 0
 		else:
-			enemy_intent = "Idle"
-			enemy_intent_value = 0
-			GlobalState.set_flag("enemy_burning", false)  # Consume the burn flag.
-			animate_feedback("The enemy is burning - defense cancelled!")
-		update_ui()
-		return
-	
-	# Phase-based intent roll.
-	var attack_chance: float
-	var attack_val: int
-	
-	if hp_ratio > 0.66:
-		# Phase 1: Relaxed, exploratory. 60% attack, 40% defend.
-		attack_chance = 0.6
-		attack_val = enemy_phase1_atk
-	elif hp_ratio > 0.33:
-		# Phase 2: Cornered but dangerous. 75% attack, 25% defend.
-		attack_chance = 0.75
-		attack_val = enemy_phase2_atk
-	else:
-		# Phase 3: Desperate. Always attacks, maximum damage.
-		attack_chance = 1.0
-		attack_val = enemy_phase3_atk
-	
-	if randf() < attack_chance:
-		enemy_intent = "Attack"
-		enemy_intent_value = attack_val
-	else:
-		enemy_intent = "Defend"
-		enemy_intent_value = enemy_defend_val
-	
+			# Standard phase-based intent roll
+			var attack_chance: float
+			var attack_val: int
+			if hp_ratio > 0.66:
+				attack_chance = 0.6
+				attack_val = enemy["phase1_atk"]
+			elif hp_ratio > 0.33:
+				attack_chance = 0.75
+				attack_val = enemy["phase2_atk"]
+			else:
+				attack_chance = 1.0
+				attack_val = enemy["phase3_atk"]
+				
+			if randf() < attack_chance:
+				enemy["intent"] = "Attack"
+				enemy["intent_value"] = attack_val
+			else:
+				enemy["intent"] = "Defend"
+				enemy["intent_value"] = enemy["defend_val"]
+				
+	if is_burning:
+		GlobalState.set_flag("enemy_burning", false) # Consume burning flag
+		animate_feedback("The enemies are burning - defense cancelled!")
+		
 	update_ui()
 
-# Returns the phase-appropriate attack value without modifying intent (used by burning override).
-func _get_phase_attack_value(hp_ratio: float) -> int:
-	if hp_ratio > 0.66:
-		return enemy_phase1_atk
-	elif hp_ratio > 0.33:
-		return enemy_phase2_atk
-	else:
-		return enemy_phase3_atk
-
-# Resolves the enemy's intent against the player.
+# RATIONALE: Resolves all active wave enemies' intents against the player sequentially.
 func execute_enemy_action() -> void:
-	if enemy_hp <= 0:
-		return
+	for idx in range(active_enemies.size()):
+		var enemy = active_enemies[idx]
+		if enemy["hp"] <= 0:
+			continue
+			
+		# Enemy block decays at the start of their action turn.
+		enemy["block"] = 0
 		
-	# Enemy block decays at the start of their action turn.
-	enemy_block = 0
-	
-	if enemy_intent == "Attack":
-		var damage = enemy_intent_value
-		# Apply block mitigation.
-		if player_block >= damage:
-			player_block -= damage
-			animate_feedback(enemy_name + " attacked but was blocked!")
-			update_stats_pulsed(true, false)
-		else:
-			damage -= player_block
-			player_block = 0
-			player_hp = max(0, player_hp - damage)
-			GlobalState.player_current_hp = player_hp
-			animate_feedback(enemy_name + " deals " + str(damage) + " damage!")
-			
-			# RATIONALE: Shaking player panel on taking damage to improve visual feedback (juice).
-			shake_node($UI/PlayerPanel)
-			flash_red($UI/PlayerPanel)
-			update_stats_pulsed(true, false)
-			
-		if player_hp <= 0:
-			transition_to(State.DEFEAT)
-			return
-	elif enemy_intent == "Defend":
-		enemy_block += enemy_intent_value
-		animate_feedback(enemy_name + " gains " + str(enemy_intent_value) + " block.")
-		flash_blue($UI/EnemyPanel)
-		update_stats_pulsed(false, true)
-	elif enemy_intent == "Idle":
-		animate_feedback(enemy_name + " struggles through the flames and does nothing.")
+		if enemy["intent"] == "Attack":
+			var damage = enemy["intent_value"]
+			if player_block >= damage:
+				player_block -= damage
+				animate_feedback(enemy["name"] + " attacked but was blocked!")
+				update_stats_pulsed(true, false)
+			else:
+				damage -= player_block
+				player_block = 0
+				player_hp = max(0, player_hp - damage)
+				GlobalState.player_current_hp = player_hp
+				animate_feedback(enemy["name"] + " deals " + str(damage) + " damage!")
+				
+				shake_node($UI/PlayerPanel)
+				flash_red($UI/PlayerPanel)
+				update_stats_pulsed(true, false)
+				
+			if player_hp <= 0:
+				transition_to(State.DEFEAT)
+				return
+		elif enemy["intent"] == "Defend":
+			enemy["block"] += enemy["intent_value"]
+			animate_feedback(enemy["name"] + " gains " + str(enemy["intent_value"]) + " block.")
+			if enemy["panel"]:
+				flash_blue(enemy["panel"])
+			update_stats_pulsed(false, true)
+		elif enemy["intent"] == "Idle":
+			animate_feedback(enemy["name"] + " struggles through the flames and does nothing.")
 
 # Triggered when playing a card button in UI.
 func play_card(card: CardData) -> void:
-	# RATIONALE: Block card plays while dialogues are active to prevent UI overlap or action sequencing breaks.
-	if current_state != State.PLAYER_ACTION or DialogueSystem.is_active:
+	if current_state != State.PLAYER_ACTION:
 		return
+	if DialogueSystem.is_active:
+		# RATIONALE: During the guided tutorial, allow playing cards even if the tutorial prompt bubble is open.
+		# This makes the card play immediately responsive without requiring a manual dismiss.
+		if not (enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done")):
+			return
 		
 	# RATIONALE: Guided tutorial card restriction enforcement.
 	# Ensures the player understands basic play order of Strike then Defend.
@@ -664,11 +721,19 @@ func play_card(card: CardData) -> void:
 	# Execute effect depending on card.
 	var targets: Array = []
 	if card.target_mode == "single":
-		targets.append(self)
+		targets.append(EnemyTarget.new(self, selected_enemy_idx))
 	elif card.target_mode == "all":
-		targets.append(self)
+		for idx in range(active_enemies.size()):
+			if active_enemies[idx]["hp"] > 0:
+				targets.append(EnemyTarget.new(self, idx))
 	elif card.target_mode == "random":
-		targets.append(self)
+		var alive_indices = []
+		for idx in range(active_enemies.size()):
+			if active_enemies[idx]["hp"] > 0:
+				alive_indices.append(idx)
+		if not alive_indices.is_empty():
+			var rand_idx = alive_indices[randi() % alive_indices.size()]
+			targets.append(EnemyTarget.new(self, rand_idx))
 		
 	card.execute_effect(self, targets)
 	
@@ -700,51 +765,42 @@ func play_card(card: CardData) -> void:
 		
 	update_stats_pulsed(true, true)
 	
-	# Check for victory.
-	if enemy_hp <= 0:
-		transition_to(State.VICTORY)
+	# Check for wave victory or stage transition.
+	if _check_wave_victory():
+		if current_stage_idx < stages_data.size() - 1:
+			_transition_to_next_wave()
+		else:
+			transition_to(State.VICTORY)
 
 # Fires the Pack Leader hint dialogue once the player has tried 2+ useless attacks.
 func _trigger_pack_leader_hint() -> void:
 	DialogueSystem.start_dialogue(pack_leader_hint_dialogue, "start")
 
 # HP Modification callbacks from CardData.
+# RATIONALE: Routes fallback take_damage calls to the currently selected wave enemy.
 func take_damage(amount: int) -> void:
-	# Special boss mechanic for Burning Village (Pack Leader).
-	if enemy_name == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active"):
-		amount = 1 # Negligible damage without the confidence buff
-		animate_feedback("The Pack Leader laughs. Your attacks don't reach it.")
-		
-	if enemy_block >= amount:
-		enemy_block -= amount
-	else:
-		amount -= enemy_block
-		enemy_block = 0
-		enemy_hp = max(0, enemy_hp - amount)
-		
-	# RATIONALE: Shaking enemy panel on taking damage to feel responsive.
-	shake_node($UI/EnemyPanel)
-	flash_red($UI/EnemyPanel)
-	update_stats_pulsed(false, true)
+	damage_enemy(selected_enemy_idx, amount)
 
-# Called by Heavy Slash to strip enemy block before dealing damage.
+# Called by Heavy Slash fallback to strip block of the selected wave enemy.
 func clear_block() -> void:
-	enemy_block = 0
-	animate_feedback("Heavy Slash breaks through the defense!")
-	update_stats_pulsed(false, true)
+	clear_enemy_block(selected_enemy_idx)
 
 func gain_block(amount: int) -> void:
 	player_block += amount
 	flash_blue($UI/PlayerPanel)
 	update_stats_pulsed(true, false)
 
-# Called by Fireball to immediately override a pending Defend action.
+# Called by Fireball to immediately override any active Defend intents on all wave enemies.
 func cancel_enemy_defend() -> void:
-	if enemy_intent == "Defend":
-		enemy_intent = "Idle"
-		enemy_intent_value = 0
+	var cancelled = false
+	for enemy in active_enemies:
+		if enemy["intent"] == "Defend":
+			enemy["intent"] = "Idle"
+			enemy["intent_value"] = 0
+			cancelled = true
+	if cancelled:
 		GlobalState.set_flag("enemy_burning", false) # Consume the burn flag
-		animate_feedback("The enemy is burning - defense cancelled!")
+		animate_feedback("The enemies are burning - defense cancelled!")
 		update_ui()
 
 # Reroll hand option button.
@@ -813,15 +869,18 @@ func _on_shift_pressed() -> void:
 		
 		await shake_tw.finished
 		
+		var current_enemy = active_enemies[selected_enemy_idx]
 		ShiftManager.serialize_combat(
 			player_hp, 
 			player_energy, 
 			player_block, 
 			enemy_name, 
-			enemy_hp, 
-			enemy_max_hp, 
-			enemy_intent, 
-			enemy_intent_value
+			current_enemy["hp"], 
+			current_enemy["max_hp"], 
+			current_enemy["intent"], 
+			current_enemy["intent_value"],
+			active_enemies,
+			current_stage_idx
 		)
 		GlobalState.acquired_fragments += 1
 		SceneManager.transition_to_state("S_class")
@@ -864,10 +923,46 @@ func update_ui() -> void:
 		
 	player_energy_label.text = "Energy: " + str(player_energy) + "/" + str(MAX_ENERGY)
 	
-	enemy_name_label.text = enemy_name
-	enemy_hp_label.text = "HP: " + str(enemy_hp) + "/" + str(enemy_max_hp)
-	enemy_block_label.text = "Block: " + str(enemy_block)
-	enemy_intent_label.text = "Intent: " + enemy_intent + " (" + str(enemy_intent_value) + ")"
+	# Update top bar progress and gold count labels
+	if progress_label:
+		progress_label.text = "Wave: " + str(current_stage_idx + 1) + "/" + str(stages_data.size())
+	if gold_label:
+		gold_label.text = "Fragments: " + str(GlobalState.acquired_fragments)
+
+	# Update each programmatically cloned wave enemy panel
+	for idx in range(active_enemies.size()):
+		var enemy = active_enemies[idx]
+		var panel = enemy["panel"]
+		if panel:
+			var name_lbl = panel.get_node_or_null("VBox/NameLabel")
+			var hp_lbl = panel.get_node_or_null("VBox/HPLabel")
+			var block_lbl = panel.get_node_or_null("VBox/BlockLabel")
+			var intent_lbl = panel.get_node_or_null("VBox/IntentLabel")
+			
+			if name_lbl:
+				var name_text = enemy["name"]
+				if idx == selected_enemy_idx:
+					name_text = "=> " + name_text + " <="
+					name_lbl.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0)) # Sienna targeted
+				else:
+					name_lbl.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0)) # Graphite default
+				name_lbl.text = name_text
+			if hp_lbl:
+				hp_lbl.text = "HP: " + str(enemy["hp"]) + "/" + str(enemy["max_hp"])
+			if block_lbl:
+				if enemy["block"] > 0:
+					block_lbl.text = "[SHIELDED] Block: " + str(enemy["block"])
+				else:
+					block_lbl.text = "Block: " + str(enemy["block"])
+			if intent_lbl:
+				if enemy["hp"] <= 0:
+					intent_lbl.text = "Defeated"
+				elif enemy["intent"] == "Attack":
+					intent_lbl.text = "Intent: Attack (" + str(enemy["intent_value"]) + ")"
+				elif enemy["intent"] == "Defend":
+					intent_lbl.text = "Intent: Defend (" + str(enemy["intent_value"]) + ")"
+				else:
+					intent_lbl.text = "Intent: Idle"
 	
 	# Dimension shifting button logic in Pack Leader fight.
 	if enemy_name == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active"):
@@ -1042,8 +1137,13 @@ func update_stats_pulsed(pulse_player: bool, pulse_enemy: bool) -> void:
 		pulse_label(player_block_label)
 		pulse_label(player_energy_label)
 	if pulse_enemy:
-		pulse_label(enemy_hp_label)
-		pulse_label(enemy_block_label)
+		if selected_enemy_idx >= 0 and selected_enemy_idx < active_enemies.size():
+			var panel = active_enemies[selected_enemy_idx]["panel"]
+			if panel:
+				var hp_lbl = panel.get_node_or_null("VBox/HPLabel")
+				var block_lbl = panel.get_node_or_null("VBox/BlockLabel")
+				if hp_lbl: pulse_label(hp_lbl)
+				if block_lbl: pulse_label(block_lbl)
 
 func animate_feedback(text: String, is_turn_banner: bool = false) -> void:
 	feedback_label.text = text
@@ -1173,7 +1273,8 @@ func _resolve_victory() -> void:
 				"next": "win_step12"
 			},
 			"win_step12": {
-				"text": "n.n.: We never finished the propeller cart, Hilbert.",
+				# RATIONALE: Removed redundant "n.n.:" prefix to prevent double-speaker naming in bottom panel.
+				"text": "We never finished the propeller cart, Hilbert.",
 				"speaker": "n.n.",
 				"next": "win_step13"
 			},
@@ -1192,22 +1293,25 @@ func _resolve_victory() -> void:
 				"next": "win_step16"
 			},
 			"win_step16": {
+				# RATIONALE: Removed speaker tag since this is third-person narration, not active speech.
 				"text": "n.n. floats down from the ceiling, its mechanical propeller spinning in complete silence. Its brass eyes glow with a dull, warm light.",
-				"speaker": "n.n.",
 				"next": "win_step17"
 			},
 			"win_step17": {
-				"text": "n.n.: The boundary is breaking, Hil. You can't keep the partition up anymore. You have to choose where you want to exist.",
+				# RATIONALE: Removed redundant "n.n.:" prefix.
+				"text": "The boundary is breaking, Hil. You can't keep the partition up anymore. You have to choose where you want to exist.",
 				"speaker": "n.n.",
 				"next": "win_step18"
 			},
 			"win_step18": {
-				"text": "n.n.: If you stay in the dream, we can build the propeller cart. We can design the mechanical bird. We can stay here, where nothing changes and no one ever leaves.",
+				# RATIONALE: Removed redundant "n.n.:" prefix.
+				"text": "If you stay in the dream, we can build the propeller cart. We can design the mechanical bird. We can stay here, where nothing changes and no one ever leaves.",
 				"speaker": "n.n.",
 				"next": "win_step19"
 			},
 			"win_step19": {
-				"text": "n.n.: But if you go back... you have to face the empty chair. You have to walk past the workshop. You have to live in a world where the colours have already faded.",
+				# RATIONALE: Removed redundant "n.n.:" prefix.
+				"text": "But if you go back... you have to face the empty chair. You have to walk past the workshop. You have to live in a world where the colours have already faded.",
 				"speaker": "n.n.",
 				"next": "win_step20"
 			},
@@ -1229,12 +1333,13 @@ func _resolve_victory() -> void:
 				"next": "dream_ending_2"
 			},
 			"dream_ending_2": {
+				# RATIONALE: Removed speaker tag since this is third-person narration, not active speech.
 				"text": "n.n. circles around you, its propeller humming a warm, comforting tune.",
-				"speaker": "n.n.",
 				"next": "dream_ending_3"
 			},
 			"dream_ending_3": {
-				"text": "n.n.: Then we will draw. We will draw forever, Hil.",
+				# RATIONALE: Removed redundant "n.n.:" prefix.
+				"text": "Then we will draw. We will draw forever, Hil.",
 				"speaker": "n.n.",
 				"next": "dream_ending_4"
 			},
@@ -1277,12 +1382,13 @@ func _resolve_victory() -> void:
 				"next": "wake_ending_2"
 			},
 			"wake_ending_2": {
+				# RATIONALE: Removed speaker tag since this is third-person narration, not active speech.
 				"text": "n.n. stops spinning. It descends slowly, landing in your open palm. It feels cold, metallic, and heavy.",
-				"speaker": "n.n.",
 				"next": "wake_ending_3"
 			},
 			"wake_ending_3": {
-				"text": "n.n.: I know, Hil. I was just the heart. You were always the mind.",
+				# RATIONALE: Removed redundant "n.n.:" prefix.
+				"text": "I know, Hil. I was just the heart. You were always the mind.",
 				"speaker": "n.n.",
 				"next": "wake_ending_4"
 			},
@@ -1470,3 +1576,423 @@ func _trigger_tutorial_turn_2() -> void:
 		}
 	}, "start")
 	GlobalState.set_flag("tutorial_done", true)
+
+# -----------------------------------------------------------------------------
+# WAVE STAGES & PROGRAMMATIC SPATIAL LAYOUT HELPER METHODS
+# -----------------------------------------------------------------------------
+
+# RATIONALE: Defines the 3-wave encounter sequence data structures for Castle Boss & Pack Leader battles.
+func _init_stages_data() -> void:
+	stages_data.clear()
+	if enemy_name == "Castle Boss":
+		# Castle Boss / Grassy Field Level Waves.
+		stages_data = [
+			[
+				{"name": "Castle Boss", "hp": 30, "max_hp": 30, "phase1_atk": 4, "phase2_atk": 6, "phase3_atk": 8, "defend_val": 4}
+			],
+			[
+				{"name": "Sentry", "hp": 20, "max_hp": 20, "phase1_atk": 5, "phase2_atk": 7, "phase3_atk": 9, "defend_val": 4},
+				{"name": "Sentry", "hp": 20, "max_hp": 20, "phase1_atk": 5, "phase2_atk": 7, "phase3_atk": 9, "defend_val": 4}
+			],
+			[
+				{"name": "Castle Boss", "hp": 60, "max_hp": 60, "phase1_atk": 6, "phase2_atk": 9, "phase3_atk": 13, "defend_val": 5}
+			]
+		]
+	else:
+		# Pack Leader / Burning Village Level Waves.
+		stages_data = [
+			[
+				{"name": "Feral Wolf", "hp": 20, "max_hp": 20, "phase1_atk": 5, "phase2_atk": 7, "phase3_atk": 9, "defend_val": 4},
+				{"name": "Feral Wolf", "hp": 20, "max_hp": 20, "phase1_atk": 5, "phase2_atk": 7, "phase3_atk": 9, "defend_val": 4}
+			],
+			[
+				{"name": "Beta Wolf", "hp": 35, "max_hp": 35, "phase1_atk": 6, "phase2_atk": 8, "phase3_atk": 11, "defend_val": 5}
+			],
+			[
+				{"name": "Pack Leader", "hp": 60, "max_hp": 60, "phase1_atk": 7, "phase2_atk": 10, "phase3_atk": 14, "defend_val": 6}
+			]
+		]
+
+# RATIONALE: Spawns sprites, duplicated panels, and target-select overlays for a specific stage wave index.
+func _start_wave(stage_idx: int) -> void:
+	current_stage_idx = stage_idx
+	
+	# Clean up any existing nodes from a previous wave stage.
+	for enemy in active_enemies:
+		if enemy.get("sprite") and is_instance_valid(enemy["sprite"]):
+			enemy["sprite"].queue_free()
+		if enemy.get("panel") and is_instance_valid(enemy["panel"]):
+			enemy["panel"].queue_free()
+		if enemy.get("target_btn") and is_instance_valid(enemy["target_btn"]):
+			enemy["target_btn"].queue_free()
+			
+	active_enemies.clear()
+	
+	var wave_enemies = stages_data[stage_idx]
+	var enemy_count = wave_enemies.size()
+	
+	# Determine X coordinates on the screen based on total enemy count to space them out side-by-side.
+	var x_coords = []
+	if enemy_count == 1:
+		x_coords = [850]
+	elif enemy_count == 2:
+		x_coords = [750, 950]
+	elif enemy_count == 3:
+		x_coords = [700, 850, 1000]
+		
+	# Instantiate each wave enemy's sprite, stat panel, and click target.
+	for i in range(enemy_count):
+		var conf = wave_enemies[i]
+		var enemy_data = {
+			"name": conf["name"],
+			"hp": conf["hp"],
+			"max_hp": conf["max_hp"],
+			"block": conf.get("block", 0),
+			"intent": conf.get("intent", "Idle"),
+			"intent_value": conf.get("intent_value", 0),
+			"phase1_atk": conf["phase1_atk"],
+			"phase2_atk": conf["phase2_atk"],
+			"phase3_atk": conf["phase3_atk"],
+			"defend_val": conf["defend_val"],
+			"smooth_hp_ratio": 1.0,
+			"sprite": null,
+			"panel": null,
+			"target_btn": null
+		}
+		
+		# Programmatically spawn the enemy sprite facing left (flipped).
+		var sprite = Sprite2D.new()
+		sprite.texture = load("res://Assets/Sprites/Monster.png")
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		sprite.scale = Vector2(5.0, 5.0)
+		sprite.position = Vector2(x_coords[i], 360)
+		sprite.flip_h = true
+		add_child(sprite)
+		enemy_data["sprite"] = sprite
+		
+		# Programmatically duplicate the template EnemyPanel for clean sienna styling layout.
+		var panel = $UI/EnemyPanel.duplicate()
+		panel.visible = true
+		panel.position = Vector2(x_coords[i] - 100, 130)
+		panel.size = Vector2(200, 100)
+		$UI.add_child(panel)
+		enemy_data["panel"] = panel
+		
+		# Programmatically spawn a transparent overlay button covering the sprite to detect target clicks.
+		var target_btn = Button.new()
+		target_btn.size = Vector2(160, 240)
+		target_btn.position = Vector2(x_coords[i] - 80, 240)
+		var empty_style = StyleBoxEmpty.new()
+		target_btn.add_theme_stylebox_override("normal", empty_style)
+		target_btn.add_theme_stylebox_override("hover", empty_style)
+		target_btn.add_theme_stylebox_override("pressed", empty_style)
+		target_btn.add_theme_stylebox_override("focus", empty_style)
+		target_btn.mouse_filter = Control.MOUSE_FILTER_PASS
+		target_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		add_child(target_btn)
+		enemy_data["target_btn"] = target_btn
+		
+		var idx_closure = i
+		target_btn.pressed.connect(func(): _on_enemy_clicked(idx_closure))
+		
+		active_enemies.append(enemy_data)
+		
+	selected_enemy_idx = 0
+	_auto_select_alive_enemy()
+	update_ui()
+
+# RATIONALE: Updates targeted enemy index on manual click.
+func _on_enemy_clicked(idx: int) -> void:
+	# RATIONALE: Block selections if a dialogue bubble or panel is currently playing.
+	if DialogueSystem.is_active:
+		return
+	if idx >= 0 and idx < active_enemies.size() and active_enemies[idx]["hp"] > 0:
+		selected_enemy_idx = idx
+		animate_feedback("Targeted " + active_enemies[idx]["name"] + ".")
+		update_ui()
+
+# RATIONALE: Moves targeting to the first alive enemy if current target falls to 0 HP.
+func _auto_select_alive_enemy() -> void:
+	if selected_enemy_idx >= 0 and selected_enemy_idx < active_enemies.size():
+		if active_enemies[selected_enemy_idx]["hp"] > 0:
+			return
+	for idx in range(active_enemies.size()):
+		if active_enemies[idx]["hp"] > 0:
+			selected_enemy_idx = idx
+			return
+
+# RATIONALE: Verifies if all active enemies of the current stage wave are defeated.
+func _check_wave_victory() -> bool:
+	for enemy in active_enemies:
+		if enemy["hp"] > 0:
+			return false
+	return true
+
+# RATIONALE: Transitions to the next wave, triggering standard PLAYER_START cleanup.
+func _transition_to_next_wave() -> void:
+	_transitioning_wave = true
+	animate_feedback("Wave Defeated! Moving to next stage...", true)
+	
+	var timer = get_tree().create_timer(1.0)
+	await timer.timeout
+	
+	_start_wave(current_stage_idx + 1)
+	_transitioning_wave = false
+	
+	transition_to(State.PLAYER_START)
+
+# RATIONALE: Programmatically builds a sienna sketch style top bar for wave progression.
+func _create_top_bar() -> void:
+	top_bar = Panel.new()
+	top_bar.name = "TopBar"
+	top_bar.position = Vector2(0, 0)
+	top_bar.size = Vector2(1152, 50)
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.95, 0.93, 0.88, 0.85)
+	style.border_width_bottom = 2
+	style.border_color = Color(0.12, 0.12, 0.15, 0.25)
+	top_bar.add_theme_stylebox_override("panel", style)
+	$UI.add_child(top_bar)
+	
+	progress_label = Label.new()
+	progress_label.position = Vector2(20, 10)
+	progress_label.size = Vector2(200, 30)
+	progress_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+	progress_label.add_theme_font_size_override("font_size", 16)
+	top_bar.add_child(progress_label)
+	
+	gold_label = Label.new()
+	gold_label.position = Vector2(300, 10)
+	gold_label.size = Vector2(200, 30)
+	gold_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+	gold_label.add_theme_font_size_override("font_size", 16)
+	top_bar.add_child(gold_label)
+	
+	deck_booklet_btn = Button.new()
+	deck_booklet_btn.name = "DeckBookletBtn"
+	deck_booklet_btn.text = "Deck Booklet"
+	deck_booklet_btn.position = Vector2(950, 10)
+	deck_booklet_btn.size = Vector2(150, 30)
+	
+	var btn_style_normal = StyleBoxFlat.new()
+	btn_style_normal.bg_color = Color(0.92, 0.90, 0.84, 0.8)
+	btn_style_normal.border_width_left = 1
+	btn_style_normal.border_width_top = 1
+	btn_style_normal.border_width_right = 1
+	btn_style_normal.border_width_bottom = 1
+	btn_style_normal.border_color = Color(0.12, 0.12, 0.15, 0.25)
+	
+	var btn_style_hover = btn_style_normal.duplicate()
+	btn_style_hover.bg_color = Color(0.97, 0.95, 0.90, 0.9)
+	btn_style_hover.border_color = Color(0.65, 0.25, 0.15, 0.5)
+	
+	deck_booklet_btn.add_theme_stylebox_override("normal", btn_style_normal)
+	deck_booklet_btn.add_theme_stylebox_override("hover", btn_style_hover)
+	deck_booklet_btn.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+	deck_booklet_btn.add_theme_color_override("font_hover_color", Color(0.65, 0.25, 0.15, 1.0))
+	
+	deck_booklet_btn.pressed.connect(_toggle_deck_viewer)
+	top_bar.add_child(deck_booklet_btn)
+
+# RATIONALE: Creates a booklet modal popup rendering on a separate high CanvasLayer (92),
+# ensuring input events are never captured when the panel is set to invisible.
+func _create_deck_viewer() -> void:
+	deck_viewer_layer = CanvasLayer.new()
+	deck_viewer_layer.layer = 92
+	add_child(deck_viewer_layer)
+	
+	deck_viewer_panel = Panel.new()
+	deck_viewer_panel.name = "DeckViewerPanel"
+	deck_viewer_panel.position = Vector2(200, 100)
+	deck_viewer_panel.size = Vector2(752, 450)
+	deck_viewer_panel.visible = false
+	deck_viewer_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.95, 0.93, 0.88, 0.95)
+	style.border_width_left = 3
+	style.border_width_top = 3
+	style.border_width_right = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(0.65, 0.25, 0.15, 0.8)
+	style.shadow_color = Color(0, 0, 0, 0.2)
+	style.shadow_size = 5
+	deck_viewer_panel.add_theme_stylebox_override("panel", style)
+	deck_viewer_layer.add_child(deck_viewer_panel)
+	
+	var title = Label.new()
+	title.text = "Deck Booklet"
+	title.position = Vector2(20, 15)
+	title.size = Vector2(200, 30)
+	title.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0))
+	title.add_theme_font_size_override("font_size", 20)
+	deck_viewer_panel.add_child(title)
+	
+	var tab_hbox = HBoxContainer.new()
+	tab_hbox.position = Vector2(250, 15)
+	tab_hbox.size = Vector2(300, 30)
+	deck_viewer_panel.add_child(tab_hbox)
+	
+	for tab_name in ["Deck", "Draw", "Discard"]:
+		var btn = Button.new()
+		btn.text = tab_name
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.pressed.connect(func(): _render_deck_grid(tab_name))
+		
+		var tab_style = StyleBoxFlat.new()
+		tab_style.bg_color = Color(0.92, 0.90, 0.84, 0.8)
+		tab_style.border_width_left = 1
+		tab_style.border_width_top = 1
+		tab_style.border_width_right = 1
+		tab_style.border_width_bottom = 1
+		tab_style.border_color = Color(0.12, 0.12, 0.15, 0.25)
+		
+		btn.add_theme_stylebox_override("normal", tab_style)
+		btn.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+		tab_hbox.add_child(btn)
+		
+	var close_btn = Button.new()
+	close_btn.text = "X"
+	close_btn.position = Vector2(700, 15)
+	close_btn.size = Vector2(30, 30)
+	
+	var close_style = StyleBoxFlat.new()
+	close_style.bg_color = Color(0.8, 0.3, 0.3, 0.8)
+	close_style.border_width_left = 1
+	close_style.border_width_top = 1
+	close_style.border_width_right = 1
+	close_style.border_width_bottom = 1
+	close_style.border_color = Color(0.12, 0.12, 0.15, 0.25)
+	
+	close_btn.add_theme_stylebox_override("normal", close_style)
+	close_btn.add_theme_color_override("font_color", Color.WHITE)
+	close_btn.pressed.connect(_toggle_deck_viewer)
+	deck_viewer_panel.add_child(close_btn)
+	
+	deck_scroll_container = ScrollContainer.new()
+	deck_scroll_container.position = Vector2(20, 60)
+	deck_scroll_container.size = Vector2(712, 370)
+	deck_scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	deck_scroll_container.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	deck_viewer_panel.add_child(deck_scroll_container)
+	
+	deck_grid = GridContainer.new()
+	deck_grid.columns = 4
+	deck_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	deck_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	deck_grid.add_theme_constant_override("h_separation", 15)
+	deck_grid.add_theme_constant_override("v_separation", 15)
+	deck_scroll_container.add_child(deck_grid)
+
+# RATIONALE: Renders card buttons within the deck booklet scroll grid.
+func _render_deck_grid(pile_name: String) -> void:
+	current_viewer_pile = pile_name
+	for child in deck_grid.get_children():
+		child.queue_free()
+		
+	var pile = []
+	if pile_name == "Deck":
+		pile = GlobalState.master_deck
+	elif pile_name == "Draw":
+		pile = DeckManager.draw_pile
+	elif pile_name == "Discard":
+		pile = DeckManager.discard_pile
+		
+	for card in pile:
+		var card_panel = Panel.new()
+		card_panel.custom_minimum_size = Vector2(160, 100)
+		
+		var panel_style = StyleBoxFlat.new()
+		panel_style.bg_color = Color(0.96, 0.95, 0.92, 1.0)
+		panel_style.border_width_left = 2
+		panel_style.border_width_top = 2
+		panel_style.border_width_right = 2
+		panel_style.border_width_bottom = 2
+		
+		var border_color = Color(0.4, 0.4, 0.4, 0.6)
+		if card.card_type == "Attack":
+			border_color = Color(0.8, 0.3, 0.3, 0.6)
+		elif card.card_type == "Defense":
+			border_color = Color(0.3, 0.5, 0.8, 0.6)
+		elif card.card_type == "Special":
+			border_color = Color(0.8, 0.55, 0.2, 0.6)
+		panel_style.border_color = border_color
+		
+		card_panel.add_theme_stylebox_override("panel", panel_style)
+		deck_grid.add_child(card_panel)
+		
+		var name_lbl = Label.new()
+		name_lbl.text = card.card_name + " (" + str(card.energy_cost) + "E)"
+		name_lbl.position = Vector2(10, 10)
+		name_lbl.size = Vector2(140, 20)
+		name_lbl.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+		name_lbl.add_theme_font_size_override("font_size", 14)
+		card_panel.add_child(name_lbl)
+		
+		var desc_lbl = Label.new()
+		desc_lbl.text = card.description
+		desc_lbl.position = Vector2(10, 40)
+		desc_lbl.size = Vector2(140, 50)
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4, 1.0))
+		desc_lbl.add_theme_font_size_override("font_size", 11)
+		card_panel.add_child(desc_lbl)
+
+# RATIONALE: Toggles visibility of the booklet deck viewer panel.
+func _toggle_deck_viewer() -> void:
+	if not deck_viewer_panel:
+		return
+	deck_viewer_panel.visible = not deck_viewer_panel.visible
+	if deck_viewer_panel.visible:
+		_render_deck_grid("Deck")
+
+# RATIONALE: Routes taking damage to a specific active wave enemy.
+func damage_enemy(idx: int, amount: int) -> void:
+	if idx < 0 or idx >= active_enemies.size():
+		return
+	var enemy = active_enemies[idx]
+	if enemy["hp"] <= 0:
+		return
+		
+	var actual_dmg = amount
+	
+	# Apply boss protection mechanic in Pack Leader fight if confidence is missing.
+	if enemy["name"] == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active"):
+		actual_dmg = 1
+		amount = 1
+		animate_feedback("The Pack Leader laughs. Your attacks don't reach it.")
+		
+	if enemy["block"] >= actual_dmg:
+		enemy["block"] -= actual_dmg
+		actual_dmg = 0
+	else:
+		actual_dmg -= enemy["block"]
+		enemy["block"] = 0
+		enemy["hp"] = max(0, enemy["hp"] - actual_dmg)
+		
+	if enemy["panel"]:
+		shake_node(enemy["panel"])
+		flash_red(enemy["panel"])
+		
+	animate_feedback("Hilbert deals " + str(amount) + " damage to " + enemy["name"] + ".")
+	update_stats_pulsed(false, true)
+	
+	if enemy["hp"] <= 0:
+		animate_feedback(enemy["name"] + " is defeated!")
+		if enemy["sprite"]:
+			enemy["sprite"].visible = false
+		if enemy["panel"]:
+			enemy["panel"].visible = false
+		if enemy["target_btn"]:
+			enemy["target_btn"].visible = false
+			
+		_auto_select_alive_enemy()
+
+# RATIONALE: Routes block clearing to a specific active wave enemy.
+func clear_enemy_block(idx: int) -> void:
+	if idx < 0 or idx >= active_enemies.size():
+		return
+	active_enemies[idx]["block"] = 0
+	animate_feedback("Heavy Slash breaks through the defense of " + active_enemies[idx]["name"] + "!")
+	update_stats_pulsed(false, true)

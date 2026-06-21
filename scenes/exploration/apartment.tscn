@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" uid="uid://eiwdfkqwfwpe" path="res://scenes/exploration/apartment.gd" id="1_apt"]
 [ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
-[ext_resource type="PackedScene" uid="uid://c3pb5fctrsol" path="res://core/components/interactable.tscn" id="3_interactable"]
+[ext_resource type="Texture2D" uid="uid://cuk0u40wouxvg" path="res://Assets/Environment/bedroom (2).png" id="2_qupi2"]
+[ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="3_interactable"]
 
 [node name="Apartment" type="Node2D" unique_id=2089114218]
 script = ExtResource("1_apt")
@@ -21,8 +22,35 @@ offset_right = 1152.0
 offset_bottom = 648.0
 color = Color(0.15, 0.15, 0.18, 1)
 
+[node name="Bedroom(2)" type="Sprite2D" parent="." unique_id=1666823935]
+texture_filter = 1
+position = Vector2(573, 323.5)
+scale = Vector2(2.8095238, 3.5944445)
+texture = ExtResource("2_qupi2")
+metadata/_aseprite_wizard_interface_config_ = {
+"layer_section": true,
+"pending_changes": {
+"convert_fps_field": 60.0,
+"convert_ms_field": 16.0,
+"convert_to_fps": false,
+"embed_tex": true,
+"i_mode": 0,
+"keep_anim_length": false,
+"layers": [],
+"o_ex_p": "",
+"o_folder": "",
+"o_name": "",
+"only_visible": false,
+"player": "",
+"scale": "1.0",
+"slice": "",
+"source": "",
+"source_uid": -1
+}
+}
+
 [node name="Player" parent="." unique_id=1096648528 instance=ExtResource("2_player")]
-position = Vector2(100, 520)
+position = Vector2(367, 520)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1869526077]
 limit_left = 0
@@ -41,51 +69,51 @@ position = Vector2(1152, 0)
 polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
 
 [node name="Bed" parent="." unique_id=314475394 instance=ExtResource("3_interactable")]
-position = Vector2(250, 500)
+position = Vector2(250, 544)
 interaction_id = "bed"
 prompt_message = "Press E to check Bed"
 
 [node name="Guitar" parent="." unique_id=618256286 instance=ExtResource("3_interactable")]
-position = Vector2(450, 500)
+position = Vector2(313, 518)
 interaction_id = "guitar"
 prompt_message = "Press E to inspect Guitar"
 
 [node name="Desk" parent="." unique_id=506045287 instance=ExtResource("3_interactable")]
-position = Vector2(650, 500)
+position = Vector2(523, 453)
 interaction_id = "desk"
 prompt_message = "Press E to study Desk"
 
 [node name="Shower" parent="." unique_id=481263341 instance=ExtResource("3_interactable")]
-position = Vector2(850, 500)
+position = Vector2(1127, 451)
 interaction_id = "shower"
 prompt_message = "Press E to use Shower"
 
 [node name="Toilet" parent="." unique_id=724969966 instance=ExtResource("3_interactable")]
-position = Vector2(1040, 500)
+position = Vector2(997, 504)
 interaction_id = "toilet"
 prompt_message = "Press E to use Toilet"
 
 [node name="ExitDoor" parent="." unique_id=854293492 instance=ExtResource("3_interactable")]
-position = Vector2(1080, 500)
+position = Vector2(1124, 591)
 interaction_id = "exit_door"
 prompt_message = "Press E to exit Apartment"
 
-[node name="Window" parent="." instance=ExtResource("3_interactable")]
-position = Vector2(100, 500)
+[node name="Window" parent="." unique_id=1404573782 instance=ExtResource("3_interactable")]
+position = Vector2(636, 439)
 interaction_id = "window"
 prompt_message = "Press E to look out Window"
 
-[node name="Wardrobe" parent="." instance=ExtResource("3_interactable")]
-position = Vector2(570, 500)
+[node name="Wardrobe" parent="." unique_id=2511220 instance=ExtResource("3_interactable")]
+position = Vector2(106, 435)
 interaction_id = "wardrobe"
 prompt_message = "Press E to open Wardrobe"
 
-[node name="Papers" parent="." instance=ExtResource("3_interactable")]
-position = Vector2(750, 500)
+[node name="Papers" parent="." unique_id=312812841 instance=ExtResource("3_interactable")]
+position = Vector2(423, 630)
 interaction_id = "papers"
 prompt_message = "Press E to inspect Papers"
 
-[node name="Kitchen" parent="." instance=ExtResource("3_interactable")]
-position = Vector2(960, 500)
+[node name="Kitchen" parent="." unique_id=1950146942 instance=ExtResource("3_interactable")]
+position = Vector2(875, 487)
 interaction_id = "kitchen"
 prompt_message = "Press E to check Kitchen"

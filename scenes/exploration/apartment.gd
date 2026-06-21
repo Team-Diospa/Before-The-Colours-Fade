@@ -849,6 +849,34 @@ func _ready() -> void:
 	if has_node("Window"):   $Window.interacted.connect(_on_window_interacted)
 	if has_node("Papers"):   $Papers.interacted.connect(_on_papers_interacted)
 
+	# Programmatically instantiate a StaticBody2D wall to prevent the player from crossing/walking over the bed graphic.
+	var bed_collider = StaticBody2D.new()
+	bed_collider.name = "BedCollider"
+	var col_shape = CollisionShape2D.new()
+	var rect_shape = RectangleShape2D.new()
+	# The collider blocks player movement horizontally at the right edge of the bed (around X = 280)
+	rect_shape.size = Vector2(40, 648)
+	col_shape.shape = rect_shape
+	bed_collider.position = Vector2(240, 324)
+	bed_collider.add_child(col_shape)
+	add_child(bed_collider)
+
+	# Widen the Wardrobe and Guitar interaction shapes so they are reachable/clickable from the player's stand zone next to the bed.
+	if has_node("Wardrobe"):
+		var wardrobe_shape = $Wardrobe/CollisionShape2D
+		if wardrobe_shape and wardrobe_shape.shape:
+			wardrobe_shape.shape = wardrobe_shape.shape.duplicate()
+			wardrobe_shape.shape.size = Vector2(360, 150)
+			# Shift the center of the collision zone to the right to reach the player stand zone
+			wardrobe_shape.position = Vector2(100, 0)
+			
+	if has_node("Guitar"):
+		var guitar_shape = $Guitar/CollisionShape2D
+		if guitar_shape and guitar_shape.shape:
+			guitar_shape.shape = guitar_shape.shape.duplicate()
+			guitar_shape.shape.size = Vector2(180, 150)
+			guitar_shape.position = Vector2(50, 0)
+
 	# RATIONALE: If we are restoring from a saved game, skip the opening narration and
 	# set the correct objective state immediately to avoid repeating dialog.
 	if GlobalState.has_flag("bed_slept"):

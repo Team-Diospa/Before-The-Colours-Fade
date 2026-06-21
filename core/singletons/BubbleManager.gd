@@ -51,6 +51,7 @@ var _text_label: Label       # Dialogue text
 var _continue_indicator: Label  # Upside-down triangle (same as dialogue panel)
 
 var _is_showing: bool = false
+var _pulse_tween: Tween       # Tween reference to manage indicator pulse safely
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -215,26 +216,21 @@ func show_bubble(speaker: String, text: String) -> void:
 	_text_label.text = text
 	_continue_indicator.visible = false # Managed externally by DialogueSystem typing
 
-	# Determine if we should show the front-facing placeholder image
-	if _portrait_texture.texture != null:
-		_portrait_texture.visible = true
-		_portrait_bg.visible = false
-		_portrait_head.visible = false
-		_portrait_shoulders.visible = false
-	else:
-		_portrait_texture.visible = false
-		_portrait_bg.visible = true
-		_portrait_head.visible = true
-		_portrait_shoulders.visible = true
-		
-		# Set custom colors for procedural silhouette.
-		var bg_col    = PORTRAIT_COLORS.get(speaker,      Color(0.25, 0.25, 0.3, 1.0))
-		var skin_col  = PORTRAIT_SKIN_COLORS.get(speaker, Color(0.75, 0.65, 0.55, 1.0))
-		var cloth_col = bg_col.darkened(0.25)
-		
-		_portrait_bg.color        = bg_col
-		_portrait_head.color      = skin_col
-		_portrait_shoulders.color = cloth_col
+	# RATIONALE: Retract the placeholder texture from the text bubble. We always use the
+	# previous custom procedural colored skin/head/shoulders silhouette blocks.
+	_portrait_texture.visible = false
+	_portrait_bg.visible = true
+	_portrait_head.visible = true
+	_portrait_shoulders.visible = true
+	
+	# Set custom colors for procedural silhouette.
+	var bg_col    = PORTRAIT_COLORS.get(speaker,      Color(0.25, 0.25, 0.3, 1.0))
+	var skin_col  = PORTRAIT_SKIN_COLORS.get(speaker, Color(0.75, 0.65, 0.55, 1.0))
+	var cloth_col = bg_col.darkened(0.25)
+	
+	_portrait_bg.color        = bg_col
+	_portrait_head.color      = skin_col
+	_portrait_shoulders.color = cloth_col
 
 	_root.visible = true
 
@@ -272,9 +268,12 @@ func get_text_label() -> Label:
 func _pulse_indicator() -> void:
 	if not _continue_indicator:
 		return
-	var tw = _continue_indicator.create_tween().set_loops()
-	tw.tween_property(_continue_indicator, "modulate:a", 0.2, 0.45)
-	tw.tween_property(_continue_indicator, "modulate:a", 1.0, 0.45)
+	# RATIONALE: Kill the existing pulse tween before creating a new one to prevent tween stacking.
+	if _pulse_tween and _pulse_tween.is_valid():
+		_pulse_tween.kill()
+	_pulse_tween = _continue_indicator.create_tween().set_loops()
+	_pulse_tween.tween_property(_continue_indicator, "modulate:a", 0.2, 0.45)
+	_pulse_tween.tween_property(_continue_indicator, "modulate:a", 1.0, 0.45)
 
 func is_npc_speaker(speaker: String) -> bool:
 	return NPC_SPEAKERS.has(speaker)

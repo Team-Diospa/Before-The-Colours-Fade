@@ -160,8 +160,8 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_i3pqv"]
-radius = 33.0
-height = 106.0
+radius = 73.0
+height = 260.0
 
 [node name="Player" type="CharacterBody2D" unique_id=1928836276]
 position = Vector2(316, 143)
@@ -169,11 +169,11 @@ script = ExtResource("1_onrkg")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=812080781]
 texture_filter = 1
-position = Vector2(66, -40.75)
-scale = Vector2(3.64, 3.2027028)
+position = Vector2(92.000015, -19.000004)
+scale = Vector2(6.8800006, 6.27027)
 sprite_frames = SubResource("SpriteFrames_pbfsw")
-animation = &"Jump"
+animation = &"Idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=94256834]
-position = Vector2(70, -23)
+position = Vector2(84, -18)
 shape = SubResource("CapsuleShape2D_i3pqv")

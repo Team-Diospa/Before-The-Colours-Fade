@@ -81,6 +81,9 @@ var starting_draw_modifier: int = 0
 var master_deck: Array = []
 
 func _ready() -> void:
+	# Seed the global pseudo-random number generator to ensure unique card shuffles on every playthrough.
+	randomize()
+	
 	# Initialize default state values.
 	player_current_hp = player_max_hp
 	dimension_charge = 0

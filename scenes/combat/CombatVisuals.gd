@@ -8,7 +8,6 @@ extends Node2D
 
 # Animation tracking variables.
 var smooth_player_hp_ratio: float = 1.0
-var smooth_enemy_hp_ratio: float = 1.0
 var gear_rotation: float = 0.0
 var sun_rotation: float = 0.0
 
@@ -16,16 +15,19 @@ func _ready() -> void:
 	position = Vector2.ZERO
 	if manager:
 		smooth_player_hp_ratio = float(manager.player_hp) / float(manager.player_max_hp)
-		smooth_enemy_hp_ratio = float(manager.enemy_hp) / float(manager.enemy_max_hp)
+		for enemy in manager.active_enemies:
+			enemy["smooth_hp_ratio"] = float(enemy["hp"]) / float(enemy["max_hp"])
 	queue_redraw()
 
 func _process(delta: float) -> void:
 	if manager:
 		# Smooth HP ratio drainage (lerp over time)
 		var target_p = float(manager.player_hp) / float(manager.player_max_hp)
-		var target_e = float(manager.enemy_hp) / float(manager.enemy_max_hp)
 		smooth_player_hp_ratio = lerp(smooth_player_hp_ratio, target_p, 8.0 * delta)
-		smooth_enemy_hp_ratio = lerp(smooth_enemy_hp_ratio, target_e, 8.0 * delta)
+		
+		for enemy in manager.active_enemies:
+			var target_e = float(enemy["hp"]) / float(enemy["max_hp"])
+			enemy["smooth_hp_ratio"] = lerp(enemy.get("smooth_hp_ratio", 1.0), target_e, 8.0 * delta)
 		
 		# Slowly accumulate rotations for sun rays and gear
 		gear_rotation += 0.5 * delta
@@ -59,21 +61,52 @@ func _draw() -> void:
 	if manager.player_block > 0:
 		draw_rect(Rect2(player_x_start - 4, player_y_bar - 6, 188, 12), Color(0.8, 0.8, 0.8, 0.45), false, 1.5)
 		
-	# 4. Enemy Stats Frame and Health Line (X = 800 to 1000, Y = 150 to 250)
-	var enemy_x_start = 810
-	var enemy_x_end = 990
-	var enemy_y_bar = 240
-	
-	# Clean rectangular outline surrounding enemy statistics label
-	draw_rect(Rect2(790, 130, 220, 120), Color(0.12, 0.12, 0.15, 0.15), false, 1.5)
-	# Health fill background
-	draw_line(Vector2(enemy_x_start, enemy_y_bar), Vector2(enemy_x_end, enemy_y_bar), Color(0.2, 0.2, 0.2, 0.1), 5.0)
-	# Health actual fill line (smoothly lerping red vector)
-	draw_line(Vector2(enemy_x_start, enemy_y_bar), Vector2(enemy_x_start + 180 * smooth_enemy_hp_ratio, enemy_y_bar), Color(0.8, 0.25, 0.25, 0.75), 5.0)
-	
-	# Muted block shield highlight outline (translucent silver)
-	if manager.enemy_block > 0:
-		draw_rect(Rect2(enemy_x_start - 4, enemy_y_bar - 6, 188, 12), Color(0.8, 0.8, 0.8, 0.45), false, 1.5)
+	# 4. Enemy Stats Frames and Health Lines for all active wave enemies
+	for idx in range(manager.active_enemies.size()):
+		var enemy = manager.active_enemies[idx]
+		if enemy["hp"] <= 0:
+			continue
+			
+		var panel = enemy["panel"]
+		if not panel:
+			continue
+			
+		var panel_pos = panel.position
+		var panel_size = panel.size
+		var e_rect = Rect2(panel_pos, panel_size)
+		
+		# Highlight targeted enemy panel with sienna color and thicker outline border.
+		var outline_color = Color(0.65, 0.25, 0.15, 0.45) if idx == manager.selected_enemy_idx else Color(0.12, 0.12, 0.15, 0.15)
+		var border_w = 2.5 if idx == manager.selected_enemy_idx else 1.5
+		draw_rect(e_rect, outline_color, false, border_w)
+		
+		var enemy_x_start = panel_pos.x + 20
+		var enemy_x_end = panel_pos.x + 180
+		var enemy_y_bar = panel_pos.y + 80
+		
+		# Health fill background
+		draw_line(Vector2(enemy_x_start, enemy_y_bar), Vector2(enemy_x_end, enemy_y_bar), Color(0.2, 0.2, 0.2, 0.1), 5.0)
+		
+		# Health actual fill line (smoothly lerping red vector)
+		var hp_ratio = enemy.get("smooth_hp_ratio", 1.0)
+		draw_line(Vector2(enemy_x_start, enemy_y_bar), Vector2(enemy_x_start + 160.0 * hp_ratio, enemy_y_bar), Color(0.8, 0.25, 0.25, 0.75), 5.0)
+		
+		# Muted block shield outline (sienna shade)
+		if enemy["block"] > 0:
+			draw_rect(Rect2(enemy_x_start - 4, enemy_y_bar - 6, 168, 12), Color(0.65, 0.25, 0.15, 0.45), false, 1.5)
+			
+		# 5. Draw targeted crown/arrow indicator pointing down at the active targeted enemy sprite
+		if idx == manager.selected_enemy_idx:
+			var sprite = enemy["sprite"]
+			if sprite and is_instance_valid(sprite):
+				var s_pos = sprite.position
+				var pt1 = Vector2(s_pos.x, s_pos.y - 120)
+				var pt2 = Vector2(s_pos.x - 10, s_pos.y - 140)
+				var pt3 = Vector2(s_pos.x + 10, s_pos.y - 140)
+				# Draw clean sienna arrow outline
+				draw_line(pt1, pt2, Color(0.65, 0.25, 0.15, 0.85), 2.0)
+				draw_line(pt2, pt3, Color(0.65, 0.25, 0.15, 0.85), 2.0)
+				draw_line(pt3, pt1, Color(0.65, 0.25, 0.15, 0.85), 2.0)
 		
 	# 5. Sun (top-right, X = 1050, Y = 80)
 	var sun_color = Color(0.9, 0.75, 0.15, 1.0) # Warm sienna/yellow
