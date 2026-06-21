@@ -204,7 +204,8 @@ func _on_panic_trigger_body_entered(body: Node2D) -> void:
 		EventBus.play_sound.emit("murmur_fade_out")
 		
 		# Play the full atmospheric panic and memory sequence.
-		DialogueSystem.start_dialogue(panic_dialogue, "start")
+		# RATIONALE: Pass true to render this heavy panic attack and threshold transition sequence in fullscreen mode.
+		DialogueSystem.start_dialogue(panic_dialogue, "start", true)
 		
 		# Connect to dialogue finish to perform transition.
 		if not EventBus.dialogue_finished.is_connected(_on_dialogue_finished):

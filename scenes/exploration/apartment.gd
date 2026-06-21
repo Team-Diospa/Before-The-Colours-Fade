@@ -867,7 +867,8 @@ func _trigger_opening_narration() -> void:
 	# RATIONALE: Monitor dialogue text updates to coordinate lighting transitions during intro.
 	if not EventBus.dialogue_text_updated.is_connected(_on_dialogue_text_updated):
 		EventBus.dialogue_text_updated.connect(_on_dialogue_text_updated)
-	DialogueSystem.start_dialogue(opening_narration, "start")
+	# RATIONALE: Pass true to enable the visual novel style dedicated fullscreen cutscene for the opening alarm narration.
+	DialogueSystem.start_dialogue(opening_narration, "start", true)
 	if not EventBus.dialogue_finished.is_connected(_on_opening_narration_finished):
 		EventBus.dialogue_finished.connect(_on_opening_narration_finished)
 
@@ -905,7 +906,8 @@ func _on_bed_interacted(_id: String) -> void:
 	if GlobalState.has_flag("bed_slept"):
 		DialogueSystem.start_dialogue({"start": {"text": "You've already made your choice about the bed.", "next": ""}}, "start")
 		return
-	DialogueSystem.start_dialogue(bed_dialogue, "start")
+	# RATIONALE: Pass true to enable the visual novel style dedicated fullscreen cutscene for the bed monologue choice.
+	DialogueSystem.start_dialogue(bed_dialogue, "start", true)
 	if not EventBus.dialogue_finished.is_connected(_on_bed_dialogue_finished):
 		EventBus.dialogue_finished.connect(_on_bed_dialogue_finished)
 
@@ -989,7 +991,8 @@ func _on_shower_interacted(_id: String) -> void:
 	tween.tween_property(CanvasModulateNode, "color", COLOR_DEPRESSION, 5.0)
 	has_showered = true
 	GlobalState.set_flag("has_showered", true)
-	DialogueSystem.start_dialogue(shower_dialogue, "start")
+	# RATIONALE: Pass true to trigger the sensory-based shower monologue sequence in fullscreen cutscene mode.
+	DialogueSystem.start_dialogue(shower_dialogue, "start", true)
 	if not EventBus.dialogue_finished.is_connected(_on_shower_dialogue_finished):
 		EventBus.dialogue_finished.connect(_on_shower_dialogue_finished)
 
@@ -1005,7 +1008,8 @@ func _on_exit_door_interacted(_id: String) -> void:
 	if current_objective == "shower":
 		DialogueSystem.start_dialogue(door_locked_shower, "start")
 		return
-	DialogueSystem.start_dialogue(door_dialogue, "start")
+	# RATIONALE: Pass true to display the exit door transition dialogue in visual novel cutscene mode.
+	DialogueSystem.start_dialogue(door_dialogue, "start", true)
 	if not EventBus.dialogue_finished.is_connected(_on_door_dialogue_finished):
 		EventBus.dialogue_finished.connect(_on_door_dialogue_finished)
 

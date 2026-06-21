@@ -1069,6 +1069,7 @@ func animate_feedback(text: String, is_turn_banner: bool = false) -> void:
 # Resolve transition after victory.
 func _resolve_victory() -> void:
 	if enemy_name == "Castle Boss":
+		# RATIONALE: Pass true to start the post-Castle Boss transition in a fullscreen cutscene layout.
 		DialogueSystem.start_dialogue({
 			"start": {
 				"text": "Wow, that was awesome Hilbert. I didn't know you could do that.",
@@ -1114,7 +1115,7 @@ func _resolve_victory() -> void:
 				"speaker": "Hilbert",
 				"next": ""
 			}
-		}, "start")
+		}, "start", true)
 		
 		if not EventBus.dialogue_finished.is_connected(_on_castle_victory_finished):
 			EventBus.dialogue_finished.connect(_on_castle_victory_finished)
@@ -1122,6 +1123,7 @@ func _resolve_victory() -> void:
 	elif enemy_name == "Pack Leader":
 		# RATIONALE: Visual novel style branching ending. Hilbert's dissociation fractures.
 		# Incorporates McHale's Ontological Metalepsis and Lacan's Real.
+		# Pass true to show the cinematic endings and choice paths in fullscreen VN mode.
 		DialogueSystem.start_dialogue({
 			"start": {
 				"text": "The fire is gone. The village is quiet now, Hilbert.",
@@ -1321,7 +1323,7 @@ func _resolve_victory() -> void:
 				"text": "[System]: True Ending. You have accepted the weight of the Real.",
 				"next": ""
 			}
-		}, "start")
+		}, "start", true)
 		
 		if not EventBus.dialogue_finished.is_connected(_on_pack_victory_finished):
 			EventBus.dialogue_finished.connect(_on_pack_victory_finished)

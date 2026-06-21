@@ -17,6 +17,13 @@ var options_container: VBoxContainer
 # Continuation indicator character for classic RPG dialog feel.
 var continue_indicator: Label
 
+# Visual novel mode layout variables.
+# RATIONALE: Fullscreen overlay mode dynamically centers text and panels.
+var _is_fullscreen_mode: bool = false
+var margin_container: MarginContainer
+var layout_container: BoxContainer
+var text_vbox: VBoxContainer
+
 # Tracks if dialogue is active.
 var is_active: bool = false
 
@@ -36,6 +43,7 @@ var _is_dream_world: bool = false
 # Dynamically updates the dialogue styling depending on whether the scene is dream or reality.
 # Ensures seamless visual transitions between the warm beige sketch and cold slate aesthetics.
 func _update_ui_style() -> void:
+	# Detect if current scene is in the dream world based on file path.
 	_is_dream_world = false
 	if get_tree() and get_tree().current_scene:
 		var path = get_tree().current_scene.scene_file_path
@@ -47,32 +55,125 @@ func _update_ui_style() -> void:
 	style_box.corner_radius_top_right = 0
 	style_box.corner_radius_bottom_left = 0
 	style_box.corner_radius_bottom_right = 0
-	style_box.border_width_left = 2
-	style_box.border_width_top = 2
-	style_box.border_width_right = 2
-	style_box.border_width_bottom = 2
 	style_box.anti_aliasing = false
 	
-	if _is_dream_world:
-		style_box.bg_color = Color(0.96, 0.95, 0.92, 0.65) # Warm beige translucent paper glass
-		style_box.border_color = Color(0.12, 0.12, 0.15, 0.15) # Soft translucent charcoal border
-		style_box.shadow_color = Color(0, 0, 0, 0.1) # Soft muted shadow
-		style_box.shadow_size = 2
-		style_box.shadow_offset = Vector2(2, 2)
+	# Dynamically modify panel anchors, borders, and margins based on whether we are in fullscreen cutscene mode.
+	if _is_fullscreen_mode:
+		style_box.border_width_left = 0
+		style_box.border_width_top = 0
+		style_box.border_width_right = 0
+		style_box.border_width_bottom = 0
+		style_box.shadow_size = 0
 		
-		text_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
-		speaker_label.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0)) # Brick red badge
-		continue_indicator.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+		# Anchor dialogue panel to fill the entire rect.
+		dialogue_panel.anchor_top = 0.0
+		dialogue_panel.anchor_left = 0.0
+		dialogue_panel.anchor_right = 1.0
+		dialogue_panel.anchor_bottom = 1.0
+		dialogue_panel.offset_top = 0.0
+		dialogue_panel.offset_left = 0.0
+		dialogue_panel.offset_right = 0.0
+		dialogue_panel.offset_bottom = 0.0
+		
+		# Add generous padding for a centered reading experience.
+		margin_container.add_theme_constant_override("margin_left", 180)
+		margin_container.add_theme_constant_override("margin_right", 180)
+		margin_container.add_theme_constant_override("margin_top", 120)
+		margin_container.add_theme_constant_override("margin_bottom", 120)
+		
+		# Center-align text and speaker labels.
+		text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		speaker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		
+		# Stack options vertically beneath the text.
+		layout_container.vertical = true
+		layout_container.alignment = BoxContainer.ALIGNMENT_CENTER
+		layout_container.add_theme_constant_override("separation", 20)
+		
+		# Position continue indicator in the lower-middle portion of the screen.
+		continue_indicator.anchor_left = 0.5
+		continue_indicator.anchor_top = 0.9
+		continue_indicator.anchor_right = 0.5
+		continue_indicator.anchor_bottom = 0.9
+		continue_indicator.offset_left = -10.0
+		continue_indicator.offset_top = -10.0
+		continue_indicator.offset_right = 10.0
+		continue_indicator.offset_bottom = 10.0
+		
+		# Configure solid background color depending on dream vs reality.
+		if _is_dream_world:
+			style_box.bg_color = Color(0.94, 0.92, 0.88, 0.98) # High-opacity warm sketch paper
+			text_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+			speaker_label.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0)) # Brick red speaker badge
+			continue_indicator.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+		else:
+			style_box.bg_color = Color(0.02, 0.02, 0.03, 0.98) # Cinematic near-black reality overlay
+			text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+			speaker_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0)) # Silver speaker badge
+			continue_indicator.add_theme_color_override("font_color", Color(0.6, 0.7, 0.8, 1.0))
 	else:
-		style_box.bg_color = Color(0.06, 0.08, 0.12, 0.5) # Dark slate translucent glass
-		style_box.border_color = Color(1.0, 1.0, 1.0, 0.15) # Thin white glass shine border
-		style_box.shadow_color = Color(0, 0, 0, 0.25) # Soft subtle shadow
-		style_box.shadow_size = 4
+		style_box.border_width_left = 2
+		style_box.border_width_top = 2
+		style_box.border_width_right = 2
+		style_box.border_width_bottom = 2
 		style_box.shadow_offset = Vector2(2, 2)
 		
-		text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-		speaker_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0)) # Soft silver speaker badge
-		continue_indicator.add_theme_color_override("font_color", Color(0.6, 0.7, 0.8, 1.0))
+		# Reset anchors to bottom docked panel (160px height).
+		dialogue_panel.anchor_top = 1.0
+		dialogue_panel.anchor_left = 0.0
+		dialogue_panel.anchor_right = 1.0
+		dialogue_panel.anchor_bottom = 1.0
+		dialogue_panel.offset_top = -160.0
+		dialogue_panel.offset_left = 0.0
+		dialogue_panel.offset_right = 0.0
+		dialogue_panel.offset_bottom = 0.0
+		
+		# Reset standard small margins.
+		margin_container.add_theme_constant_override("margin_left", 30)
+		margin_container.add_theme_constant_override("margin_right", 30)
+		margin_container.add_theme_constant_override("margin_top", 20)
+		margin_container.add_theme_constant_override("margin_bottom", 20)
+		
+		# Reset text alignment to top-left.
+		text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		text_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		speaker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		
+		# Reset container layout to horizontal.
+		layout_container.vertical = false
+		layout_container.alignment = BoxContainer.ALIGNMENT_BEGIN
+		layout_container.add_theme_constant_override("separation", 10)
+		
+		# Reset continue indicator to bottom-right corner of the panel.
+		continue_indicator.anchor_left = 1.0
+		continue_indicator.anchor_top = 1.0
+		continue_indicator.anchor_right = 1.0
+		continue_indicator.anchor_bottom = 1.0
+		continue_indicator.offset_left = -30.0
+		continue_indicator.offset_top = -25.0
+		continue_indicator.offset_right = -15.0
+		continue_indicator.offset_bottom = -10.0
+		
+		# Configure semi-transparent colors.
+		if _is_dream_world:
+			style_box.bg_color = Color(0.96, 0.95, 0.92, 0.65) # Warm beige translucent paper glass
+			style_box.border_color = Color(0.12, 0.12, 0.15, 0.15) # Soft translucent charcoal border
+			style_box.shadow_color = Color(0, 0, 0, 0.1) # Soft muted shadow
+			style_box.shadow_size = 2
+			
+			text_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+			speaker_label.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0)) # Brick red badge
+			continue_indicator.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+		else:
+			style_box.bg_color = Color(0.06, 0.08, 0.12, 0.5) # Dark slate translucent glass
+			style_box.border_color = Color(1.0, 1.0, 1.0, 0.15) # Thin white glass shine border
+			style_box.shadow_color = Color(0, 0, 0, 0.25) # Soft subtle shadow
+			style_box.shadow_size = 4
+			
+			text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+			speaker_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0)) # Soft silver speaker badge
+			continue_indicator.add_theme_color_override("font_color", Color(0.6, 0.7, 0.8, 1.0))
 		
 	dialogue_panel.add_theme_stylebox_override("panel", style_box)
 
@@ -107,7 +208,8 @@ func _ready() -> void:
 	
 	
 	# MarginContainer for padding.
-	var margin_container = MarginContainer.new()
+	# RATIONALE: We make this a class member to dynamically override margins for fullscreen cutscene layouts.
+	margin_container = MarginContainer.new()
 	margin_container.anchor_right = 1.0
 	margin_container.anchor_bottom = 1.0
 	margin_container.offset_right = 0.0
@@ -120,15 +222,15 @@ func _ready() -> void:
 	margin_container.add_theme_constant_override("margin_bottom", 20)
 	dialogue_panel.add_child(margin_container)
 	
-	# Horizontal container to separate text and option buttons.
-	var h_box = HBoxContainer.new()
-	margin_container.add_child(h_box)
+	# BoxContainer to support dynamic switching between horizontal and vertical layouts.
+	layout_container = BoxContainer.new()
+	margin_container.add_child(layout_container)
 	
 	# RATIONALE: Nesting labels inside a VBox container to show speaker badge above dialogue text.
-	var text_vbox = VBoxContainer.new()
+	text_vbox = VBoxContainer.new()
 	text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	h_box.add_child(text_vbox)
+	layout_container.add_child(text_vbox)
 	
 	# Speaker label widget.
 	speaker_label = Label.new()
@@ -148,7 +250,7 @@ func _ready() -> void:
 	options_container = VBoxContainer.new()
 	options_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	options_container.custom_minimum_size.x = 220
-	h_box.add_child(options_container)
+	layout_container.add_child(options_container)
 	
 	# Continuation indicator (pulsing upside-down triangle).
 	continue_indicator = Label.new()
@@ -207,13 +309,16 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 # Load and start a dialogue sequence from a Dictionary.
-func start_dialogue(tree: Dictionary, start_node: String = "start") -> void:
+# RATIONALE: Optional is_fullscreen_narration boolean allows displaying long narrative sequences
+# in a visual-novel cinematic format with centered text and stacked choices.
+func start_dialogue(tree: Dictionary, start_node: String = "start", is_fullscreen_narration: bool = false) -> void:
 	dialogue_tree = tree
 	is_active = true
+	_is_fullscreen_mode = is_fullscreen_narration
 	root_control.visible = true # Enable full overlay control node
 	dialogue_panel.visible = true
 	
-	# Dynamically update styling to adapt to the active world mode (dream vs. reality).
+	# Dynamically update styling to adapt to the active world mode (dream vs. reality) and fullscreen state.
 	_update_ui_style()
 	
 	# Smooth fade-in
