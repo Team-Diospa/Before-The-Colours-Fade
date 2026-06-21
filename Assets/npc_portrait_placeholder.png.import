@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c72x2jkqrprwn"
-valid=false
+uid="uid://bh7wscfkgmox4"
+path="res://.godot/imported/npc_portrait_placeholder.png-fad09d4722235c67577e9ae3dd2065e9.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://Assets/npc_portrait_placeholder.png"
+dest_files=["res://.godot/imported/npc_portrait_placeholder.png-fad09d4722235c67577e9ae3dd2065e9.ctex"]
 
 [params]
 
