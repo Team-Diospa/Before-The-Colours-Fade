@@ -989,6 +989,10 @@ func _on_toilet_interacted(_id: String) -> void:
 func _on_shower_interacted(_id: String) -> void:
 	if current_objective in ["wake_up", "bed"]:
 		return
+	# RATIONALE: Gated shower to prevent replaying the long monologue cutscene multiple times.
+	if GlobalState.has_flag("has_showered"):
+		DialogueSystem.start_dialogue({"start": {"text": "You've already showered. The water has run cold.", "next": ""}}, "start")
+		return
 	# Shower tints the room dark as per script alur.md atmosphere note.
 	var tween = create_tween()
 	tween.tween_property(CanvasModulateNode, "color", COLOR_DEPRESSION, 5.0)
@@ -1011,6 +1015,14 @@ func _on_exit_door_interacted(_id: String) -> void:
 	if current_objective == "shower":
 		DialogueSystem.start_dialogue(door_locked_shower, "start")
 		return
+	# RATIONALE: If the door has already been inspected once, jump directly to the choice node to avoid re-triggering the long cutscene dialogue.
+	if GlobalState.has_flag("door_inspected"):
+		DialogueSystem.start_dialogue(door_dialogue, "door_choice", false)
+		if not EventBus.dialogue_finished.is_connected(_on_door_dialogue_finished):
+			EventBus.dialogue_finished.connect(_on_door_dialogue_finished)
+		return
+		
+	GlobalState.set_flag("door_inspected", true)
 	# RATIONALE: Pass true to display the exit door transition dialogue in visual novel cutscene mode.
 	DialogueSystem.start_dialogue(door_dialogue, "start", true)
 	if not EventBus.dialogue_finished.is_connected(_on_door_dialogue_finished):

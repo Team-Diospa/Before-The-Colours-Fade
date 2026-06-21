@@ -25,6 +25,7 @@ const FLAG_NAMES: Array = [
 	"scratch_found",             # Found the desk scratch after boss defeat; 9th fragment.
 	"tutorial_done",             # Marks if the first-fight guided tutorial is completed.
 	"blackboard_inspected",      # Marks if the classroom blackboard formula sketch was inspected.
+	"door_inspected",            # Marks if the exit door dialogue has been viewed once.
 ]
 
 # Dictionary to hold various narrative progression flags.
@@ -52,6 +53,7 @@ var narrative_flags: Dictionary = {
 	"scratch_found": false,
 	"tutorial_done": false,         # Default state for the guided tutorial flag.
 	"blackboard_inspected": false,  # Default state for the blackboard inspection flag.
+	"door_inspected": false,        # Default state for the exit door inspected flag.
 }
 
 # The ending branch selected by the player at the end of the chapter ("dream" or "wake").
