@@ -973,11 +973,7 @@ func update_ui() -> void:
 		btn.resized.connect(func(): btn.pivot_offset = btn.size / 2)
 		
 		# Set mouse enter/exit: shows description in the main FeedbackLabel, scales up and rotates.
-		# RATIONALE: Keep the [RETAINED] tag on the card button name when hovered.
-		var base_btn_text = card.card_name + " (" + str(card.energy_cost) + "E)"
-		var display_text = base_btn_text
-		if DeckManager.retained_card == card:
-			display_text += " [RETAINED]"
+		# RATIONALE: We reuse the display_text computed at the top of the loop to avoid redeclaration errors.
 		var tilt_angle = deg_to_rad(3.0)
 		
 		# Capture a unique hover tween state for this button closure.
