@@ -6,6 +6,9 @@ extends Node2D
 enum State { INIT, PLAYER_START, PLAYER_ACTION, PLAYER_END, ENEMY_TURN, VICTORY, DEFEAT }
 var current_state: State = State.INIT
 
+# RATIONALE: Tracks the current step of the first-combat guided card-play tutorial.
+var tutorial_step: int = 0
+
 # Player statistics.
 var player_hp: int = 50
 var player_max_hp: int = 50
@@ -183,6 +186,16 @@ var pack_leader_hint_dialogue: Dictionary = {
 }
 
 func _ready() -> void:
+	# Programmatically spawn the RetainButton if it is missing from the scene tree.
+	# RATIONALE: Avoids binary scene file corruption by instantiating the UI control in code.
+	var action_vbox = $UI/ActionPanel/VBox
+	if action_vbox and not action_vbox.has_node("RetainButton"):
+		retain_btn = Button.new()
+		retain_btn.name = "RetainButton"
+		retain_btn.text = "Retain Card"
+		action_vbox.add_child(retain_btn)
+		retain_btn.pressed.connect(_on_retain_pressed)
+
 	# Instantiate and add the custom sketch-style combat visuals.
 	var visuals_script = load("res://scenes/combat/CombatVisuals.gd")
 	if visuals_script:
@@ -357,6 +370,11 @@ func _ready() -> void:
 		# Update visual labels.
 		update_ui()
 		
+		# RATIONALE: Hook into dialogue completion to trigger the guided card play tutorial.
+		if enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done"):
+			if not EventBus.dialogue_finished.is_connected(_on_intro_dialogue_finished):
+				EventBus.dialogue_finished.connect(_on_intro_dialogue_finished)
+		
 		# Transition FSM to start the first round.
 		transition_to(State.PLAYER_START)
 
@@ -397,6 +415,12 @@ func transition_to(new_state: State) -> void:
 			# Update buttons and stats.
 			update_ui()
 			animate_feedback("YOUR TURN", true)
+			
+			# RATIONALE: Trigger Turn 2 of the guided tutorial once the first turn ends.
+			if enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done") and tutorial_step == 3:
+				tutorial_step = 4
+				call_deferred("_trigger_tutorial_turn_2")
+				
 			transition_to(State.PLAYER_ACTION)
 			
 		State.PLAYER_ACTION:
@@ -439,14 +463,37 @@ func transition_to(new_state: State) -> void:
 			animate_feedback("Defeated...")
 			
 			# RATIONALE: Contextual defeat line - grounds the restart in the narrative.
+			# If defeated by the Pack Leader without the confidence buff, point them back to the classroom Paper Monster.
 			var timer = get_tree().create_timer(1.0)
 			await timer.timeout
-			DialogueSystem.start_dialogue({
-				"start": {
-					"text": "The dream collapses. The classroom snaps back around you. Your pencil is still in your hand.",
-					"next": ""
-				}
-			}, "start")
+			
+			if enemy_name == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active"):
+				DialogueSystem.start_dialogue({
+					"start": {
+						"text": "The Pack Leader's flames consume you. Your strikes were like paper against fire.",
+						"next": "fail_2"
+					},
+					"fail_2": {
+						"text": "You feel a cold sweat. There was a presence in the classroom... a paper monster. You ignored it. You did not face it.",
+						"next": "fail_3"
+					},
+					"fail_3": {
+						"text": "Perhaps if you had placed the memory fragment onto the classroom's paper monster, you would have found the confidence to cut through the flames.",
+						"next": "fail_4"
+					},
+					"fail_4": {
+						"text": "The dream collapses. The classroom snaps back around you. You must try again, and search the room more carefully this time.",
+						"next": ""
+					}
+				}, "start")
+			else:
+				DialogueSystem.start_dialogue({
+					"start": {
+						"text": "The dream collapses. The classroom snaps back around you. Your pencil is still in your hand.",
+						"next": ""
+					}
+				}, "start")
+				
 			if not EventBus.dialogue_finished.is_connected(_on_defeat_dialogue_finished):
 				EventBus.dialogue_finished.connect(_on_defeat_dialogue_finished)
 
@@ -572,8 +619,33 @@ func execute_enemy_action() -> void:
 
 # Triggered when playing a card button in UI.
 func play_card(card: CardData) -> void:
-	if current_state != State.PLAYER_ACTION:
+	# RATIONALE: Block card plays while dialogues are active to prevent UI overlap or action sequencing breaks.
+	if current_state != State.PLAYER_ACTION or DialogueSystem.is_active:
 		return
+		
+	# RATIONALE: Guided tutorial card restriction enforcement.
+	# Ensures the player understands basic play order of Strike then Defend.
+	if enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done"):
+		if tutorial_step == 1:
+			if card.card_name != "Strike":
+				DialogueSystem.start_dialogue({
+					"start": {
+						"text": "Try playing a Strike card first!",
+						"speaker": "n.n.",
+						"next": ""
+					}
+				}, "start")
+				return
+		elif tutorial_step == 2:
+			if card.card_name != "Defend":
+				DialogueSystem.start_dialogue({
+					"start": {
+						"text": "Try playing a Defend card next!",
+						"speaker": "n.n.",
+						"next": ""
+					}
+				}, "start")
+				return
 	
 	# RATIONALE: If retain mode is active, the next card click retains the card for next turn.
 	if _retain_mode_active:
@@ -609,6 +681,15 @@ func play_card(card: CardData) -> void:
 	# Standard Attack cards call it once here. Defense cards do not charge the shift.
 	if card.card_type == "Attack":
 		ShiftManager.add_charge()
+		
+	# RATIONALE: Advance guided tutorial steps upon playing the expected cards.
+	if enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done"):
+		if tutorial_step == 1:
+			tutorial_step = 2
+			call_deferred("_trigger_tutorial_step_2")
+		elif tutorial_step == 2:
+			tutorial_step = 3
+			call_deferred("_trigger_tutorial_step_3")
 		
 		# RATIONALE: Pack Leader immunity tracking. Count attack plays without confidence buff.
 		if enemy_name == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active"):
@@ -668,14 +749,38 @@ func cancel_enemy_defend() -> void:
 
 # Reroll hand option button.
 func _on_reroll_pressed() -> void:
-	# RATIONALE: Reroll no longer costs energy (plan item 4.2). Only the once-per-round
-	# limit applies. The player sacrifices their current hand, not their action economy.
+	# RATIONALE: Block action while dialogue is active.
+	if DialogueSystem.is_active:
+		return
+	# RATIONALE: Disable rerolls during the guided tutorial.
+	if enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done"):
+		DialogueSystem.start_dialogue({
+			"start": {
+				"text": "Not yet. Follow the steps first!",
+				"speaker": "n.n.",
+				"next": ""
+			}
+		}, "start")
+		return
 	if DeckManager.can_reroll:
 		DeckManager.reroll_hand()
 		update_stats_pulsed(true, false)
 
 # Retain card toggle button.
 func _on_retain_pressed() -> void:
+	# RATIONALE: Block action while dialogue is active.
+	if DialogueSystem.is_active:
+		return
+	# RATIONALE: Disable retain during the guided tutorial.
+	if enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done"):
+		DialogueSystem.start_dialogue({
+			"start": {
+				"text": "Not yet. Follow the steps first!",
+				"speaker": "n.n.",
+				"next": ""
+			}
+		}, "start")
+		return
 	if DeckManager.can_retain and not _retain_mode_active:
 		_retain_mode_active = true
 		animate_feedback("Select a card to retain for next turn.")
@@ -684,6 +789,9 @@ func _on_retain_pressed() -> void:
 
 # Dimension Shift option button.
 func _on_shift_pressed() -> void:
+	# RATIONALE: Block action while dialogue is active.
+	if DialogueSystem.is_active:
+		return
 	if ShiftManager.can_shift():
 		# RATIONALE: Bateson's Double-Bind. Shifting isn't a clean escape; it has a visual cost.
 		# Add a blinding white flash and violent screen shake before transitioning.
@@ -720,6 +828,20 @@ func _on_shift_pressed() -> void:
 
 # End Turn option button.
 func _on_end_turn_pressed() -> void:
+	# RATIONALE: Block action while dialogue is active.
+	if DialogueSystem.is_active:
+		return
+	# RATIONALE: Enforce completion of tutorial cards before ending turn.
+	if enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done"):
+		if tutorial_step != 3:
+			DialogueSystem.start_dialogue({
+				"start": {
+					"text": "Finish your tutorial actions before ending the turn!",
+					"speaker": "n.n.",
+					"next": ""
+				}
+			}, "start")
+			return
 	transition_to(State.PLAYER_END)
 
 # Update screen widgets.
@@ -787,7 +909,14 @@ func update_ui() -> void:
 		# Shrink cards to 95x45 and remove description to eliminate cognitive fatigue.
 		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		btn.custom_minimum_size = Vector2(95, 45)
-		btn.text = card.card_name + " (" + str(card.energy_cost) + "E)"
+		
+		# RATIONALE: Determine base button text and append [RETAINED] if the card is retained.
+		var base_btn_text = card.card_name + " (" + str(card.energy_cost) + "E)"
+		var display_text = base_btn_text
+		if DeckManager.retained_card == card:
+			display_text += " [RETAINED]"
+		btn.text = display_text
+		
 		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		btn.pressed.connect(func(): play_card(card))
 		hand_container.add_child(btn)
@@ -844,7 +973,11 @@ func update_ui() -> void:
 		btn.resized.connect(func(): btn.pivot_offset = btn.size / 2)
 		
 		# Set mouse enter/exit: shows description in the main FeedbackLabel, scales up and rotates.
+		# RATIONALE: Keep the [RETAINED] tag on the card button name when hovered.
 		var base_btn_text = card.card_name + " (" + str(card.energy_cost) + "E)"
+		var display_text = base_btn_text
+		if DeckManager.retained_card == card:
+			display_text += " [RETAINED]"
 		var tilt_angle = deg_to_rad(3.0)
 		
 		# Capture a unique hover tween state for this button closure.
@@ -853,7 +986,7 @@ func update_ui() -> void:
 		btn.mouse_entered.connect(func():
 			if active_tweens["tween"]:
 				active_tweens["tween"].kill()
-			btn.text = "▼ " + base_btn_text
+			btn.text = "▼ " + display_text
 			feedback_label.text = card.description
 			active_tweens["tween"] = btn.create_tween().set_parallel(true)
 			active_tweens["tween"].tween_property(btn, "scale", Vector2(1.1, 1.1), 0.12).set_trans(Tween.TRANS_SINE)
@@ -863,7 +996,7 @@ func update_ui() -> void:
 		btn.mouse_exited.connect(func():
 			if active_tweens["tween"]:
 				active_tweens["tween"].kill()
-			btn.text = base_btn_text
+			btn.text = display_text
 			feedback_label.text = ""
 			active_tweens["tween"] = btn.create_tween().set_parallel(true)
 			active_tweens["tween"].tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_SINE)
@@ -1278,3 +1411,58 @@ func _create_energy_orb() -> void:
 	energy_orb_label.add_theme_constant_override("shadow_offset_y", 1)
 	energy_orb_label.add_theme_constant_override("shadow_outline_size", 3)
 	energy_orb.add_child(energy_orb_label)
+
+# Triggered when n.n.'s introduction dialogue completes.
+# Sets up step 1 of the guided tutorial.
+func _on_intro_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_intro_dialogue_finished)
+	if enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done"):
+		tutorial_step = 1
+		DialogueSystem.start_dialogue({
+			"start": {
+				"text": "Look at your cards at the bottom. Strike deals damage, and Defend blocks enemy attacks. Notice the Castle Boss intends to attack you for 6 damage this turn!",
+				"speaker": "n.n.",
+				"next": "tut_2"
+			},
+			"tut_2": {
+				"text": "Try playing a Strike card first to damage the Castle Boss.",
+				"speaker": "n.n.",
+				"next": ""
+			}
+		}, "start")
+
+# Prompts the player to play Defend next.
+func _trigger_tutorial_step_2() -> void:
+	DialogueSystem.start_dialogue({
+		"start": {
+			"text": "Great! Now play a Defend card to protect yourself from the incoming attack.",
+			"speaker": "n.n.",
+			"next": ""
+		}
+	}, "start")
+
+# Prompts the player to end their turn.
+func _trigger_tutorial_step_3() -> void:
+	DialogueSystem.start_dialogue({
+		"start": {
+			"text": "Perfect! You have 1 energy left. You cannot play any more cards because both Strike and Defend cost 1 energy. Press 'End Turn' to let the enemy act.",
+			"speaker": "n.n.",
+			"next": ""
+		}
+	}, "start")
+
+# Welcomes the player to turn 2 and explains advanced actions.
+func _trigger_tutorial_turn_2() -> void:
+	DialogueSystem.start_dialogue({
+		"start": {
+			"text": "Good job! Your block absorbed the damage. You also have a 'Reroll' button to replace your hand for free once per round, and a 'Retain' button to save a card for next turn. Use them wisely.",
+			"speaker": "n.n.",
+			"next": "tut_end"
+		},
+		"tut_end": {
+			"text": "Let's finish this fight!",
+			"speaker": "n.n.",
+			"next": ""
+		}
+	}, "start")
+	GlobalState.set_flag("tutorial_done", true)

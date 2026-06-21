@@ -23,6 +23,8 @@ const FLAG_NAMES: Array = [
 	"window_closed",             # Apartment window closed; triggers room darkening tween.
 	"has_showered",              # Player has used the shower; gated for exiting the apartment.
 	"scratch_found",             # Found the desk scratch after boss defeat; 9th fragment.
+	"tutorial_done",             # Marks if the first-fight guided tutorial is completed.
+	"blackboard_inspected",      # Marks if the classroom blackboard formula sketch was inspected.
 ]
 
 # Dictionary to hold various narrative progression flags.
@@ -48,6 +50,8 @@ var narrative_flags: Dictionary = {
 	"window_closed": false,
 	"has_showered": false,
 	"scratch_found": false,
+	"tutorial_done": false,         # Default state for the guided tutorial flag.
+	"blackboard_inspected": false,  # Default state for the blackboard inspection flag.
 }
 
 # The ending branch selected by the player at the end of the chapter ("dream" or "wake").
@@ -124,6 +128,8 @@ func reset_state() -> void:
 		"window_closed": false,
 		"has_showered": false,
 		"scratch_found": false,
+		"tutorial_done": false,         # Reset state for the guided tutorial flag.
+		"blackboard_inspected": false,  # Reset state for the blackboard inspection flag.
 	}
 	chosen_ending = ""
 	pack_leader_attack_count = 0

@@ -561,15 +561,19 @@ var shower_dialogue: Dictionary = {
 		"next": "shower_18"
 	},
 	"shower_18": {
-		"text": "You find yourself thinking about silence. Not the quiet of an empty room, but a deeper, absolute silence.",
+		# RATIONALE: Focus on physical steam blanket and sound isolation.
+		# Blocks out external noises to highlight isolation without explicit suicidal thoughts.
+		"text": "The steam grows thicker, wrapping around you like a heavy blanket. The sound of the rushing water blocks out the rest of the world, masking the ticking clock and the dripping ceiling.",
 		"next": "shower_19"
 	},
 	"shower_19": {
-		"text": "A silence where the phone does not ring, where the landlady does not knock, where the formulas do not jumble in your head.",
+		# RATIONALE: Physical contact with cold environment to contrast the lukewarm water.
+		"text": "You press your forehead against the cold tiles, letting the stream hit the back of your neck. The water is losing its warmth, turning slowly back to lukewarm, then cold.",
 		"next": "shower_20"
 	},
 	"shower_20": {
-		"text": "A silence surrounded by nothingness, where you do not have to carry the weight of what you lost.",
+		# RATIONALE: Focus on spatial disorientation and mist masking clutter.
+		"text": "The mist makes the boundaries of the small stall disappear. For a few seconds, there are no walls, no clutter, no books - just the white noise of water hitting plastic.",
 		"next": "shower_21"
 	},
 	"shower_21": {
@@ -831,8 +835,6 @@ var door_locked_bed: Dictionary = {
 # SCENE SETUP
 # ============================================================
 func _ready() -> void:
-	CanvasModulateNode.color = COLOR_MORNING
-
 	if has_node("Bed"):      $Bed.interacted.connect(_on_bed_interacted)
 	if has_node("Guitar"):   $Guitar.interacted.connect(_on_guitar_interacted)
 	if has_node("Desk"):     $Desk.interacted.connect(_on_desk_interacted)
@@ -847,6 +849,7 @@ func _ready() -> void:
 	# RATIONALE: If we are restoring from a saved game, skip the opening narration and
 	# set the correct objective state immediately to avoid repeating dialog.
 	if GlobalState.has_flag("bed_slept"):
+		CanvasModulateNode.color = COLOR_MORNING
 		if GlobalState.has_flag("has_showered"):
 			has_showered = true
 			_advance_objective("exit")
@@ -856,16 +859,29 @@ func _ready() -> void:
 			if GlobalState.has_flag("window_closed"):
 				CanvasModulateNode.color = COLOR_DEPRESSION
 	else:
+		# RATIONALE: Fresh game start sets canvas to pitch black for an atmospheric narration.
+		CanvasModulateNode.color = Color.BLACK
 		call_deferred("_trigger_opening_narration")
 
-
 func _trigger_opening_narration() -> void:
+	# RATIONALE: Monitor dialogue text updates to coordinate lighting transitions during intro.
+	if not EventBus.dialogue_text_updated.is_connected(_on_dialogue_text_updated):
+		EventBus.dialogue_text_updated.connect(_on_dialogue_text_updated)
 	DialogueSystem.start_dialogue(opening_narration, "start")
 	if not EventBus.dialogue_finished.is_connected(_on_opening_narration_finished):
 		EventBus.dialogue_finished.connect(_on_opening_narration_finished)
 
+# Coordinates lighting changes during the opening narration sequence.
+func _on_dialogue_text_updated(text: String, options: Array) -> void:
+	if DialogueSystem.dialogue_tree == opening_narration and DialogueSystem.current_node_id == "open_6":
+		# RATIONALE: Gradually fade the morning light in as the text mentions bright light filling the room.
+		var tween = create_tween()
+		tween.tween_property(CanvasModulateNode, "color", COLOR_MORNING, 3.5)
+
 func _on_opening_narration_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_opening_narration_finished)
+	if EventBus.dialogue_text_updated.is_connected(_on_dialogue_text_updated):
+		EventBus.dialogue_text_updated.disconnect(_on_dialogue_text_updated)
 	if DialogueSystem.dialogue_tree == opening_narration:
 		_advance_objective("bed")
 

@@ -84,14 +84,35 @@ var locker_dialogue: Dictionary = {
 		"next": "locker_2"
 	},
 	"locker_2": {
-		# RATIONALE: The metaphor chain must be clear.
-		# Frame/load-bearing calculations -> Fortress (structural defense).
-		# Gear-brake margin note -> Counter Stance (converting momentum into resistance).
-		"text": "Hilbert: Old blueprints for a solar-powered bicycle. The frame design... load-bearing calculations in the margins. And a note: 'gear-brake converts momentum into resistance.' The handwriting is barely readable.",
+		# RATIONALE: Ground the cards (Fortress and Counter Stance) in matching physical designs.
+		# A braced shelter blueprint justifies Fortress (defense), and a spring-loaded recoil gear justifies Counter Stance.
+		"text": "Hilbert: Old blueprints for a reinforced storm shelter we wanted to build in the backyard. The framing is double-braced. And a second sheet shows a spring-loaded recoil gear designed to redirect force. The margin says: 'converts impact into return pressure.' The handwriting is his.",
 		"next": "locker_sys"
 	},
 	"locker_sys": {
 		"text": "[System]: Locker -> Courage (Fortress and Counter Stance added to deck. Courage Buff active).",
+		"next": ""
+	}
+}
+
+# Dialogue tree for the blackboard inspection.
+# RATIONALE: Grounds the blackboard in the information-gap theory. The hand-drawn gear axle
+# is a retrieval cue for the dream world, connecting back to the drawings and L.G.'s cursive.
+var blackboard_dialogue: Dictionary = {
+	"start": {
+		"text": "The blackboard is covered in complex, chalk-written mechanics equations. Bending moments, shear diagrams, deflection formulas.",
+		"next": "board_2"
+	},
+	"board_2": {
+		"text": "In the corner, squeezed between two massive integrals, is a small, hand-drawn sketch of a gear axle. It does not belong to the lecture. It matches the propeller cart schematic exactly.",
+		"next": "board_3"
+	},
+	"board_3": {
+		"text": "A tiny note is written underneath in a neat, familiar cursive: 'Keep moving, Hil. The calculations are already done.'",
+		"next": "board_sys"
+	},
+	"board_sys": {
+		"text": "[System]: The familiar sketch settles your focus (+5 starting Block on turn 1 of combat).",
 		"next": ""
 	}
 }
@@ -177,6 +198,17 @@ func _ready() -> void:
 	$Locker.interacted.connect(_on_locker_interacted)
 	$Desk.interacted.connect(_on_desk_interacted)
 	
+	# Programmatically spawn the blackboard interactable to keep scene files clean.
+	var blackboard_scene = load("res://core/components/interactable.tscn")
+	if blackboard_scene:
+		var blackboard = blackboard_scene.instantiate()
+		blackboard.name = "Blackboard"
+		blackboard.interaction_id = "blackboard"
+		blackboard.prompt_message = "Press E to look at Blackboard"
+		blackboard.position = Vector2(150, 500)
+		blackboard.interacted.connect(_on_blackboard_interacted)
+		add_child(blackboard)
+		
 	# Configure the Paper Monster depending on whether we are mid-combat.
 	if ShiftManager.cached_combat_exists and GlobalState.acquired_fragments > 0:
 		$Desk.prompt_message = "Press E to use Fragment on Paper Monster"
@@ -263,5 +295,21 @@ func _on_desk_dialogue_finished() -> void:
 	if DialogueSystem.dialogue_tree == desk_dialogue and DialogueSystem.current_node_id == "quiz_fade":
 		GlobalState.set_flag("quiz_started", true)
 		SceneManager.transition_to_state("S_dream2")
+
+# Routes blackboard interactions.
+func _on_blackboard_interacted(_id: String) -> void:
+	if GlobalState.has_flag("blackboard_inspected"):
+		DialogueSystem.start_dialogue({"start": {"text": "The chalk equations are dusty. The little gear sketch remains in the corner.", "next": ""}}, "start")
+		return
+	DialogueSystem.start_dialogue(blackboard_dialogue, "start")
+	if not EventBus.dialogue_finished.is_connected(_on_blackboard_dialogue_finished):
+		EventBus.dialogue_finished.connect(_on_blackboard_dialogue_finished)
+
+# Applies starting block modifier once the blackboard dialogue completes successfully.
+func _on_blackboard_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_blackboard_dialogue_finished)
+	if DialogueSystem.dialogue_tree == blackboard_dialogue and DialogueSystem.current_node_id == "board_sys":
+		GlobalState.set_flag("blackboard_inspected", true)
+		GlobalState.starting_block_modifier += 5
 
 
