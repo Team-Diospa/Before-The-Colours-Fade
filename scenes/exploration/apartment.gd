@@ -75,9 +75,8 @@ var opening_narration: Dictionary = {
 		"next": "open_9"
 	},
 	"open_9": {
-		# Source: "He looks up the leaking ceiling, water dripping down to the bucket
-		# he puts down the night before, 'it's almost full, i'll change it later'."
-		"text": "He looks up at the leaking ceiling. A bucket sits below it, placed there the night before. Almost full.",
+		# RATIONALE: Ground the bucket description in L.G.'s workshop bucket with a cracked handle held by yellowed masking tape.
+		"text": "He looks up at the leaking ceiling. L.G.'s old workshop bucket sits below it, its cracked handle held together by yellowed masking tape. Almost full.",
 		"next": "open_10"
 	},
 	"open_10": {
@@ -178,8 +177,8 @@ var opening_narration: Dictionary = {
 # ============================================================
 var bed_dialogue: Dictionary = {
 	"start": {
-		# RATIONALE: The opening of the interaction anchors the weight of the morning and Hilbert's reluctance.
-		"text": "The blanket is still warm. Still heavy. The mattress holds the shape of eight hours of avoidance.",
+		# RATIONALE: Ground the blanket description in L.G.'s family green wool blanket and its smell from the winter of 2022.
+		"text": "The green wool blanket, passed down from L.G.'s family, still smells faintly of the mothballs and damp cedar from the winter of 2022. It is heavy, holding the shape of eight hours of avoidance.",
 		"next": "bed_choice"
 	},
 	"bed_choice": {
@@ -307,7 +306,8 @@ var bed_dialogue: Dictionary = {
 		"next": "bed_no_7"
 	},
 	"bed_no_7": {
-		"text": "A bucket sits near the desk, catching the steady drip from the ceiling water stain. Plop. Plop.",
+		# RATIONALE: Keep the bucket details consistent.
+		"text": "L.G.'s old workshop bucket sits near the desk, catching the steady drip from the ceiling water stain. Its taped handle catches the dull light. Plop. Plop.",
 		"next": "bed_no_8"
 	},
 	"bed_no_8": {
@@ -403,16 +403,22 @@ var desk_dialogue: Dictionary = {
 		"next": "desk_2"
 	},
 	"desk_2": {
-		# Source: "A Picture...Not Important" (alur.md)
-		"text": "And a photograph, propped against the wall. Two boys holding a small mechanical trophy. Some kind of science competition, or a bridge-building contest. You cannot recall exactly.",
+		# RATIONALE: Focus on specific, raw childhood memories (mismatched socks, thumb smudge) to evoke nostalgia.
+		"text": "And a creased photograph propped against the wall. In it, L.G. is wearing mismatched socks, proudly holding up a mechanical gear trophy. Your thumb grease has smudged his face from the times you've held it.",
 		"next": "desk_choice"
 	},
 	"desk_choice": {
 		"text": "Pick up the drawing notebook?",
 		"options": [
 			{"text": "Yes - take the pencil and notebook", "next": "desk_open_1"},
+			{"text": "Try the desk drawer", "next": "desk_drawer"},
 			{"text": "No - leave it", "next": "desk_close"}
 		]
+	},
+	"desk_drawer": {
+		# RATIONALE: Change the locked drawer text to reference hiding the key inside the battery compartment of a broken yellow walkie-talkie.
+		"text": "The desk drawer is locked. You hid the brass key inside the battery compartment of the broken yellow walkie-talkie on the shelf, but you don't want to get it now.",
+		"next": "desk_choice"
 	},
 	"desk_open_1": {
 		"text": "The notebook smells like graphite and old paper. You open it to the first page. Solar bicycle. Propeller cart. Mechanical bird with folding brake-wings.",
@@ -988,8 +994,44 @@ func _on_guitar_dialogue_finished() -> void:
 		if thunder_res and not GlobalState.master_deck.has(thunder_res):
 			GlobalState.master_deck.append(thunder_res)
 
+# ============================================================
+# SECRET DESK DRAWER UNLOCK DIALOGUE
+# ============================================================
+var desk_secret_dialogue: Dictionary = {
+	"start": {
+		# RATIONALE: Ground the secret ending drawer unlock in the walkie-talkie key.
+		"text": "You stand before the desk. You take the walkie-talkie drawer key from your jacket pocket. It fits perfectly into the drawer lock.",
+		"next": "secret_1"
+	},
+	"secret_1": {
+		"text": "The lock turns with a heavy click. You slide the drawer open.",
+		"next": "secret_choice"
+	},
+	"secret_choice": {
+		"text": "Inspect the contents of the drawer?",
+		"options": [
+			{"text": "Yes - pull out the final blueprint", "next": "secret_yes"},
+			{"text": "No - leave it locked", "next": ""}
+		]
+	},
+	"secret_yes": {
+		"text": "Inside the drawer, carefully preserved, is the final blueprint of the propeller cart. The pencil marks are precise, showing a dual-wing glider attachment we never got to build. In the margin, L.G. wrote: 'Ready when you are, Hil.'",
+		"next": "secret_end"
+	},
+	"secret_end": {
+		"text": "The drawings are waiting. The colours, though faint, are yours to write.",
+		"next": ""
+	}
+}
+
 func _on_desk_interacted(_id: String) -> void:
 	if current_objective in ["wake_up", "bed"]:
+		return
+	# RATIONALE: Handle secret ending desk interaction to unlock the drawer using the found walkie-talkie key.
+	if GlobalState.has_flag("secret_ending_active"):
+		DialogueSystem.start_dialogue(desk_secret_dialogue, "start")
+		if not EventBus.dialogue_finished.is_connected(_on_desk_secret_dialogue_finished):
+			EventBus.dialogue_finished.connect(_on_desk_secret_dialogue_finished)
 		return
 	if GlobalState.has_flag("desk_searched"):
 		DialogueSystem.start_dialogue({"start": {"text": "The desk has been cleared.", "next": ""}}, "start")
@@ -1008,6 +1050,12 @@ func _on_desk_dialogue_finished() -> void:
 			GlobalState.master_deck.append(dstrike_res)
 		if fireball_res and not GlobalState.master_deck.has(fireball_res):
 			GlobalState.master_deck.append(fireball_res)
+
+func _on_desk_secret_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_desk_secret_dialogue_finished)
+	if DialogueSystem.dialogue_tree == desk_secret_dialogue and DialogueSystem.current_node_id == "secret_end":
+		GlobalState.chosen_ending = "secret"
+		SceneManager.transition_to_state("S_ending")
 
 func _on_toilet_interacted(_id: String) -> void:
 	if current_objective in ["wake_up", "bed"]:

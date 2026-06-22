@@ -7,8 +7,9 @@ class_name ExplorationPlayer
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 @export_category("Movement")
-# Speed increased to 220.0 for faster, more responsive exploration.
-@export var speed: float = 220.0
+# RATIONALE: Speed capped at 120.0 as per the pov_curation_guide.md.
+# Hilbert's movement represents physical lethargy, depression, and dragging feet.
+@export var speed: float = 120.0
 
 # State variable to block player input when dialogue is active.
 var input_locked: bool = false

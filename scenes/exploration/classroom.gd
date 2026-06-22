@@ -84,9 +84,9 @@ var locker_dialogue: Dictionary = {
 		"next": "locker_2"
 	},
 	"locker_2": {
-		# RATIONALE: Ground the cards (Fortress and Counter Stance) in matching physical designs.
-		# A braced shelter blueprint justifies Fortress (defense), and a spring-loaded recoil gear justifies Counter Stance.
-		"text": "Hilbert: Old blueprints for a reinforced storm shelter we wanted to build in the backyard. The framing is double-braced. And a second sheet shows a spring-loaded recoil gear designed to redirect force. The margin says: 'converts impact into return pressure.' The handwriting is his.",
+		# RATIONALE: Ground the discovery in specific childhood plans (flying whales drawn in blue wax crayon)
+		# inside L.G.'s old draft binder stuffed behind heavy textbooks.
+		"text": "Hilbert: Stuffed behind the heavy college textbooks is L.G.'s old cardboard draft binder. The cover is faded, featuring drawings of giant flying whales in blue wax crayon. I took it from his desk after the service and hid it here, unable to throw it away. Inside are blueprints for a reinforced storm shelter we wanted to build when we were ten. The margin notes are in his handwriting: 'converts impact into return pressure.'",
 		"next": "locker_sys"
 	},
 	"locker_sys": {
@@ -151,38 +151,40 @@ var desk_dialogue: Dictionary = {
 	}
 }
 
-# Dialogue for using the fragment on the Paper Monster.
+# Dialogue for focusing on the Quiz Paper.
+# RATIONALE: Represents the quiz paper as the mundane stressor. Hilbert recalls his friend's designs
+# instead of using a magical glowing item, keeping reality grounded.
 var paper_monster_dialogue: Dictionary = {
 	"start": {
-		"text": "A creepy monster made of exam papers stands frozen in front of the class. Use the Dream Fragment on it?",
+		"text": "The quiz paper on your desk lies frozen. The words are jumbled, vibrating in place. Try to recall his drawings to steady your focus?",
 		"options": [
-			{"text": "Yes", "next": "use_yes"},
+			{"text": "Yes - recall his designs", "next": "use_yes"},
 			{"text": "No", "next": "use_no"}
 		]
 	},
 	"use_yes": {
-		"text": "You place the glowing fragment onto the Paper Monster.",
+		"text": "You close your eyes and focus on his old drafts.",
 		"next": "use_yes_2"
 	},
 	"use_yes_2": {
 		# RATIONALE: Physical sensation beats per the script - the world paused, lighter, stronger.
-		"text": "The world around you is still. Grey. Paused. But something has shifted inside it.",
+		"text": "The world around you remains still and grey. But the pressure on your temples begins to ease.",
 		"next": "use_yes_3"
 	},
 	"use_yes_3": {
-		"text": "You feel lighter. Like something that was pressing on your chest has receded, just enough.",
+		"text": "You breathe slowly. The jumbled math equations stop spinning, settling into readable lines.",
 		"next": "use_yes_4"
 	},
 	"use_yes_4": {
-		"text": "Paper Monster: REDUCE TO SIMPLEST TERMS. ELIMINATE THE FRACTIONS. ERASE THE REMAINDER.",
+		"text": "The margin note comes into focus: 'Reduce to simplest terms. Eliminate the fractions. Erase the remainder.'",
 		"next": "use_yes_5"
 	},
 	"use_yes_5": {
-		"text": "The monster shatters into fading light. The writing on its pages looks like your own handwriting.",
+		"text": "The tension in the paper shatters. The handwriting is clean. It matches your own, but the calculations are correct.",
 		"next": "use_yes_sys"
 	},
 	"use_yes_sys": {
-		"text": "[System]: Reality countered (Confidence Buff active, attacks deal 2.0x damage).",
+		"text": "[System]: Memory recalled (Confidence Buff active, attacks deal 2.0x damage).",
 		"next": ""
 	},
 	"use_no": {
@@ -209,10 +211,20 @@ func _ready() -> void:
 		blackboard.interacted.connect(_on_blackboard_interacted)
 		add_child(blackboard)
 		
-	# Configure the Paper Monster depending on whether we are mid-combat.
+		# RATIONALE: Programmatically spawn the adjacent empty desk interactable.
+		var empty_desk = blackboard_scene.instantiate()
+		empty_desk.name = "EmptyDesk"
+		empty_desk.interaction_id = "empty_desk"
+		empty_desk.prompt_message = "Press E to look at Adjacent Desk"
+		empty_desk.position = Vector2(1050, 500)
+		empty_desk.interacted.connect(_on_empty_desk_interacted)
+		add_child(empty_desk)
+		
+	# Configure the Quiz Paper stressor depending on whether we are mid-combat.
+	# RATIONALE: Focuses on the test sheet rather than a literal fantasy monster.
 	if ShiftManager.cached_combat_exists and GlobalState.acquired_fragments > 0:
-		$Desk.prompt_message = "Press E to use Fragment on Paper Monster"
-		$Desk.interaction_id = "paper_monster"
+		$Desk.prompt_message = "Press E to focus on Quiz Paper"
+		$Desk.interaction_id = "quiz_paper"
 
 func _on_orang1_interacted(_id: String) -> void:
 	if GlobalState.has_flag("peer1_talked"):
@@ -274,7 +286,7 @@ func _on_locker_dialogue_finished() -> void:
 			GlobalState.master_deck.append(cstance_res)
 
 func _on_desk_interacted(id: String) -> void:
-	if id == "paper_monster":
+	if id == "quiz_paper":
 		DialogueSystem.start_dialogue(paper_monster_dialogue, "start")
 		if not EventBus.dialogue_finished.is_connected(_on_paper_monster_dialogue_finished):
 			EventBus.dialogue_finished.connect(_on_paper_monster_dialogue_finished)
@@ -311,5 +323,21 @@ func _on_blackboard_dialogue_finished() -> void:
 	if DialogueSystem.dialogue_tree == blackboard_dialogue and DialogueSystem.current_node_id == "board_sys":
 		GlobalState.set_flag("blackboard_inspected", true)
 		GlobalState.starting_block_modifier += 5
+
+# Dialogue tree for adjacent empty desk.
+var empty_desk_dialogue: Dictionary = {
+	"start": {
+		# RATIONALE: Ground the empty desk next to Hilbert with specific sensory details.
+		"text": "The desk next to yours is empty. On the wooden surface, there is a dried yellow smear of wood glue from when L.G. tried to assemble a cardboard propeller gear in class.",
+		"next": "empty_desk_2"
+	},
+	"empty_desk_2": {
+		"text": "Wedged deep inside the metal hinge of the lifting desktop lid is a crumpled silver-foil strawberry candy wrapper, folded into a tiny spaceship shape.",
+		"next": ""
+	}
+}
+
+func _on_empty_desk_interacted(_id: String) -> void:
+	DialogueSystem.start_dialogue(empty_desk_dialogue, "start")
 
 

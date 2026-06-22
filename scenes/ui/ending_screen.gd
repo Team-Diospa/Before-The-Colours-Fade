@@ -76,15 +76,33 @@ func _build_ui() -> void:
 	vbox.add_child(spacer_top)
 	
 	# Determine ending text based on chosen branch.
+	# RATIONALE: Set title, color, and description dynamically based on the ending type.
+	# The "demo" ending corresponds to the Chapter 1 Demo ending (bittersweet nostalgic cliffhanger).
+	# Falling back to the old endings ("dream" or "wake") is preserved for safety,
+	# but "demo" is the default for this prototype chapter's resolution.
 	var end_title_text = ""
 	var end_desc_text = ""
 	var end_title_color = Color(1.0, 1.0, 1.0, 1.0)
 	
 	if GlobalState.chosen_ending == "dream":
+		# Sustained Illusion (Dream Ending) from original design.
 		end_title_text = "Ending A: Sustained Illusion (Dream Ending)"
 		end_title_color = Color(0.9, 0.7, 0.5, 0.9) # Faded gold
 		end_desc_text = "You have chosen to stay in the grassy field, safe behind the walls of your own designs. Here, the blueprints never burn and n.n.'s propeller never stops humming. But as the lines harden around you, the colours fade completely. You remain suspended in the margins of a memory, holding onto a voice that was only ever an echo of yourself."
+	elif GlobalState.chosen_ending == "demo":
+		# Bittersweet and open-ended cliffhanger demo ending, matching docs/demo_narrative_flow.md.
+		# Grounds the resolution in the smudge on the palm and L.G.'s pencil-gear sketch.
+		end_title_text = "Before the Colours Fade - Chapter 1 Demo Completed"
+		end_title_color = Color(0.85, 0.72, 0.60, 0.95) # Bittersweet warm sienna/gold
+		end_desc_text = "You have finished the quiz and stepped out into the rain-slicked Monday. The classroom walls are solid again, and L.G.'s chair remains empty. Yet, in the margin of your test paper, a small propeller gear doodle sits as a silent trace of the dream world. With a pencil smudge on your palm and your friend's voice echoing in your mind, you are left with a choice: will you continue their unfinished designs, or will the dream consume you? The drawings are waiting. The colours, though faint, are yours to write."
+	elif GlobalState.chosen_ending == "secret":
+		# Secret ending: Puzzle Loop resolved by unlocking the desk drawer.
+		# RATIONALE: Fulfills the 9-fragment collection puzzle ending.
+		end_title_text = "Ending C: The Colours Return (Secret Ending)"
+		end_title_color = Color(0.58, 0.88, 0.68, 0.95) # Faint vibrant mint green
+		end_desc_text = "You returned to your room and unlocked the desk drawer with the walkie-talkie key. There, preserved and safe, lies the final blueprint of the propeller cart with L.G.'s dual-wing glider attachment. The pencil lines are clear. The drawings are waiting. The colours, though faint, are yours to write. You have found the resolve to continue."
 	else:
+		# Fallback to the Weight of the Real (True Ending) from original design.
 		end_title_text = "Ending B: The Weight of the Real (True Ending)"
 		end_title_color = Color(0.5, 0.7, 0.9, 0.9) # Cold blue
 		end_desc_text = "You have chosen to step out of the fiction. The dream shatters, leaving you in the cold, grey silence of the classroom. L.G.'s chair is empty, and the world is heavy with his absence. But the completed paper in your hand is real, and the pencil in your pocket still has lead. You have accepted the weight of the Real, and the colours, though faint, are waiting to return."

@@ -15,7 +15,8 @@ var panic_dialogue: Dictionary = {
 		"next": "panic_step2"
 	},
 	"panic_step2": {
-		"text": "Your breathing is off. You count the tiles underfoot without meaning to.",
+		# RATIONALE: Ground the counting of tiles in the childhood game of volcanic lava played with L.G.
+		"text": "Your breathing is off. You count the floor tiles underfoot, carefully stepping over the dark grout lines - a silent rule of L.G.'s childhood volcanic lava game.",
 		"next": "panic_step3"
 	},
 	"panic_step3": {
@@ -107,35 +108,38 @@ var board_dialogue: Dictionary = {
 		"next": ""
 	},
 	"board_lost": {
-		"text": "Lost: Green knitted scarf. Left in Room 304 last Tuesday. If found, please return to student lobby. It was a gift.",
+		# RATIONALE: Changed "last Tuesday" to "in late winter" to match the wardrobe timeline,
+		# and specified it was written in his mother's neat, sloping hand with a stitch drawing.
+		"text": "Lost: Green knitted scarf. Left in Room 304 in late winter. Written in mother's neat, sloping hand, with a small sketch of a dropped stitch. If found, please return to student lobby.",
 		"next": ""
 	}
 }
 
 # Dialogue trees for Water Fountain.
 # RATIONALE: Provides a physical choice that interacts directly with turn 1 stats.
+# Emphasizes cold physical sensations to settle trembling hands, grounding the mechanical bonus.
 var fountain_dialogue: Dictionary = {
 	"start": {
 		"text": "The metal of the water fountain is cold. A low hum vibrates through the pipework.",
 		"next": "fountain_choices"
 	},
 	"fountain_choices": {
-		"text": "Drink some water?",
+		"text": "Splash water on your face?",
 		"options": [
-			{"text": "Yes - wash down the dryness", "next": "fountain_yes"},
+			{"text": "Yes - wash down the dryness and steady your hands", "next": "fountain_yes"},
 			{"text": "No - move on", "next": "fountain_no"}
 		]
 	},
 	"fountain_yes": {
-		"text": "The water is freezing cold, bordering on metallic. It shocks your system, forcing you to slow your breathing.",
+		"text": "The water is freezing cold, bordering on metallic. You splash it over your face, shocking your skin. The trembling in your hands slows.",
 		"next": "fountain_yes_sys"
 	},
 	"fountain_yes_sys": {
-		"text": "[System]: Cold water settles your breathing. (+5 starting Block on turn 1 of combat).",
+		"text": "[System]: The cold shock steadies your focus (+5 starting Block on turn 1 of combat).",
 		"next": ""
 	},
 	"fountain_no": {
-		"text": "You pass by. The dry taste in your mouth remains.",
+		"text": "You pass by. The cold metal remains hum in the background.",
 		"next": ""
 	}
 }
@@ -143,6 +147,19 @@ var fountain_dialogue: Dictionary = {
 # Reference to the panic Area2D trigger node.
 @onready var trigger_area = $PanicTrigger
 var is_triggered: bool = false
+
+# Dialogue for key discovery at secret ending start in the hallway.
+var secret_hallway_intro: Dictionary = {
+	"start": {
+		# RATIONALE: Evoke the feeling of childhood mystery with the walkie-talkie drawer key.
+		"text": "As you step into the quiet hallway, your hand brushes against something small and metallic in your jacket pocket.",
+		"next": "intro_2"
+	},
+	"intro_2": {
+		"text": "It is the brass key you hid inside the battery compartment of the broken yellow walkie-talkie. How did it get here?",
+		"next": ""
+	}
+}
 
 func _ready() -> void:
 	# Connect collision entry signal.
@@ -156,6 +173,17 @@ func _ready() -> void:
 	_spawn_interactable("peer_a", "Press E to talk to Student", Vector2(350, 500))
 	_spawn_interactable("peer_b", "Press E to talk to Student", Vector2(550, 500))
 	_spawn_interactable("fountain", "Press E to use Water Fountain", Vector2(700, 500))
+	_spawn_interactable("apt_door", "Press E to look at Exit", Vector2(50, 500))
+
+	# RATIONALE: Disable panic attack trigger if secret ending is active, and trigger key discovery dialogue.
+	if GlobalState.has_flag("secret_ending_active"):
+		trigger_area.monitoring = false
+		if not GlobalState.has_flag("key_found_dialogue_shown"):
+			GlobalState.set_flag("key_found_dialogue_shown", true)
+			call_deferred("_trigger_secret_hallway_intro")
+
+func _trigger_secret_hallway_intro() -> void:
+	DialogueSystem.start_dialogue(secret_hallway_intro, "start")
 
 # Instantiates and wires an interactable component at the given coordinate.
 func _spawn_interactable(id: String, prompt: String, pos: Vector2) -> void:
@@ -183,6 +211,36 @@ func _on_object_interacted(id: String) -> void:
 			DialogueSystem.start_dialogue(fountain_dialogue, "start")
 			if not EventBus.dialogue_finished.is_connected(_on_fountain_dialogue_finished):
 				EventBus.dialogue_finished.connect(_on_fountain_dialogue_finished)
+		"apt_door":
+			# RATIONALE: Allow returning to the apartment if the secret ending loop is active.
+			if GlobalState.has_flag("secret_ending_active"):
+				DialogueSystem.start_dialogue({
+					"start": {
+						"text": "Return to your apartment?",
+						"options": [
+							{"text": "Yes - turn back", "next": "go_apt"},
+							{"text": "No - stay in the hallway", "next": ""}
+						]
+					},
+					"go_apt": {
+						"text": "You turn back, walking down the flights of stairs to your apartment.",
+						"next": ""
+					}
+				}, "start")
+				if not EventBus.dialogue_finished.is_connected(_on_apt_door_dialogue_finished):
+					EventBus.dialogue_finished.connect(_on_apt_door_dialogue_finished)
+			else:
+				DialogueSystem.start_dialogue({
+					"start": {
+						"text": "The heavy metal door is closed. You shouldn't turn back now. The lecture is about to start.",
+						"next": ""
+					}
+				}, "start")
+
+func _on_apt_door_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_apt_door_dialogue_finished)
+	if DialogueSystem.current_node_id == "go_apt":
+		SceneManager.transition_to_state("S_apt")
 
 # Applies starting stats if the player chose to drink water.
 func _on_fountain_dialogue_finished() -> void:

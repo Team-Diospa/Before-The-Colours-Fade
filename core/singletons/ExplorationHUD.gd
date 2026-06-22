@@ -491,7 +491,7 @@ func update_hud() -> void:
 					objective_text = "Objective: Head down the hallway to your quiz."
 				"Classroom":
 					if ShiftManager.cached_combat_exists:
-						objective_text = "Objective: A Paper Monster appeared. Use your Dream Fragment."
+						objective_text = "Objective: Use your Dream Fragment on the Quiz Paper."
 					else:
 						objective_text = "Objective: Search the lockers, then sit at your desk to start the quiz."
 				

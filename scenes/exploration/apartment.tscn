@@ -74,12 +74,12 @@ interaction_id = "bed"
 prompt_message = "Press E to check Bed"
 
 [node name="Guitar" parent="." unique_id=618256286 instance=ExtResource("3_interactable")]
-position = Vector2(313, 518)
+position = Vector2(313, 636)
 interaction_id = "guitar"
 prompt_message = "Press E to inspect Guitar"
 
 [node name="Desk" parent="." unique_id=506045287 instance=ExtResource("3_interactable")]
-position = Vector2(523, 453)
+position = Vector2(574, 539)
 interaction_id = "desk"
 prompt_message = "Press E to study Desk"
 
@@ -89,7 +89,7 @@ interaction_id = "shower"
 prompt_message = "Press E to use Shower"
 
 [node name="Toilet" parent="." unique_id=724969966 instance=ExtResource("3_interactable")]
-position = Vector2(997, 504)
+position = Vector2(1123, 524)
 interaction_id = "toilet"
 prompt_message = "Press E to use Toilet"
 
@@ -99,7 +99,7 @@ interaction_id = "exit_door"
 prompt_message = "Press E to exit Apartment"
 
 [node name="Window" parent="." unique_id=1404573782 instance=ExtResource("3_interactable")]
-position = Vector2(636, 439)
+position = Vector2(590, 393)
 interaction_id = "window"
 prompt_message = "Press E to look out Window"
 
@@ -109,11 +109,11 @@ interaction_id = "wardrobe"
 prompt_message = "Press E to open Wardrobe"
 
 [node name="Papers" parent="." unique_id=312812841 instance=ExtResource("3_interactable")]
-position = Vector2(423, 630)
+position = Vector2(429, 707)
 interaction_id = "papers"
 prompt_message = "Press E to inspect Papers"
 
 [node name="Kitchen" parent="." unique_id=1950146942 instance=ExtResource("3_interactable")]
-position = Vector2(875, 487)
+position = Vector2(952, 550)
 interaction_id = "kitchen"
 prompt_message = "Press E to check Kitchen"

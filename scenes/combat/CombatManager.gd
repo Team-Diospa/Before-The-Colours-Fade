@@ -536,15 +536,16 @@ func transition_to(new_state: State) -> void:
 						"next": "fail_2"
 					},
 					"fail_2": {
-						"text": "You feel a cold sweat. There was a presence in the classroom... a paper monster. You ignored it. You did not face it.",
+						# RATIONALE: Ground the warning in the quiz paper stressor instead of the paper monster.
+						"text": "You feel a cold sweat. The quiz paper on your desk was jumbled. You ignored it. You did not face your panic.",
 						"next": "fail_3"
 					},
 					"fail_3": {
-						"text": "Perhaps if you had placed the memory fragment onto the classroom's paper monster, you would have found the confidence to cut through the flames.",
+						"text": "Perhaps if you had used the memory fragment to focus on the quiz paper, you would have found the confidence to cut through the flames.",
 						"next": "fail_4"
 					},
 					"fail_4": {
-						"text": "The dream collapses. The classroom snaps back around you. You must try again, and search the room more carefully this time.",
+						"text": "The dream collapses. The classroom snaps back around you. You must try again, and face your stressors directly this time.",
 						"next": ""
 					}
 				}, "start")
@@ -1217,9 +1218,8 @@ func _resolve_victory() -> void:
 			EventBus.dialogue_finished.connect(_on_castle_victory_finished)
 		
 	elif enemy_name == "Pack Leader":
-		# RATIONALE: Visual novel style branching ending. Hilbert's dissociation fractures.
-		# Incorporates McHale's Ontological Metalepsis and Lacan's Real.
-		# Pass true to show the cinematic endings and choice paths in fullscreen VN mode.
+		# RATIONALE: Faithful to docs/demo_narrative_flow.md - ends on a bittersweet, nostalgic note for Chapter 1.
+		# Exposes the trace of his friend and leaves the future paths open-ended instead of forcing a final choice.
 		DialogueSystem.start_dialogue({
 			"start": {
 				"text": "The fire is gone. The village is quiet now, Hilbert.",
@@ -1227,208 +1227,55 @@ func _resolve_victory() -> void:
 				"next": "win_step2"
 			},
 			"win_step2": {
-				"text": "The fire is out. But the sky is turning white.",
+				"text": "The fire is out. But the sky is turning white. The graphite lines of the village are losing definition.",
 				"speaker": "Hilbert",
 				"next": "win_step3"
 			},
 			"win_step3": {
-				"text": "The graphite is smudging. The lines of the village are losing definition.",
+				"text": "It's time to wake up, Hil. But don't worry. The drawings are still waiting. We never finished the propeller cart.",
 				"speaker": "n.n.",
 				"next": "win_step4"
 			},
 			"win_step4": {
-				"text": "Wait. I drew you with... there was a second signature on the cover page. A cursive L.",
-				"speaker": "Hilbert",
+				"text": "The dream shatters. The village and n.n. dissolve into falling graphite dust.",
 				"next": "win_step5"
 			},
 			"win_step5": {
-				"text": "The field is going quiet.",
-				"speaker": "n.n.",
+				# RATIONALE: Sensory details of classroom transition to ground waking up.
+				"text": "You open your eyes. The air smells of dry summer grass cut by floor polish and chalk dust. The classroom is loud. The students are whispering. The professor is collecting the papers.",
+				"dream_world": false,
 				"next": "win_step6"
 			},
 			"win_step6": {
-				# RATIONALE: Shift to reality styling (cinematic near-black canvas) to match the classroom desk setting.
-				"text": "You are back at your desk. The exam paper in front of you is completed, every answer filled in your own handwriting. You don't remember solving a single question.",
-				"dream_world": false,
+				"text": "Professor: Time's up, Hickman. Hand in your paper.",
+				"speaker": "Professor",
 				"next": "win_step7"
 			},
 			"win_step7": {
-				"text": "The desk next to you is covered in a layer of dust. A faint pencil scratch on the wood reads: H.H. + L.G. 2024.",
+				# RATIONALE: Plant the final carved desk initials clue to align with the 9th fragment on the ending screen.
+				"text": "You look down at your quiz sheet. At the bottom margin of the page, you notice a tiny propeller gear doodle. Beside the paper, carved into the dark wood of the desk, you see the faint, scarred initials: H.H. + L.G. 2024.",
 				"next": "win_step8"
 			},
 			"win_step8": {
-				"text": "You check your phone. One contact. No name. The caller ID reads: n.n.",
+				"text": "You hand in the paper. You walk out of the classroom into the hallway.",
 				"next": "win_step9"
 			},
 			"win_step9": {
-				"text": "You open the chat history. There are no messages. Just a single voice call log from one year ago. The duration: 0 seconds.",
+				# RATIONALE: Specific, raw childhood details (2B lead smudge, rain on L.G.'s porch tin roof).
+				"text": "You look at your hand, noticing a dark graphite smudge on your palm from the cheap 2B lead. In the silence of the hallway, the sound of rain hitting the window reminds you of water drumming on the tin roof under L.G.'s porch. His voice echoes:",
 				"next": "win_step10"
 			},
 			"win_step10": {
-				"text": "The date of the call matches the day of the accident.",
+				"text": "What if we could build a machine that flies to the sun? We will draw the blueprints tomorrow.",
 				"next": "win_step11"
 			},
 			"win_step11": {
-				"text": "A message suddenly appears on the screen. It is being typed in real time, character by character.",
-				"next": "win_step12"
+				# RATIONALE: Add the river-stone "dragon scale" pocket check.
+				"text": "You stand still, looking at the rain-slicked window. He is gone. His chair next to you is vacant. But the pencil in your pocket is real, and your fingers trace the smooth river-stone 'dragon scale' he gave you.",
+				"next": "win_step_demo_end"
 			},
-			"win_step12": {
-				# RATIONALE: Removed redundant "n.n.:" prefix to prevent double-speaker naming in bottom panel.
-				"text": "We never finished the propeller cart, Hilbert.",
-				"speaker": "n.n.",
-				"next": "win_step13"
-			},
-			"win_step13": {
-				"text": "You look around the classroom. The professor is frozen mid-gesture. The student next to you is static, pencil hovered over paper. The dust motes in the air are suspended in place.",
-				"next": "win_step14"
-			},
-			"win_step14": {
-				"text": "The classroom walls begin to peel away like wet paper, revealing the grassy field of the dream behind them.",
-				"next": "win_step15"
-			},
-			"win_step15": {
-				# RATIONALE: Shift back to dream styling (warm sketch paper canvas) to represent the bleeding of the two worlds.
-				"text": "The two worlds are bleeding into each other. The green grass grows through the linoleum floor. The burning wood smell of the village mixes with the scent of floor wax.",
-				"dream_world": true,
-				"next": "win_step16"
-			},
-			"win_step16": {
-				# RATIONALE: Removed speaker tag since this is third-person narration, not active speech.
-				"text": "n.n. floats down from the ceiling, its mechanical propeller spinning in complete silence. Its brass eyes glow with a dull, warm light.",
-				"next": "win_step17"
-			},
-			"win_step17": {
-				# RATIONALE: Removed redundant "n.n.:" prefix.
-				"text": "The boundary is breaking, Hil. You can't keep the partition up anymore. You have to choose where you want to exist.",
-				"speaker": "n.n.",
-				"next": "win_step18"
-			},
-			"win_step18": {
-				# RATIONALE: Removed redundant "n.n.:" prefix.
-				"text": "If you stay in the dream, we can build the propeller cart. We can design the mechanical bird. We can stay here, where nothing changes and no one ever leaves.",
-				"speaker": "n.n.",
-				"next": "win_step19"
-			},
-			"win_step19": {
-				# RATIONALE: Removed redundant "n.n.:" prefix.
-				"text": "But if you go back... you have to face the empty chair. You have to walk past the workshop. You have to live in a world where the colours have already faded.",
-				"speaker": "n.n.",
-				"next": "win_step20"
-			},
-			"win_step20": {
-				"text": "You stare at the tiny mechanical helper. It is so familiar, so dear. But it is made of your own drawing lines. It is made of graphite.",
-				"next": "win_step_choice"
-			},
-			"win_step_choice": {
-				"text": "Where do you want to exist?",
-				"options": [
-					{"text": "Stay in the Dream (Sustain the Illusion)", "next": "dream_ending_1"},
-					{"text": "Wake Up (Confront the Absence)", "next": "wake_ending_1"}
-				]
-			},
-			# --- DREAM ENDING BRANCH ---
-			"dream_ending_1": {
-				"speaker": "Hilbert",
-				"text": "Let's stay, n.n. I don't want to go back. There is nothing for me out there.",
-				"next": "dream_ending_2"
-			},
-			"dream_ending_2": {
-				# RATIONALE: Removed speaker tag since this is third-person narration, not active speech.
-				"text": "n.n. circles around you, its propeller humming a warm, comforting tune.",
-				"next": "dream_ending_3"
-			},
-			"dream_ending_3": {
-				# RATIONALE: Removed redundant "n.n.:" prefix.
-				"text": "Then we will draw. We will draw forever, Hil.",
-				"speaker": "n.n.",
-				"next": "dream_ending_4"
-			},
-			"dream_ending_4": {
-				"text": "The classroom dissolves completely. The desks, the professor, the blackboards turn into grey graphite dust and blow away in the wind.",
-				"next": "dream_ending_5"
-			},
-			"dream_ending_5": {
-				"text": "You are standing in the grassy field under a bright, perpetual sun. The sky is a vibrant blue, warmer than any sky you remember.",
-				"next": "dream_ending_6"
-			},
-			"dream_ending_6": {
-				"text": "But as you look down at your hands, you notice they are losing detail. The skin texture is gone, replaced by clean, black pencil strokes.",
-				"next": "dream_ending_7"
-			},
-			"dream_ending_7": {
-				"text": "You look at the grass. It is beautiful, but it does not sway. It is a static drawing. A perfect, frozen frame.",
-				"next": "dream_ending_8"
-			},
-			"dream_ending_8": {
-				"text": "n.n. lands on your shoulder. Its weight is gone. It feels like a piece of paper resting against your coat.",
-				"next": "dream_ending_9"
-			},
-			"dream_ending_9": {
-				"text": "The dream is safe. The dream is clean. But it has no temperature. It has no smell. It has no future.",
-				"next": "dream_ending_10"
-			},
-			"dream_ending_10": {
-				"text": "You close your eyes, holding onto the warm, flat illusion of a friend who was never there.",
-				"next": "dream_ending_11"
-			},
-			"dream_ending_11": {
-				"text": "[System]: Dream Ending. The colours have faded into perfect lines.",
-				"next": ""
-			},
-			# --- WAKE UP ENDING BRANCH ---
-			"wake_ending_1": {
-				"speaker": "Hilbert",
-				"text": "I have to wake up, n.n. I can't live in a drawing.",
-				"next": "wake_ending_2"
-			},
-			"wake_ending_2": {
-				# RATIONALE: Removed speaker tag since this is third-person narration, not active speech.
-				"text": "n.n. stops spinning. It descends slowly, landing in your open palm. It feels cold, metallic, and heavy.",
-				"next": "wake_ending_3"
-			},
-			"wake_ending_3": {
-				# RATIONALE: Removed redundant "n.n.:" prefix.
-				"text": "I know, Hil. I was just the heart. You were always the mind.",
-				"speaker": "n.n.",
-				"next": "wake_ending_4"
-			},
-			"wake_ending_4": {
-				"text": "The little mechanical helper begins to rust in your hand. The brass turns brown, the propeller bends, and it crumbles into dry, red dust.",
-				"next": "wake_ending_5"
-			},
-			"wake_ending_5": {
-				"text": "The grassy field, the burning village, the blue sky shatter like glass, falling away into the deep, dark void.",
-				"next": "wake_ending_6"
-			},
-			"wake_ending_6": {
-				# RATIONALE: Return to reality styling (cinematic near-black canvas) as the dream world shatters and Hilbert wakes up.
-				"text": "You open your eyes. The classroom is loud. The students are whispering. The professor is collecting the papers.",
-				"dream_world": false,
-				"next": "wake_ending_7"
-			},
-			"wake_ending_7": {
-				"text": "Professor: Time's up, Hickman. Hand in your paper.",
-				"speaker": "Professor",
-				"next": "wake_ending_8"
-			},
-			"wake_ending_8": {
-				"text": "You look down at your test. Every question is answered in a messy, hurried cursive. It is not your handwriting. It is his.",
-				"next": "wake_ending_9"
-			},
-			"wake_ending_9": {
-				"text": "A final note is written at the bottom of the page, circled three times: You're going to be a great architect, Hil. See you tomorrow.",
-				"next": "wake_ending_10"
-			},
-			"wake_ending_10": {
-				"text": "You hand in the paper. You walk out of the classroom into the hallway. The sunlight through the windows is bright, almost blinding.",
-				"next": "wake_ending_11"
-			},
-			"wake_ending_11": {
-				"text": "It is a cold, grey Monday. The world is empty, and his chair will always be vacant. But the pencil in your pocket is real.",
-				"next": "wake_ending_12"
-			},
-			"wake_ending_12": {
-				"text": "[System]: True Ending. You have accepted the weight of the Real.",
+			"win_step_demo_end": {
+				"text": "[System]: Before the Colours Fade. (Demo Ends)",
 				"next": ""
 			}
 		}, "start", true)
@@ -1443,19 +1290,35 @@ func _on_castle_victory_finished() -> void:
 
 # Bound listener callback to avoid signal reference leaks.
 func _on_pack_victory_finished() -> void:
-	# RATIONALE: Save choice, mark the 9th fragment (scratch_found) as unlocked, and transition to Ending Screen.
+	# RATIONALE: Save choice as "demo" and check if all 9 memory flags are active for the secret ending.
 	EventBus.dialogue_finished.disconnect(_on_pack_victory_finished)
-	if DialogueSystem.current_node_id == "dream_ending_11":
-		GlobalState.chosen_ending = "dream"
-		GlobalState.set_flag("scratch_found", true)
-		SceneManager.transition_to_state("S_ending")
-	elif DialogueSystem.current_node_id == "wake_ending_12":
-		GlobalState.chosen_ending = "wake"
-		GlobalState.set_flag("scratch_found", true)
-		SceneManager.transition_to_state("S_ending")
+	GlobalState.chosen_ending = "demo"
+	GlobalState.set_flag("scratch_found", true) # Unlocks the final scratch memory slot
+	
+	# Check secret ending conditions.
+	var all_9_flags = true
+	var required_flags = [
+		"bed_slept",
+		"desk_searched",
+		"guitar_played",
+		"peer1_talked",
+		"peer2_talked",
+		"locker_searched",
+		"quiz_started",
+		"buff_confidence_active",
+		"scratch_found"
+	]
+	for f in required_flags:
+		if not GlobalState.has_flag(f):
+			all_9_flags = false
+			break
+			
+	if all_9_flags:
+		# Set the flag to enable secret ending loop and key discovery in S_hall.
+		GlobalState.set_flag("secret_ending_active", true)
+		SceneManager.transition_to_state("S_hall")
 	else:
-		GlobalState.reset_state()
-		SceneManager.transition_to_state("S_apt")
+		SceneManager.transition_to_state("S_ending")
 
 # Helper to update button text while maintaining the selection indicator if hovered.
 func _update_btn_text(btn: Button, text: String) -> void:
