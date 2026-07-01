@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bion4tsm0g82j"
+path="res://.godot/imported/enm_wolf_growl.ogg-f634068dd6febff5c1b8039e2956958a.oggvorbisstr"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Enemies/enm_wolf_growl.ogg"
+dest_files=["res://.godot/imported/enm_wolf_growl.ogg-f634068dd6febff5c1b8039e2956958a.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

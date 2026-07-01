@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://qbk60xqm05q4"
+path="res://.godot/imported/ui_shift_ready_chime.wav-94e514e6cc410b0ae07f75cf2734a2c6.sample"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Card Sounds/ui_shift_ready_chime.wav"
+dest_files=["res://.godot/imported/ui_shift_ready_chime.wav-94e514e6cc410b0ae07f75cf2734a2c6.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

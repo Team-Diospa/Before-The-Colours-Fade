@@ -6,12 +6,32 @@ extends Node
 var overlay_layer: CanvasLayer
 var fade_rect: ColorRect
 
+# Centralized audio players for looping tracks and ambience.
+var music_player: AudioStreamPlayer
+var ambient_player: AudioStreamPlayer
+var current_music_path: String = ""
+var current_ambient_path: String = ""
+
 # Persistent tracking of the last exploration scene visited.
 # RATIONALE: Used during saving/loading to ensure that saving mid-combat
 # restores the game to the exploration scene prior to the battle.
 var last_exploration_scene_path: String = "res://scenes/exploration/apartment.tscn"
 
 func _ready() -> void:
+	# RATIONALE: PROCESS_MODE_ALWAYS is required so _input continues to fire after
+	# get_tree().paused = true. Without it, this autoload inherits the paused state
+	# and the Resume/Main Menu/Quit buttons become unresponsive.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Instantiate centralized audio streams as children.
+	music_player = AudioStreamPlayer.new()
+	music_player.bus = "Music"
+	add_child(music_player)
+	
+	ambient_player = AudioStreamPlayer.new()
+	ambient_player.bus = "Ambience"
+	add_child(ambient_player)
+
 	# Programmatically construct overlay UI to avoid scene dependencies.
 	overlay_layer = CanvasLayer.new()
 	overlay_layer.layer = 100 # Keep on top of all other layers
@@ -25,6 +45,12 @@ func _ready() -> void:
 	
 	# Show the HUD initially since we load in the Apartment scene.
 	call_deferred("_init_hud_on_start")
+	
+	# Detect startup scene to trigger correct audio.
+	await get_tree().process_frame
+	var current = get_tree().current_scene
+	if current:
+		_update_scene_audio(current.scene_file_path)
 
 func _init_hud_on_start() -> void:
 	# RATIONALE: Do not show the HUD when the game launches into the main menu.
@@ -107,6 +133,9 @@ func _change_scene_with_fade(scene_path: String) -> void:
 	# Wait one frame for the tree to update.
 	await get_tree().process_frame
 	
+	# Update background music and ambience.
+	_update_scene_audio(scene_path)
+	
 	# Fade back to transparent.
 	var tween_in = create_tween()
 	tween_in.tween_property(fade_rect, "color", Color(0, 0, 0, 0), 0.5)
@@ -114,3 +143,74 @@ func _change_scene_with_fade(scene_path: String) -> void:
 	
 	# Release input blocking.
 	fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+# Centralized helper to map levels to active OST/Ambience and handle loops.
+func _update_scene_audio(scene_path: String) -> void:
+	var target_music = ""
+	var target_ambient = ""
+	
+	# Determine target sound files based on active scene folders.
+	if scene_path.contains("ui/main_menu.tscn") or scene_path.contains("ui/ending_screen.tscn"):
+		target_music = "res://Assets/OST/Title Screen - OST 000.mp3"
+		target_ambient = ""
+	elif scene_path.contains("exploration/apartment.tscn"):
+		target_music = "res://Assets/OST/Home - OST 001.mp3"
+		target_ambient = "res://Assets/Sound Effects/amb_bird_chirp_bedroom_ambience_please loop.m4a"
+	elif scene_path.contains("exploration/hallway.tscn"):
+		target_music = "res://Assets/OST/College - OST 003.mp3"
+		target_ambient = "res://Assets/Sound Effects/amb_college_hallway.wav"
+	elif scene_path.contains("exploration/classroom.tscn"):
+		target_music = "res://Assets/OST/College - OST 003.mp3"
+		target_ambient = "res://Assets/Sound Effects/amb_classroom.wav"
+	elif scene_path.contains("combat/grassy_field.tscn") or scene_path.contains("combat/burning_village.tscn"):
+		target_music = "res://Assets/OST/Dream World - OST 002.mp3"
+		target_ambient = ""
+		
+	# Play/crossfade music loops.
+	if target_music != current_music_path:
+		current_music_path = target_music
+		if target_music != "":
+			var stream = load(target_music)
+			if stream:
+				if "loop" in stream:
+					stream.loop = true
+				music_player.stream = stream
+				music_player.play()
+		else:
+			music_player.stop()
+			
+	# Play/crossfade ambient loops.
+	if target_ambient != current_ambient_path:
+		current_ambient_path = target_ambient
+		if target_ambient != "":
+			var stream = load(target_ambient)
+			if stream:
+				if "loop" in stream:
+					stream.loop = true
+				ambient_player.stream = stream
+				# Reset volume in case it was faded out during panic sequence
+				ambient_player.volume_db = 0.0
+				ambient_player.play()
+		else:
+			ambient_player.stop()
+
+# Helper to dynamically play one-shot SFX sounds on demand.
+func play_sfx(sfx_path: String) -> void:
+	var player = AudioStreamPlayer.new()
+	player.bus = "SFX"
+	add_child(player)
+	var stream = load(sfx_path)
+	if stream:
+		player.stream = stream
+		player.play()
+		player.finished.connect(player.queue_free)
+	else:
+		player.queue_free()
+
+# Fade out the current ambient sound (used when panic attack hallway transition triggers).
+func fade_out_ambient(duration: float = 1.0) -> void:
+	var tw = create_tween()
+	tw.tween_property(ambient_player, "volume_db", -80.0, duration)
+	await tw.finished
+	ambient_player.stop()
+	ambient_player.volume_db = 0.0

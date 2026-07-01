@@ -139,7 +139,7 @@ func _ready() -> void:
 	_portrait_panel.add_child(_portrait_texture)
 
 	# Load the placeholder texture if present in Assets.
-	var placeholder_tex = load("res://Assets/npc_portrait_placeholder.png")
+	var placeholder_tex = load("res://Assets/Sprites/npc.png")
 	if placeholder_tex:
 		_portrait_texture.texture = placeholder_tex
 

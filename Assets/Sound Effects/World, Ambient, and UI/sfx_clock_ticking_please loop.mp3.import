@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cod8yomaj6043"
+path="res://.godot/imported/sfx_clock_ticking_please loop.mp3-4c995856086aa32af29dc322e1a16d42.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/sfx_clock_ticking_please loop.mp3"
+dest_files=["res://.godot/imported/sfx_clock_ticking_please loop.mp3-4c995856086aa32af29dc322e1a16d42.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

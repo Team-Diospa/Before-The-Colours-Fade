@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://3hd2kibwmnwu"
+path="res://.godot/imported/Home - OST 001.mp3-c6d631ec21e183ae7c1e0e4448ac67a4.mp3str"
+
+[deps]
+
+source_file="res://Assets/OST/Home - OST 001.mp3"
+dest_files=["res://.godot/imported/Home - OST 001.mp3-c6d631ec21e183ae7c1e0e4448ac67a4.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

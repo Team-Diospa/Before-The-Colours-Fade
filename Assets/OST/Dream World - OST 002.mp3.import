@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cjge35gf77e1r"
+path="res://.godot/imported/Dream World - OST 002.mp3-96b0ffe1af38fe70fa91b87284eb2857.mp3str"
+
+[deps]
+
+source_file="res://Assets/OST/Dream World - OST 002.mp3"
+dest_files=["res://.godot/imported/Dream World - OST 002.mp3-96b0ffe1af38fe70fa91b87284eb2857.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

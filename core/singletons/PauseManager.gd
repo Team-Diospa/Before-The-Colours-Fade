@@ -63,18 +63,16 @@ func _ready() -> void:
 	inner.offset_right = 140.0
 	inner.offset_bottom = 140.0
 	
-	var inner_style = StyleBoxFlat.new()
-	inner_style.bg_color = Color(0.06, 0.06, 0.09, 0.88)
-	inner_style.border_width_left = 1
-	inner_style.border_width_top = 1
-	inner_style.border_width_right = 1
-	inner_style.border_width_bottom = 1
-	inner_style.border_color = Color(1.0, 1.0, 1.0, 0.12)
-	inner_style.corner_radius_top_left = 0
-	inner_style.corner_radius_top_right = 0
-	inner_style.corner_radius_bottom_left = 0
-	inner_style.corner_radius_bottom_right = 0
-	inner_style.anti_aliasing = false
+	# RATIONALE: Use StyleBoxTexture for non-stretching modular panel borders.
+	# Slicing margins set to 12px, axis stretch mode set to TILE_FIT to keep pixel art crisp.
+	var inner_style = StyleBoxTexture.new()
+	inner_style.texture = load("res://Assets/Menu and Settings/UI/9-patch_slice_menu.png")
+	inner_style.texture_margin_left = 12
+	inner_style.texture_margin_right = 12
+	inner_style.texture_margin_top = 12
+	inner_style.texture_margin_bottom = 12
+	inner_style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	inner_style.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	inner.add_theme_stylebox_override("panel", inner_style)
 	_overlay.add_child(inner)
 	
@@ -91,10 +89,17 @@ func _ready() -> void:
 	_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	margin.add_child(_vbox)
 	
+	var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
+	var font_main = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+	
 	var title_lbl = Label.new()
 	title_lbl.text = "Paused"
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_lbl.add_theme_font_size_override("font_size", 18)
+	if font_retro:
+		title_lbl.add_theme_font_override("font", font_retro)
+		title_lbl.add_theme_font_size_override("font_size", 24)
+	else:
+		title_lbl.add_theme_font_size_override("font_size", 18)
 	title_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
 	_vbox.add_child(title_lbl)
 	
@@ -139,7 +144,11 @@ func _ready() -> void:
 	var s_title_lbl = Label.new()
 	s_title_lbl.text = "Settings"
 	s_title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	s_title_lbl.add_theme_font_size_override("font_size", 18)
+	if font_retro:
+		s_title_lbl.add_theme_font_override("font", font_retro)
+		s_title_lbl.add_theme_font_size_override("font_size", 24)
+	else:
+		s_title_lbl.add_theme_font_size_override("font_size", 18)
 	s_title_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
 	_settings_vbox.add_child(s_title_lbl)
 	
@@ -165,6 +174,38 @@ func _ready() -> void:
 	_volume_slider.custom_minimum_size = Vector2(130, 20)
 	_volume_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_volume_slider.value_changed.connect(_on_volume_changed)
+	
+	# RATIONALE: Style volume slider using custom slider textures.
+	var knob_tex = load("res://Assets/Menu and Settings/UI/slider_knob.png")
+	var track_empty_tex = load("res://Assets/Menu and Settings/UI/slider_track_empty.png")
+	var track_full_tex = load("res://Assets/Menu and Settings/UI/slider_track_full.png")
+	
+	if knob_tex:
+		_volume_slider.add_theme_icon_override("grabber", knob_tex)
+		_volume_slider.add_theme_icon_override("grabber_highlight", knob_tex)
+		
+	if track_empty_tex:
+		var style_empty = StyleBoxTexture.new()
+		style_empty.texture = track_empty_tex
+		style_empty.texture_margin_left = 3
+		style_empty.texture_margin_right = 3
+		style_empty.texture_margin_top = 3
+		style_empty.texture_margin_bottom = 3
+		style_empty.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+		style_empty.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+		_volume_slider.add_theme_stylebox_override("slider", style_empty)
+		
+	if track_full_tex:
+		var style_full = StyleBoxTexture.new()
+		style_full.texture = track_full_tex
+		style_full.texture_margin_left = 3
+		style_full.texture_margin_right = 3
+		style_full.texture_margin_top = 3
+		style_full.texture_margin_bottom = 3
+		style_full.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+		style_full.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+		_volume_slider.add_theme_stylebox_override("area", style_full)
+		
 	vol_hbox.add_child(_volume_slider)
 	
 	var vol_gap = Control.new()
@@ -198,38 +239,58 @@ func _ready() -> void:
 	_settings_vbox.add_child(_status_lbl)
 
 func _make_pause_button(label_text: String) -> Button:
-	# Consistent button style with DialogueSystem and main_menu.
+	# RATIONALE: Style button using StyleBoxTexture to prevent pixel art distortion.
+	# Uses the modular reality button frames with tiled stretch mode (4px margin).
 	var btn = Button.new()
 	btn.text = label_text
-	btn.add_theme_font_size_override("font_size", 13)
 	
-	var style_normal = StyleBoxFlat.new()
-	style_normal.bg_color = Color(0.1, 0.1, 0.14, 0.6)
-	style_normal.border_width_left = 1
-	style_normal.border_width_top = 1
-	style_normal.border_width_right = 1
-	style_normal.border_width_bottom = 1
-	style_normal.border_color = Color(1.0, 1.0, 1.0, 0.15)
-	style_normal.corner_radius_top_left = 0
-	style_normal.corner_radius_top_right = 0
-	style_normal.corner_radius_bottom_left = 0
-	style_normal.corner_radius_bottom_right = 0
-	style_normal.anti_aliasing = false
+	var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
+	if font_retro:
+		btn.add_theme_font_override("font", font_retro)
+		btn.add_theme_font_size_override("font_size", 16)
+	else:
+		btn.add_theme_font_size_override("font_size", 13)
 	
-	var style_hover = style_normal.duplicate()
-	style_hover.bg_color = Color(0.18, 0.18, 0.24, 0.7)
-	style_hover.border_color = Color(0.8, 0.8, 0.8, 0.4)
+	var style_normal = StyleBoxTexture.new()
+	style_normal.texture = load("res://Assets/UI/reality_button_32x12_default.png")
+	style_normal.texture_margin_left = 4
+	style_normal.texture_margin_right = 4
+	style_normal.texture_margin_top = 4
+	style_normal.texture_margin_bottom = 4
+	style_normal.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	style_normal.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	
-	var style_pressed = style_normal.duplicate()
-	style_pressed.bg_color = Color(0.05, 0.05, 0.07, 0.8)
+	var style_hover = StyleBoxTexture.new()
+	style_hover.texture = load("res://Assets/UI/reality_button_32x12_hover.png")
+	style_hover.texture_margin_left = 4
+	style_hover.texture_margin_right = 4
+	style_hover.texture_margin_top = 4
+	style_hover.texture_margin_bottom = 4
+	style_hover.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	style_hover.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	
+	var style_pressed = StyleBoxTexture.new()
+	style_pressed.texture = load("res://Assets/UI/reality_button_32x12_pressed.png")
+	style_pressed.texture_margin_left = 4
+	style_pressed.texture_margin_right = 4
+	style_pressed.texture_margin_top = 4
+	style_pressed.texture_margin_bottom = 4
+	style_pressed.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	style_pressed.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	
+	var style_disabled = style_normal.duplicate()
+	style_disabled.modulate_color = Color(0.5, 0.5, 0.5, 0.5)
 	
 	btn.add_theme_stylebox_override("normal", style_normal)
 	btn.add_theme_stylebox_override("hover", style_hover)
 	btn.add_theme_stylebox_override("pressed", style_pressed)
+	btn.add_theme_stylebox_override("disabled", style_disabled)
 	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	
 	btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
 	btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
 	btn.add_theme_color_override("font_pressed_color", Color(0.7, 0.7, 0.75, 1.0))
+	btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.45, 0.6))
 	
 	return btn
 

@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" uid="uid://eiwdfkqwfwpe" path="res://scenes/exploration/apartment.gd" id="1_apt"]
 [ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
-[ext_resource type="Texture2D" uid="uid://cuk0u40wouxvg" path="res://Assets/Environment/bedroom (2).png" id="2_qupi2"]
+[ext_resource type="Texture2D" path="res://Assets/Environments/bedroom (bottom layer).png" id="2_qupi2"]
+[ext_resource type="Texture2D" path="res://Assets/Environments/bedroom (upper layer (higher than player)).png" id="4_upper"]
 [ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="3_interactable"]
 
 [node name="Apartment" type="Node2D" unique_id=2089114218]
@@ -22,32 +23,11 @@ offset_right = 1152.0
 offset_bottom = 648.0
 color = Color(0.15, 0.15, 0.18, 1)
 
-[node name="Bedroom(2)" type="Sprite2D" parent="." unique_id=1666823935]
+[node name="BedroomBottom" type="Sprite2D" parent="." unique_id=1666823935]
 texture_filter = 1
-position = Vector2(573, 323.5)
-scale = Vector2(2.8095238, 3.5944445)
+position = Vector2(576, 324)
+scale = Vector2(1.8, 1.8)
 texture = ExtResource("2_qupi2")
-metadata/_aseprite_wizard_interface_config_ = {
-"layer_section": true,
-"pending_changes": {
-"convert_fps_field": 60.0,
-"convert_ms_field": 16.0,
-"convert_to_fps": false,
-"embed_tex": true,
-"i_mode": 0,
-"keep_anim_length": false,
-"layers": [],
-"o_ex_p": "",
-"o_folder": "",
-"o_name": "",
-"only_visible": false,
-"player": "",
-"scale": "1.0",
-"slice": "",
-"source": "",
-"source_uid": -1
-}
-}
 
 [node name="Player" parent="." unique_id=1096648528 instance=ExtResource("2_player")]
 position = Vector2(367, 520)
@@ -117,3 +97,9 @@ prompt_message = "Press E to inspect Papers"
 position = Vector2(952, 550)
 interaction_id = "kitchen"
 prompt_message = "Press E to check Kitchen"
+
+[node name="BedroomUpper" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(576, 324)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("4_upper")

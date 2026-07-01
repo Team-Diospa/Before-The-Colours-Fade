@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://ddc3tr1plefpj"
+path="res://.godot/imported/bedroom.aseprite-d25f70b34628c3db44baf3fc0b3e47df.res"
+
+[deps]
+
+source_file="res://Assets/Environments/bedroom.aseprite"
+dest_files=["res://.godot/imported/bedroom.aseprite-d25f70b34628c3db44baf3fc0b3e47df.res"]
+
+[params]
+

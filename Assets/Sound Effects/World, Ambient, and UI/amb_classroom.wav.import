@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dhsvss2n4jpke"
+path="res://.godot/imported/amb_classroom.wav-095cbea1c542e75d859c2b81044a1623.sample"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/amb_classroom.wav"
+dest_files=["res://.godot/imported/amb_classroom.wav-095cbea1c542e75d859c2b81044a1623.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

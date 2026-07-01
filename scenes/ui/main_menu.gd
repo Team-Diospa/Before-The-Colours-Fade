@@ -36,19 +36,16 @@ func _build_ui() -> void:
 	panel.offset_right = 200.0
 	panel.offset_bottom = 160.0
 	
-	# Glassmorphism panel style: translucent dark slate, thin white border, no rounded corners.
-	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.07, 0.07, 0.10, 0.75)
-	panel_style.corner_radius_top_left = 0
-	panel_style.corner_radius_top_right = 0
-	panel_style.corner_radius_bottom_left = 0
-	panel_style.corner_radius_bottom_right = 0
-	panel_style.border_width_left = 1
-	panel_style.border_width_top = 1
-	panel_style.border_width_right = 1
-	panel_style.border_width_bottom = 1
-	panel_style.border_color = Color(1.0, 1.0, 1.0, 0.12) # Thin white glass border
-	panel_style.anti_aliasing = false
+	# RATIONALE: Use StyleBoxTexture for non-stretching modular panel borders.
+	# Slicing margins set to 12px, axis stretch mode set to TILE_FIT to keep pixel art crisp.
+	var panel_style = StyleBoxTexture.new()
+	panel_style.texture = load("res://Assets/Menu and Settings/UI/9-patch_slice_menu.png")
+	panel_style.texture_margin_left = 12
+	panel_style.texture_margin_right = 12
+	panel_style.texture_margin_top = 12
+	panel_style.texture_margin_bottom = 12
+	panel_style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	panel_style.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	panel.add_theme_stylebox_override("panel", panel_style)
 	canvas.add_child(panel)
 	
@@ -65,19 +62,31 @@ func _build_ui() -> void:
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	margin.add_child(vbox)
 	
-	# Game title label.
+	# Load retro pixel-art fonts.
+	var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
+	var font_main = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+
+	# Game title label with VT323 retro font and scaled size.
 	var title = Label.new()
 	title.text = "Before the Colours Fade"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 20)
+	if font_retro:
+		title.add_theme_font_override("font", font_retro)
+		title.add_theme_font_size_override("font_size", 32)
+	else:
+		title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.9))
 	vbox.add_child(title)
 	
-	# Subtitle / mood line from the prologue.
+	# Subtitle / mood line with PixelifySans font.
 	var subtitle = Label.new()
 	subtitle.text = "The night before is a memory."
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_font_size_override("font_size", 11)
+	if font_main:
+		subtitle.add_theme_font_override("font", font_main)
+		subtitle.add_theme_font_size_override("font_size", 12)
+	else:
+		subtitle.add_theme_font_size_override("font_size", 11)
 	subtitle.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65, 0.7))
 	vbox.add_child(subtitle)
 	
@@ -111,43 +120,56 @@ func _build_ui() -> void:
 	var quit_btn = _make_button("Quit")
 	quit_btn.pressed.connect(_on_quit_pressed)
 	vbox.add_child(quit_btn)
-
+	
 func _make_button(label_text: String) -> Button:
-	# RATIONALE: Consistent with CombatManager and DialogueSystem button styling.
-	# Dark translucent background, thin white border, white text, silver on hover.
+	# RATIONALE: Style button using StyleBoxTexture to prevent pixel art distortion.
+	# Uses the modular reality button frames with tiled stretch mode (4px margin).
 	var btn = Button.new()
 	btn.text = label_text
-	btn.add_theme_font_size_override("font_size", 14)
 	
-	var style_normal = StyleBoxFlat.new()
-	style_normal.bg_color = Color(0.1, 0.1, 0.14, 0.6)
-	style_normal.border_width_left = 1
-	style_normal.border_width_top = 1
-	style_normal.border_width_right = 1
-	style_normal.border_width_bottom = 1
-	style_normal.border_color = Color(1.0, 1.0, 1.0, 0.15)
-	style_normal.corner_radius_top_left = 0
-	style_normal.corner_radius_top_right = 0
-	style_normal.corner_radius_bottom_left = 0
-	style_normal.corner_radius_bottom_right = 0
-	style_normal.anti_aliasing = false
+	var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
+	if font_retro:
+		btn.add_theme_font_override("font", font_retro)
+		btn.add_theme_font_size_override("font_size", 18)
+	else:
+		btn.add_theme_font_size_override("font_size", 14)
+		
+	var style_normal = StyleBoxTexture.new()
+	style_normal.texture = load("res://Assets/UI/reality_button_32x12_default.png")
+	style_normal.texture_margin_left = 4
+	style_normal.texture_margin_right = 4
+	style_normal.texture_margin_top = 4
+	style_normal.texture_margin_bottom = 4
+	style_normal.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	style_normal.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	
-	var style_hover = style_normal.duplicate()
-	style_hover.bg_color = Color(0.18, 0.18, 0.24, 0.7)
-	style_hover.border_color = Color(0.8, 0.8, 0.8, 0.4)
+	var style_hover = StyleBoxTexture.new()
+	style_hover.texture = load("res://Assets/UI/reality_button_32x12_hover.png")
+	style_hover.texture_margin_left = 4
+	style_hover.texture_margin_right = 4
+	style_hover.texture_margin_top = 4
+	style_hover.texture_margin_bottom = 4
+	style_hover.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	style_hover.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	
-	var style_pressed = style_normal.duplicate()
-	style_pressed.bg_color = Color(0.06, 0.06, 0.08, 0.7)
+	var style_pressed = StyleBoxTexture.new()
+	style_pressed.texture = load("res://Assets/UI/reality_button_32x12_pressed.png")
+	style_pressed.texture_margin_left = 4
+	style_pressed.texture_margin_right = 4
+	style_pressed.texture_margin_top = 4
+	style_pressed.texture_margin_bottom = 4
+	style_pressed.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	style_pressed.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	
 	var style_disabled = style_normal.duplicate()
-	style_disabled.bg_color = Color(0.08, 0.08, 0.1, 0.3)
-	style_disabled.border_color = Color(1.0, 1.0, 1.0, 0.05)
+	style_disabled.modulate_color = Color(0.5, 0.5, 0.5, 0.5)
 	
 	btn.add_theme_stylebox_override("normal", style_normal)
 	btn.add_theme_stylebox_override("hover", style_hover)
 	btn.add_theme_stylebox_override("pressed", style_pressed)
 	btn.add_theme_stylebox_override("disabled", style_disabled)
 	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	
 	btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
 	btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
 	btn.add_theme_color_override("font_pressed_color", Color(0.7, 0.7, 0.75, 1.0))

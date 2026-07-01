@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://7y72c1f30rwl"
+path="res://.godot/imported/sfx_ui_typewriter_click (one).wav-1aece034807350cf305f022d465d15cc.sample"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/sfx_ui_typewriter_click (one).wav"
+dest_files=["res://.godot/imported/sfx_ui_typewriter_click (one).wav-1aece034807350cf305f022d465d15cc.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

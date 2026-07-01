@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://okm5sqx4disg"
+path="res://.godot/imported/HilbertDream.aseprite-a6f6449a69b074be68cb104fedda714c.res"
+
+[deps]
+
+source_file="res://Assets/Sprites/HilbertDream.aseprite"
+dest_files=["res://.godot/imported/HilbertDream.aseprite-a6f6449a69b074be68cb104fedda714c.res"]
+
+[params]
+

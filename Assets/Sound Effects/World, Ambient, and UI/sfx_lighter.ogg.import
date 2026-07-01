@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://c43omtq8y7bn1"
+path="res://.godot/imported/sfx_lighter.ogg-c81bb65ae4344d0cd677eadd49bbb51c.oggvorbisstr"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/sfx_lighter.ogg"
+dest_files=["res://.godot/imported/sfx_lighter.ogg-c81bb65ae4344d0cd677eadd49bbb51c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

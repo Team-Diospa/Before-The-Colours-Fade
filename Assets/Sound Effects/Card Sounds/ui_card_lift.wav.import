@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://u2f6iohbvd4h"
+path="res://.godot/imported/ui_card_lift.wav-0c8614d69732de3b8c0a1ead8a393356.sample"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Card Sounds/ui_card_lift.wav"
+dest_files=["res://.godot/imported/ui_card_lift.wav-0c8614d69732de3b8c0a1ead8a393356.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

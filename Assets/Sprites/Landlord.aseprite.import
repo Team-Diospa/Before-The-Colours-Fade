@@ -1,0 +1,14 @@
+[remap]
+
+importer="aseprite_wizard.plugin.noop"
+type="PackedDataContainer"
+uid="uid://4r6l8ckrq2e4"
+path="res://.godot/imported/Landlord.aseprite-1c94805e16d7f09cde5b50a7e297b0f4.res"
+
+[deps]
+
+source_file="res://Assets/Sprites/Landlord.aseprite"
+dest_files=["res://.godot/imported/Landlord.aseprite-1c94805e16d7f09cde5b50a7e297b0f4.res"]
+
+[params]
+

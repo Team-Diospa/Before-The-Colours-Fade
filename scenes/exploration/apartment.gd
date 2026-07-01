@@ -901,7 +901,9 @@ func _ready() -> void:
 		call_deferred("_trigger_opening_narration")
 
 func _trigger_opening_narration() -> void:
-	# RATIONALE: Monitor dialogue text updates to coordinate lighting transitions during intro.
+	# RATIONALE: Play alarm clock buzz at the start of the narration.
+	SceneManager.play_sfx("res://Assets/Sound Effects/sfx_alarm_buzz.mp3")
+	# Monitor dialogue text updates to coordinate lighting transitions during intro.
 	if not EventBus.dialogue_text_updated.is_connected(_on_dialogue_text_updated):
 		EventBus.dialogue_text_updated.connect(_on_dialogue_text_updated)
 	# RATIONALE: Pass true to enable the visual novel style dedicated fullscreen cutscene for the opening alarm narration.
@@ -943,6 +945,8 @@ func _on_bed_interacted(_id: String) -> void:
 	if GlobalState.has_flag("bed_slept"):
 		DialogueSystem.start_dialogue({"start": {"text": "You've already made your choice about the bed.", "next": ""}}, "start")
 		return
+	# RATIONALE: Play bed creaking sound effect on interaction.
+	SceneManager.play_sfx("res://Assets/Sound Effects/sfx_bed_creak.wav")
 	# RATIONALE: Pass true to enable the visual novel style dedicated fullscreen cutscene for the bed monologue choice.
 	DialogueSystem.start_dialogue(bed_dialogue, "start", true)
 	if not EventBus.dialogue_finished.is_connected(_on_bed_dialogue_finished):
@@ -978,6 +982,8 @@ func _on_guitar_interacted(_id: String) -> void:
 	if GlobalState.has_flag("guitar_played"):
 		DialogueSystem.start_dialogue({"start": {"text": "You don't feel like playing the guitar again.", "next": ""}}, "start")
 		return
+	# RATIONALE: Play open guitar chord sound effect.
+	SceneManager.play_sfx("res://Assets/Sound Effects/guitar_chord.wav")
 	DialogueSystem.start_dialogue(guitar_dialogue, "start")
 	if not EventBus.dialogue_finished.is_connected(_on_guitar_dialogue_finished):
 		EventBus.dialogue_finished.connect(_on_guitar_dialogue_finished)
@@ -1069,6 +1075,8 @@ func _on_shower_interacted(_id: String) -> void:
 	if GlobalState.has_flag("has_showered"):
 		DialogueSystem.start_dialogue({"start": {"text": "You've already showered. The water has run cold.", "next": ""}}, "start")
 		return
+	# RATIONALE: Play running shower water sound effect.
+	SceneManager.play_sfx("res://Assets/Sound Effects/sfx_shower_running.wav")
 	# Shower tints the room dark as per script alur.md atmosphere note.
 	var tween = create_tween()
 	tween.tween_property(CanvasModulateNode, "color", COLOR_DEPRESSION, 5.0)

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://c5p38cntp25l3"
+path="res://.godot/imported/sfx_school_bell (a bit loud, lower the volume).wav-6cd3c56595623aaff014244a331cbe10.sample"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/sfx_school_bell (a bit loud, lower the volume).wav"
+dest_files=["res://.godot/imported/sfx_school_bell (a bit loud, lower the volume).wav-6cd3c56595623aaff014244a331cbe10.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

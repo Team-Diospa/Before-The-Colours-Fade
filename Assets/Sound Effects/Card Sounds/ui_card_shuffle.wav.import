@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dqb1utocfxi0q"
+path="res://.godot/imported/ui_card_shuffle.wav-26caaac08f2a72477a8ed312eb5f86dd.sample"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Card Sounds/ui_card_shuffle.wav"
+dest_files=["res://.godot/imported/ui_card_shuffle.wav-26caaac08f2a72477a8ed312eb5f86dd.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

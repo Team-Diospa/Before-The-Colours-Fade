@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://c0g2khdbp5rdn"
+path="res://.godot/imported/sfx_alarm_buzz.mp3-32ec9cc3a55b2b1596b8d3120e7fab51.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/sfx_alarm_buzz.mp3"
+dest_files=["res://.godot/imported/sfx_alarm_buzz.mp3-32ec9cc3a55b2b1596b8d3120e7fab51.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

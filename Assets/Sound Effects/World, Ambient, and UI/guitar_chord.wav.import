@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://djn5f5hxlamhi"
+path="res://.godot/imported/guitar_chord.wav-8003f30035c045bb05b96d1ce9a723da.sample"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/guitar_chord.wav"
+dest_files=["res://.godot/imported/guitar_chord.wav-8003f30035c045bb05b96d1ce9a723da.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

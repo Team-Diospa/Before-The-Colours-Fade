@@ -1,22 +1,19 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/exploration/classroom.gd" id="1_class"]
 [ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="3_interactable"]
+[ext_resource type="Texture2D" path="res://Assets/Environments/640x360 all sides class (bottom layer).png" id="4_class_bottom"]
+[ext_resource type="Texture2D" path="res://Assets/Environments/640x360 all sides class (upper layer).png" id="5_class_upper"]
 
 [node name="Classroom" type="Node2D"]
 script = ExtResource("1_class")
 
-[node name="Background" type="ColorRect" parent="."]
-offset_right = 1152.0
-offset_bottom = 648.0
-color = Color(0.1, 0.1, 0.12, 1)
-
-[node name="Floor" type="ColorRect" parent="."]
-offset_top = 500.0
-offset_right = 1152.0
-offset_bottom = 648.0
-color = Color(0.14, 0.14, 0.17, 1)
+[node name="ClassroomBottom" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(576, 324)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("4_class_bottom")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(100, 520)
@@ -56,3 +53,9 @@ prompt_message = "Press E to search Locker"
 position = Vector2(950, 500)
 interaction_id = "desk"
 prompt_message = "Press E to sit at Desk"
+
+[node name="ClassroomUpper" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(576, 324)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("5_class_upper")

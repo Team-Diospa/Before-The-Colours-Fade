@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://db40qpt0pb3sg"
+path="res://.godot/imported/enm_gears_loop.wav-5e0fb03d11888fe7260ab1f4f6c75f76.sample"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Enemies/enm_gears_loop.wav"
+dest_files=["res://.godot/imported/enm_gears_loop.wav-5e0fb03d11888fe7260ab1f4f6c75f76.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

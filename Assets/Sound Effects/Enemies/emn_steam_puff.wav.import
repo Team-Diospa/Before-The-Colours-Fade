@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cam4oveewd538"
+path="res://.godot/imported/emn_steam_puff.wav-582511c349d347d6c69e02022fe021a4.sample"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Enemies/emn_steam_puff.wav"
+dest_files=["res://.godot/imported/emn_steam_puff.wav-582511c349d347d6c69e02022fe021a4.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

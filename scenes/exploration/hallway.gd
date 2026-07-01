@@ -259,7 +259,7 @@ func _on_panic_trigger_body_entered(body: Node2D) -> void:
 		
 		# Lock UI and fade background sound.
 		EventBus.lock_player_ui.emit()
-		EventBus.play_sound.emit("murmur_fade_out")
+		SceneManager.fade_out_ambient(1.5)
 		
 		# Play the full atmospheric panic and memory sequence.
 		# RATIONALE: Pass true to render this heavy panic attack and threshold transition sequence in fullscreen mode.

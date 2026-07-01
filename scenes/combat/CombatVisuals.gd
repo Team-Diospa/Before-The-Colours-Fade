@@ -1,7 +1,8 @@
 extends Node2D
-# RATIONALE: Renders clean vector sketch assets programmatically in the combat screen.
-# Uses crisp, thin, single-stroke lines for a high-quality technical blueprint feel.
-# Incorporates smooth health bar drainage interpolation and slow ambient rotations.
+# RATIONALE: Renders the custom combat HP progress bars and energy widgets.
+# Replaces procedural vector lines with the user's hand-drawn slice textures:
+# prog_bar_frame_16x6.png, green_fill_8x4_full.png, red_fill_8x4_full.png,
+# blue_full_8x4_full.png, and energy_orb_48x48.png.
 
 # Reference to the CombatManager parent to read HP, energy, block, and charge values.
 @onready var manager = get_parent()
@@ -11,8 +12,23 @@ var smooth_player_hp_ratio: float = 1.0
 var gear_rotation: float = 0.0
 var sun_rotation: float = 0.0
 
+# Texture assets loaded once on ready.
+var hp_frame_tex: Texture2D
+var hp_fill_green: Texture2D
+var hp_fill_red: Texture2D
+var hp_fill_blue: Texture2D
+var energy_orb_tex: Texture2D
+
 func _ready() -> void:
 	position = Vector2.ZERO
+	
+	# Load custom UI textures.
+	hp_frame_tex = load("res://Assets/UI/prog_bar_frame_16x6.png")
+	hp_fill_green = load("res://Assets/UI/green_fill_8x4_full.png")
+	hp_fill_red = load("res://Assets/UI/red_fill_8x4_full.png")
+	hp_fill_blue = load("res://Assets/UI/blue_full_8x4_full.png")
+	energy_orb_tex = load("res://Assets/UI/energy_orb_48x48.png")
+	
 	if manager:
 		smooth_player_hp_ratio = float(manager.player_hp) / float(manager.player_max_hp)
 		for enemy in manager.active_enemies:
@@ -21,7 +37,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if manager:
-		# Smooth HP ratio drainage (lerp over time)
+		# Smooth HP ratio drainage (lerp over time for catchup feedback)
 		var target_p = float(manager.player_hp) / float(manager.player_max_hp)
 		smooth_player_hp_ratio = lerp(smooth_player_hp_ratio, target_p, 8.0 * delta)
 		
@@ -45,23 +61,38 @@ func _draw() -> void:
 	# 2. Notebook Page Border framing the drawing canvas
 	draw_rect(Rect2(15, 15, 1122, 618), Color(0.12, 0.12, 0.15, 0.15), false, 1.5)
 	
-	# 3. Player Stats Frame and Health Line (X = 150 to 350, Y = 150 to 250)
-	var player_x_start = 160
-	var player_x_end = 340
-	var player_y_bar = 240
+	# 3. Player HP Bar (draw inside player_stats box)
+	# Position matches player panel offset (170, 430) with forced size (160, 50).
+	var bar_w = 144.0
+	var bar_h = 10.0
+	var player_bar_x = 170.0 + 8.0
+	var player_bar_y = 430.0 + 34.0
 	
-	# Clean rectangular outline surrounding player statistics label
-	draw_rect(Rect2(140, 130, 220, 120), Color(0.12, 0.12, 0.15, 0.15), false, 1.5)
-	# Health fill background
-	draw_line(Vector2(player_x_start, player_y_bar), Vector2(player_x_end, player_y_bar), Color(0.2, 0.2, 0.2, 0.1), 5.0)
-	# Health actual fill line (smoothly lerping red vector)
-	draw_line(Vector2(player_x_start, player_y_bar), Vector2(player_x_start + 180 * smooth_player_hp_ratio, player_y_bar), Color(0.8, 0.25, 0.25, 0.75), 5.0)
-	
-	# Muted block shield highlight outline (translucent silver)
-	if manager.player_block > 0:
-		draw_rect(Rect2(player_x_start - 4, player_y_bar - 6, 188, 12), Color(0.8, 0.8, 0.8, 0.45), false, 1.5)
+	# Draw frame container.
+	if hp_frame_tex:
+		draw_texture_rect(hp_frame_tex, Rect2(player_bar_x, player_bar_y, bar_w, bar_h), false)
 		
-	# 4. Enemy Stats Frames and Health Lines for all active wave enemies
+		# Draw fills (inside borders). Fill width is bar_w - 4.
+		var fill_max_w = bar_w - 4.0
+		var fill_h = bar_h - 4.0
+		var fill_x = player_bar_x + 2.0
+		var fill_y = player_bar_y + 2.0
+		
+		# Red catchup HP lag.
+		if hp_fill_red:
+			draw_texture_rect(hp_fill_red, Rect2(fill_x, fill_y, fill_max_w * smooth_player_hp_ratio, fill_h), false)
+			
+		# Green actual HP.
+		var actual_ratio = float(manager.player_hp) / float(manager.player_max_hp)
+		if hp_fill_green:
+			draw_texture_rect(hp_fill_green, Rect2(fill_x, fill_y, fill_max_w * actual_ratio, fill_h), false)
+			
+		# Blue shield capacity.
+		if manager.player_block > 0 and hp_fill_blue:
+			var block_ratio = float(manager.player_block) / float(manager.player_max_hp)
+			draw_texture_rect(hp_fill_blue, Rect2(fill_x, fill_y, fill_max_w * min(1.0, block_ratio), fill_h), false)
+			
+	# 4. Enemy HP Bars (drawn inside duplicate enemy stats panels)
 	for idx in range(manager.active_enemies.size()):
 		var enemy = manager.active_enemies[idx]
 		if enemy["hp"] <= 0:
@@ -72,30 +103,33 @@ func _draw() -> void:
 			continue
 			
 		var panel_pos = panel.position
-		var panel_size = panel.size
-		var e_rect = Rect2(panel_pos, panel_size)
+		var enemy_bar_x = panel_pos.x + 8.0
+		var enemy_bar_y = panel_pos.y + 34.0
 		
-		# Highlight targeted enemy panel with sienna color and thicker outline border.
-		var outline_color = Color(0.65, 0.25, 0.15, 0.45) if idx == manager.selected_enemy_idx else Color(0.12, 0.12, 0.15, 0.15)
-		var border_w = 2.5 if idx == manager.selected_enemy_idx else 1.5
-		draw_rect(e_rect, outline_color, false, border_w)
-		
-		var enemy_x_start = panel_pos.x + 20
-		var enemy_x_end = panel_pos.x + 180
-		var enemy_y_bar = panel_pos.y + 80
-		
-		# Health fill background
-		draw_line(Vector2(enemy_x_start, enemy_y_bar), Vector2(enemy_x_end, enemy_y_bar), Color(0.2, 0.2, 0.2, 0.1), 5.0)
-		
-		# Health actual fill line (smoothly lerping red vector)
-		var hp_ratio = enemy.get("smooth_hp_ratio", 1.0)
-		draw_line(Vector2(enemy_x_start, enemy_y_bar), Vector2(enemy_x_start + 160.0 * hp_ratio, enemy_y_bar), Color(0.8, 0.25, 0.25, 0.75), 5.0)
-		
-		# Muted block shield outline (sienna shade)
-		if enemy["block"] > 0:
-			draw_rect(Rect2(enemy_x_start - 4, enemy_y_bar - 6, 168, 12), Color(0.65, 0.25, 0.15, 0.45), false, 1.5)
+		if hp_frame_tex:
+			draw_texture_rect(hp_frame_tex, Rect2(enemy_bar_x, enemy_bar_y, bar_w, bar_h), false)
 			
-		# 5. Draw targeted crown/arrow indicator pointing down at the active targeted enemy sprite
+			var fill_max_w = bar_w - 4.0
+			var fill_h = bar_h - 4.0
+			var fill_x = enemy_bar_x + 2.0
+			var fill_y = enemy_bar_y + 2.0
+			
+			# Red catchup HP lag.
+			var smooth_e_ratio = enemy.get("smooth_hp_ratio", 1.0)
+			if hp_fill_red:
+				draw_texture_rect(hp_fill_red, Rect2(fill_x, fill_y, fill_max_w * smooth_e_ratio, fill_h), false)
+				
+			# Green actual HP.
+			var actual_e_ratio = float(enemy["hp"]) / float(enemy["max_hp"])
+			if hp_fill_green:
+				draw_texture_rect(hp_fill_green, Rect2(fill_x, fill_y, fill_max_w * actual_e_ratio, fill_h), false)
+				
+			# Blue shield capacity.
+			if enemy["block"] > 0 and hp_fill_blue:
+				var block_e_ratio = float(enemy["block"]) / float(enemy["max_hp"])
+				draw_texture_rect(hp_fill_blue, Rect2(fill_x, fill_y, fill_max_w * min(1.0, block_e_ratio), fill_h), false)
+				
+		# 5. Draw targeted crown/arrow indicator pointing down at the active targeted enemy sprite.
 		if idx == manager.selected_enemy_idx:
 			var sprite = enemy["sprite"]
 			if sprite and is_instance_valid(sprite):
@@ -103,39 +137,38 @@ func _draw() -> void:
 				var pt1 = Vector2(s_pos.x, s_pos.y - 120)
 				var pt2 = Vector2(s_pos.x - 10, s_pos.y - 140)
 				var pt3 = Vector2(s_pos.x + 10, s_pos.y - 140)
-				# Draw clean sienna arrow outline
+				# Draw sienna arrow outline.
 				draw_line(pt1, pt2, Color(0.65, 0.25, 0.15, 0.85), 2.0)
 				draw_line(pt2, pt3, Color(0.65, 0.25, 0.15, 0.85), 2.0)
 				draw_line(pt3, pt1, Color(0.65, 0.25, 0.15, 0.85), 2.0)
-		
-	# 5. Sun (top-right, X = 1050, Y = 80)
+				
+	# 6. Sun (top-right, X = 1050, Y = 80)
 	var sun_color = Color(0.9, 0.75, 0.15, 1.0) # Warm sienna/yellow
 	var sun_center = Vector2(1050, 80)
-	# Soft background fill
 	draw_circle(sun_center, 25.0, Color(sun_color.r, sun_color.g, sun_color.b, 0.08))
-	# Clean outline
 	draw_circle(sun_center, 26.0, Color(sun_color.r, sun_color.g, sun_color.b, 0.3), false, 1.5)
-	# Rotating sunbeams
+	
+	# Rotating sunbeams.
 	for i in range(12):
 		var angle = i * (TAU / 12.0) + sun_rotation
 		var start = sun_center + Vector2.from_angle(angle) * 32.0
 		var end = sun_center + Vector2.from_angle(angle) * 44.0
 		draw_line(start, end, Color(sun_color.r, sun_color.g, sun_color.b, 0.3), 1.5)
 		
-	# 6. Settings Gear (top-left, X = 80, Y = 80)
+	# 7. Settings Gear (top-left, X = 80, Y = 80)
 	var gear_color = Color(0.12, 0.12, 0.15, 1.0)
 	var gear_center = Vector2(80, 80)
-	# Clean outer wheel and axle cutout
 	draw_circle(gear_center, 12.0, Color(gear_color.r, gear_color.g, gear_color.b, 0.25), false, 1.5)
 	draw_circle(gear_center, 4.0, Color(gear_color.r, gear_color.g, gear_color.b, 0.25), false, 1.5)
-	# Rotating gear teeth
+	
+	# Rotating gear teeth.
 	for i in range(8):
 		var angle = i * (TAU / 8.0) + gear_rotation
 		var start = gear_center + Vector2.from_angle(angle) * 12.0
 		var end = gear_center + Vector2.from_angle(angle) * 17.0
 		draw_line(start, end, Color(gear_color.r, gear_color.g, gear_color.b, 0.25), 2.0)
 		
-	# 7. Dimensional Shift Eye (top-center, X = 576, Y = 80)
+	# 8. Dimensional Shift Eye (top-center, X = 576, Y = 80)
 	var eye_center = Vector2(576, 80)
 	var charge = GlobalState.dimension_charge
 	var eye_color = Color(0.12, 0.12, 0.15, 0.2) # Grey base
@@ -146,7 +179,7 @@ func _draw() -> void:
 	elif charge >= 3:
 		eye_color = Color(0.8, 0.35, 0.1, 0.7) # Glowing orange
 		
-	# Draw eye arches using clean vector segments
+	# Draw eye arches.
 	var points_top = []
 	var points_bottom = []
 	for i in range(21):
@@ -160,40 +193,20 @@ func _draw() -> void:
 		draw_line(points_top[i], points_top[i+1], eye_color, 1.5)
 		draw_line(points_bottom[i], points_bottom[i+1], eye_color, 1.5)
 		
-	# Pupil: clean circle and highlight
+	# Pupil: clean circle and highlight.
 	draw_circle(eye_center, 10.0, eye_color, false, 1.5)
 	draw_circle(eye_center + Vector2(3, -3), 3.0, Color(1.0, 1.0, 1.0, 0.5))
 	
-	# If charge is 3, draw radiant rays from the eye (glowing sun-eye)
+	# Radiant rays for charge 3.
 	if charge >= 3:
 		var pulse = (sin(Time.get_ticks_msec() * 0.008) + 1.0) * 0.5
 		var ray_color = Color(0.8, 0.35, 0.1, 0.3 + 0.3 * pulse)
 		for i in range(12):
-			var angle = i * (TAU / 12.0) - sun_rotation # Rotate opposite to sun
+			var angle = i * (TAU / 12.0) - sun_rotation
 			var start = eye_center + Vector2.from_angle(angle) * 35.0
 			var end = eye_center + Vector2.from_angle(angle) * (48.0 + 10.0 * pulse)
 			draw_line(start, end, ray_color, 1.5)
-
-	# 8. Slay the Spire style Energy Orb (clean vector sketched)
-	var orb_center = Vector2(122, 512)
-	var orb_radius = 28.0
-	
-	var energy_color = Color(0.8, 0.4, 0.1, 0.65) # Muted energy sienna
-	if manager.player_energy == 0:
-		energy_color = Color(0.5, 0.5, 0.5, 0.3) # Drained grey
-	
-	# Draw filled soft circle background
-	draw_circle(orb_center, orb_radius, Color(energy_color.r, energy_color.g, energy_color.b, 0.1))
-	draw_circle(orb_center, orb_radius * 0.8, Color(energy_color.r, energy_color.g, energy_color.b, 0.2))
-	
-	# Draw outer outline
-	draw_circle(orb_center, orb_radius, Color(0.12, 0.12, 0.15, 0.25), false, 1.5)
-	
-	# Draw energy spirals/rays inside if energy > 0
-	if manager.player_energy > 0:
-		var time_scale = Time.get_ticks_msec() * 0.003
-		for i in range(3):
-			var angle_offset = i * (TAU / 3.0) + time_scale
-			var start = orb_center + Vector2.from_angle(angle_offset) * 4.0
-			var end = orb_center + Vector2.from_angle(angle_offset + 1.2) * (orb_radius * 0.7)
-			draw_line(start, end, energy_color, 1.5)
+			
+	# 9. Draw Copper Energy Orb (forced to 48x48 centered at panel position (90, 480)).
+	if energy_orb_tex:
+		draw_texture_rect(energy_orb_tex, Rect2(90, 480, 48, 48), false)
