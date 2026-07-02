@@ -124,6 +124,14 @@ var locker_empty_dialogue: Dictionary = {
 	}
 }
 
+var lecturer_dialogue: Dictionary = {
+	"start": {
+		"speaker": "Professor",
+		"text": "Take your seats, everyone. The quiz is about to begin.",
+		"next": ""
+	}
+}
+
 var desk_dialogue: Dictionary = {
 	"start": {
 		"text": "Start the quiz?",
@@ -202,6 +210,8 @@ func _ready() -> void:
 	
 	$Blackboard.interacted.connect(_on_blackboard_interacted)
 	$EmptyDesk.interacted.connect(_on_empty_desk_interacted)
+	if has_node("Lecturer"):
+		$Lecturer.interacted.connect(_on_lecturer_interacted)
 		
 	# Configure the Quiz Paper stressor depending on whether we are mid-combat.
 	# RATIONALE: Focuses on the test sheet rather than a literal fantasy monster.
@@ -327,4 +337,5 @@ var empty_desk_dialogue: Dictionary = {
 func _on_empty_desk_interacted(_id: String) -> void:
 	DialogueSystem.start_dialogue(empty_desk_dialogue, "start")
 
-
+func _on_lecturer_interacted(_id: String) -> void:
+	DialogueSystem.start_dialogue(lecturer_dialogue, "start")

@@ -1,11 +1,12 @@
 [gd_scene format=3 uid="uid://bpcjmprgraf8c"]
 
 [ext_resource type="Script" uid="uid://bwfa4ypcr0t5d" path="res://scenes/exploration/classroom.gd" id="1_class"]
-[ext_resource type="Texture2D" path="res://Assets/Sprites/npc.png" id="10_npc"]
 [ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
-[ext_resource type="Texture2D" uid="uid://bgk8limb5nlwg" path="res://Assets/Environments/640x360 all sides class (bottom layer).png" id="3_class_bottom"]
+[ext_resource type="Texture2D" uid="uid://cxe5byne43qo" path="res://Assets/Environments/640x360 all sides class (bottom layer).png" id="3_class_bottom"]
 [ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="3_interactable"]
-[ext_resource type="Texture2D" uid="uid://b7f43b8iec34g" path="res://Assets/Environments/640x360 all sides class (upper layer).png" id="4_class_upper"]
+[ext_resource type="Texture2D" uid="uid://dndwp17n1d68q" path="res://Assets/Environments/640x360 all sides class (upper layer).png" id="4_class_upper"]
+[ext_resource type="Texture2D" uid="uid://cf5orpq4foqma" path="res://Assets/Sprites/npc.png" id="10_npc"]
+[ext_resource type="Texture2D" uid="uid://bdu2fqwutr3em" path="res://Assets/Sprites/Professor.png" id="20_prof"]
 
 [node name="Classroom" type="Node2D" unique_id=1682483080]
 script = ExtResource("1_class")
@@ -29,13 +30,41 @@ texture = ExtResource("3_class_bottom")
 
 [node name="Player" parent="." unique_id=953042844 instance=ExtResource("2_player")]
 position = Vector2(897, 456)
+scale = Vector2(0.85, 0.85)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1650532013]
 limit_left = 0
 limit_right = 1152
 limit_bottom = 648
 
+[node name="Orang1" parent="." unique_id=327751554 instance=ExtResource("3_interactable")]
+position = Vector2(680, 496)
+interaction_id = "orang1"
+prompt_message = "Press E to talk to Peer 1"
+
+[node name="Sprite2D" type="Sprite2D" parent="Orang1" unique_id=1653008883]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(-5.8411713, -1.0000076)
+scale = Vector2(-0.9935504, 1.0234375)
+texture = ExtResource("10_npc")
+
+[node name="Orang2" parent="." unique_id=104813054 instance=ExtResource("3_interactable")]
+position = Vector2(780, 497)
+interaction_id = "orang2"
+prompt_message = "Press E to talk to Peer 2"
+
+[node name="Sprite2D" type="Sprite2D" parent="Orang2" unique_id=338420155]
+z_index = 2
+z_as_relative = false
+texture_filter = 1
+position = Vector2(3.000023, -4.0000076)
+scale = Vector2(1.0527346, 1.0859375)
+texture = ExtResource("10_npc")
+
 [node name="ClassroomUpper" type="Sprite2D" parent="." unique_id=315537022]
+z_index = 15
 texture_filter = 1
 position = Vector2(576, 324)
 scale = Vector2(1.8, 1.8)
@@ -52,18 +81,8 @@ position = Vector2(1152, 0)
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RightWall" unique_id=1914600009]
 polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
 
-[node name="Orang1" parent="." unique_id=327751554 instance=ExtResource("3_interactable")]
-position = Vector2(680, 496)
-interaction_id = "orang1"
-prompt_message = "Press E to talk to Peer 1"
-
-[node name="Orang2" parent="." unique_id=104813054 instance=ExtResource("3_interactable")]
-position = Vector2(780, 497)
-interaction_id = "orang2"
-prompt_message = "Press E to talk to Peer 2"
-
 [node name="Locker" parent="." unique_id=2142155223 instance=ExtResource("3_interactable")]
-position = Vector2(879, 485)
+position = Vector2(884, 343)
 interaction_id = "locker"
 prompt_message = "Press E to search Locker"
 
@@ -72,24 +91,24 @@ position = Vector2(430, 542)
 interaction_id = "desk"
 prompt_message = "Press E to sit at Desk"
 
-[node name="Blackboard" parent="." instance=ExtResource("3_interactable")]
-position = Vector2(150, 490)
+[node name="Blackboard" parent="." unique_id=2073278262 instance=ExtResource("3_interactable")]
+position = Vector2(554, 444)
 interaction_id = "blackboard"
 prompt_message = "Press E to look at Blackboard"
 
-[node name="EmptyDesk" parent="." instance=ExtResource("3_interactable")]
-position = Vector2(1050, 490)
+[node name="EmptyDesk" parent="." unique_id=607794367 instance=ExtResource("3_interactable")]
+position = Vector2(150, 630)
 interaction_id = "empty_desk"
 prompt_message = "Press E to look at Adjacent Desk"
 
-[node name="Sprite2D" type="Sprite2D" parent="Orang1"]
-texture_filter = 1
-position = Vector2(0, -45)
-scale = Vector2(1.5, 1.5)
-texture = ExtResource("10_npc")
+[node name="Lecturer" parent="." unique_id=2033265990 instance=ExtResource("3_interactable")]
+position = Vector2(488, 481)
+interaction_id = "lecturer"
+prompt_message = "Press E to talk to Professor"
 
-[node name="Sprite2D" type="Sprite2D" parent="Orang2"]
+[node name="Sprite2D" type="Sprite2D" parent="Lecturer" unique_id=1621180001]
+z_as_relative = false
 texture_filter = 1
-position = Vector2(0, -45)
-scale = Vector2(1.5, 1.5)
-texture = ExtResource("10_npc")
+position = Vector2(-1.0000076, -59.500004)
+scale = Vector2(1.4843749, 1.6484375)
+texture = ExtResource("20_prof")

@@ -20,6 +20,7 @@ var input_locked: bool = false
 var last_facing_right: bool = true
 
 func _ready() -> void:
+	z_index = 1
 	# Programmatically build SpriteFrames to load custom player assets
 	var sf = SpriteFrames.new()
 	sf.add_animation("Idle")

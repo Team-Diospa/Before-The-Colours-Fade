@@ -519,10 +519,12 @@ func _ready() -> void:
 	
 	if enemy_name == "Castle Boss":
 		# Play the ambient gears looping sound for the Castle Boss level
-		EventBus.play_sound.emit("gears_loop")
-		EventBus.play_sound.emit("amb_nn_propeller")
+		# EventBus.play_sound.emit("gears_loop")
+		# EventBus.play_sound.emit("amb_nn_propeller")
+		pass
 	elif enemy_name == "Pack Leader":
-		EventBus.play_sound.emit("amb_nn_propeller")
+		# EventBus.play_sound.emit("amb_nn_propeller")
+		pass
 
 	# Reset combat-specific flags at the start of each combat.
 	GlobalState.reset_combat_flags()
@@ -1798,7 +1800,8 @@ func _start_wave(stage_idx: int) -> void:
 	current_stage_idx = stage_idx
 	
 	if stage_idx == 0 and enemy_name == "Castle Boss":
-		EventBus.play_sound.emit("gears_loop")
+		# EventBus.play_sound.emit("gears_loop")
+		pass
 	
 	# Clean up any existing nodes from a previous wave stage.
 	for enemy in active_enemies:

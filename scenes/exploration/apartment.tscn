@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
 [ext_resource type="Texture2D" uid="uid://e4thpvua04lg" path="res://Assets/Environments/bedroom (bottom layer).png" id="2_qupi2"]
 [ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="3_interactable"]
-[ext_resource type="Texture2D" uid="uid://bg2wbh1akwytt" path="res://Assets/Environments/bedroom (upper layer (higher than player)).png" id="4_upper"]
+[ext_resource type="Texture2D" uid="uid://bbdcscnc02bwc" path="res://Assets/Environments/bedroom (upper layer (higher than player)).png" id="4_upper"]
 
 [node name="Apartment" type="Node2D" unique_id=2089114218]
 script = ExtResource("1_apt")
@@ -53,6 +53,7 @@ metadata/_aseprite_wizard_interface_config_ = {
 [node name="Player" parent="." unique_id=1096648528 instance=ExtResource("2_player")]
 position = Vector2(368, 468)
 
+scale = Vector2(1.15, 1.15)
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1869526077]
 position = Vector2(0, -24)
 limit_left = 0
@@ -60,6 +61,7 @@ limit_right = 1260
 limit_bottom = 648
 
 [node name="BedroomUpper" type="Sprite2D" parent="." unique_id=999823935]
+z_index = 5
 texture_filter = 1
 position = Vector2(630, 324)
 scale = Vector2(1.8, 1.8)
@@ -96,10 +98,6 @@ position = Vector2(992, 554)
 interaction_id = "shower"
 prompt_message = "Press E to use Shower"
 
-[node name="Toilet" parent="." unique_id=724969966 instance=ExtResource("3_interactable")]
-position = Vector2(995, 681)
-interaction_id = "toilet"
-prompt_message = "Press E to use Toilet"
 
 [node name="ExitDoor" parent="." unique_id=854293492 instance=ExtResource("3_interactable")]
 position = Vector2(1190, 522)
@@ -125,3 +123,8 @@ prompt_message = "Press E to inspect Papers"
 position = Vector2(930, 519)
 interaction_id = "kitchen"
 prompt_message = "Press E to check Kitchen"
+
+[node name="BathroomDoor" parent="." instance=ExtResource("3_interactable")]
+position = Vector2(120, 520)
+interaction_id = "bathroom_door"
+prompt_message = "Press E to enter Bathroom"

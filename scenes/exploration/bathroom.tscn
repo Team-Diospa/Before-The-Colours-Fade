@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://bbyjnw5p21lfn"]
+
+[ext_resource type="Script" uid="uid://ca2prr66p4qiy" path="res://scenes/exploration/bathroom.gd" id="1_bath"]
+[ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
+[ext_resource type="Texture2D" uid="uid://bdxultblq542h" path="res://Assets/Environments/Bath (close door, shower open).png" id="3_bg"]
+[ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="4_inter"]
+
+[node name="Bathroom" type="Node2D" unique_id=1437307762]
+script = ExtResource("1_bath")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1394971299]
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.1, 0.1, 0.12, 1)
+
+[node name="BathroomBG" type="Sprite2D" parent="." unique_id=716158659]
+texture_filter = 1
+position = Vector2(576, 324)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("3_bg")
+
+[node name="Player" parent="." unique_id=635230076 instance=ExtResource("2_player")]
+z_index = 1
+position = Vector2(947, 409)
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=119676279]
+limit_left = 0
+limit_right = 1152
+limit_bottom = 648
+
+[node name="LeftWall" type="StaticBody2D" parent="." unique_id=1237164225]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="LeftWall" unique_id=2139022219]
+polygon = PackedVector2Array(0, 0, -20, 0, -20, 648, 0, 648)
+
+[node name="RightWall" type="StaticBody2D" parent="." unique_id=1589191194]
+position = Vector2(1152, 0)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RightWall" unique_id=1171176826]
+polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
+
+[node name="Shower" parent="." unique_id=1483418210 instance=ExtResource("4_inter")]
+position = Vector2(249, 425)
+interaction_id = "shower"
+prompt_message = "Press E to take a Shower"
+
+[node name="Toilet" parent="." unique_id=1710381785 instance=ExtResource("4_inter")]
+position = Vector2(559, 431)
+interaction_id = "toilet"
+prompt_message = "Press E to use Toilet"
+
+[node name="AptDoor" parent="." unique_id=177565834 instance=ExtResource("4_inter")]
+position = Vector2(953, 365)
+interaction_id = "apt_door"
+prompt_message = "Press E to exit Bathroom"

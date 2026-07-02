@@ -23,7 +23,7 @@ static var all_interactables: Dictionary = {}
 
 func _ready() -> void:
 	# Ensure interaction prompts render above all world geometry and UI layers
-	z_index = 100
+	z_index = 10
 	z_as_relative = false
 
 	if interaction_id != "":
