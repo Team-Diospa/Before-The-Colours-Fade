@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cibs1xonamhqq"
+path="res://.godot/imported/ui_dialogue_skip.mp3-f23a682ef1ab1031461937a1d73e3fe8.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Card Sounds/ui_dialogue_skip.mp3"
+dest_files=["res://.godot/imported/ui_dialogue_skip.mp3-f23a682ef1ab1031461937a1d73e3fe8.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

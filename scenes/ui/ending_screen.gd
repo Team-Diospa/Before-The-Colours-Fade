@@ -4,6 +4,10 @@ extends Node
 # and lists all found memory puzzle pieces with glassmorphism style.
 # Avoids scene dependencies by constructing all controls programmatically.
 
+# Custom Fonts
+var font_main = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
+
 func _ready() -> void:
 	_build_ui()
 
@@ -67,7 +71,8 @@ func _build_ui() -> void:
 	var game_title = Label.new()
 	game_title.text = "Before the Colours Fade"
 	game_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	game_title.add_theme_font_size_override("font_size", 16)
+	game_title.add_theme_font_override("font", font_main)
+	game_title.add_theme_font_size_override("font_size", 12)
 	game_title.add_theme_color_override("font_color", Color(0.65, 0.72, 0.8, 0.7))
 	vbox.add_child(game_title)
 	
@@ -112,7 +117,8 @@ func _build_ui() -> void:
 	end_title.text = end_title_text
 	end_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	end_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	end_title.add_theme_font_size_override("font_size", 18)
+	end_title.add_theme_font_override("font", font_retro)
+	end_title.add_theme_font_size_override("font_size", 22)
 	end_title.add_theme_color_override("font_color", end_title_color)
 	vbox.add_child(end_title)
 	
@@ -125,7 +131,8 @@ func _build_ui() -> void:
 	end_desc.text = end_desc_text
 	end_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	end_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	end_desc.add_theme_font_size_override("font_size", 12)
+	end_desc.add_theme_font_override("font", font_main)
+	end_desc.add_theme_font_size_override("font_size", 13)
 	end_desc.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0))
 	vbox.add_child(end_desc)
 	
@@ -136,7 +143,8 @@ func _build_ui() -> void:
 	# Memory Fragments Header.
 	var frag_header = Label.new()
 	frag_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	frag_header.add_theme_font_size_override("font_size", 13)
+	frag_header.add_theme_font_override("font", font_retro)
+	frag_header.add_theme_font_size_override("font_size", 16)
 	frag_header.add_theme_color_override("font_color", Color(0.6, 0.65, 0.7, 0.9))
 	vbox.add_child(frag_header)
 	
@@ -172,6 +180,7 @@ func _build_ui() -> void:
 		
 		var dot = Label.new()
 		dot.text = "[*] " if found else "[ ] "
+		dot.add_theme_font_override("font", font_main)
 		dot.add_theme_font_size_override("font_size", 10)
 		if found:
 			dot.modulate = Color(0.8, 0.85, 0.9, 1.0)
@@ -182,7 +191,8 @@ func _build_ui() -> void:
 		var name_lbl = Label.new()
 		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.add_theme_font_size_override("font_size", 10)
+		name_lbl.add_theme_font_override("font", font_main)
+		name_lbl.add_theme_font_size_override("font_size", 11)
 		if found:
 			name_lbl.text = piece["name"] + " - " + piece["hint"]
 			name_lbl.modulate = Color(0.9, 0.9, 0.95, 1.0)
@@ -207,12 +217,13 @@ func _build_ui() -> void:
 	var menu_btn = _make_button("Return to Main Menu")
 	menu_btn.pressed.connect(_on_menu_pressed)
 	vbox.add_child(menu_btn)
-
+ 
 func _make_button(label_text: String) -> Button:
 	# Programmatic button styling matching main menu aesthetics.
 	var btn = Button.new()
 	btn.text = label_text
-	btn.add_theme_font_size_override("font_size", 13)
+	btn.add_theme_font_override("font", font_retro)
+	btn.add_theme_font_size_override("font_size", 16)
 	
 	var style_normal = StyleBoxFlat.new()
 	style_normal.bg_color = Color(0.1, 0.1, 0.14, 0.6)

@@ -56,11 +56,13 @@ func draw_cards(count: int) -> void:
 			# Recycled discard pile if draw pile is exhausted.
 			if discard_pile.is_empty():
 				break # Absolute deck exhaustion
+			EventBus.play_sound.emit("card_shuffle")
 			draw_pile = fisher_yates(discard_pile)
 			discard_pile.clear()
 			
 		var card = draw_pile.pop_back()
 		hand.append(card)
+		EventBus.play_sound.emit("card_draw")
 		EventBus.card_drawn_to_ui.emit(card)
 
 # Discard the current hand (except retained card) into the discard pile.

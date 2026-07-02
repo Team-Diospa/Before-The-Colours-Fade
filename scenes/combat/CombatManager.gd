@@ -31,26 +31,25 @@ var enemy_intent: String = ""
 var enemy_intent_value: int = 0
 
 # Visual Nodes.
-@onready var player_hp_label = $UI/PlayerPanel/VBox/HPLabel
-@onready var player_block_label = $UI/PlayerPanel/VBox/BlockLabel
-@onready var player_energy_label = $UI/PlayerPanel/VBox/EnergyLabel
 
-@onready var enemy_name_label = $UI/EnemyPanel/VBox/NameLabel
-@onready var enemy_hp_label = $UI/EnemyPanel/VBox/HPLabel
-@onready var enemy_block_label = $UI/EnemyPanel/VBox/BlockLabel
-@onready var enemy_intent_label = $UI/EnemyPanel/VBox/IntentLabel
 
-@onready var hand_container = $UI/HandPanel/Margin/HBox
+
+
+
+
+
+
+
+@onready var hand_container = $UI/HandPanel
 @onready var end_turn_btn = $UI/ActionPanel/VBox/EndTurnButton
 @onready var reroll_btn = $UI/ActionPanel/VBox/RerollButton
 @onready var shift_btn = $UI/ActionPanel/VBox/ShiftButton
-@onready var retain_btn = $UI/ActionPanel/VBox/RetainButton
+@onready var retain_btn = get_node_or_null("UI/ActionPanel/VBox/RetainButton")
 @onready var feedback_label = $UI/FeedbackLabel
 
 # Slay the Spire style circular energy orb widgets.
 var energy_orb: Panel
 var energy_orb_label: Label
-var feedback_banner_bg: TextureRect
 
 # RATIONALE: Retain mode flag - when true, the next card click retains instead of plays.
 var _retain_mode_active: bool = false
@@ -221,26 +220,198 @@ var pack_leader_hint_dialogue: Dictionary = {
 	}
 }
 
+
+func _build_hud_panel(panel: Panel, is_player: bool) -> void:
+	# Clear out old styling instantly so duplicate() doesn't copy dead nodes
+	for child in panel.get_children():
+		panel.remove_child(child)
+		child.queue_free()
+		
+	# Clean, sleek, translucent beige glass panel to match the rest of the UI
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.95, 0.93, 0.88, 0.9) # Warm beige, high opacity
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0.65, 0.25, 0.15, 0.8) # Sienna border (matches Deck Viewer)
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.shadow_color = Color(0, 0, 0, 0.1)
+	style.shadow_size = 2
+	style.shadow_offset = Vector2(2, 2)
+	panel.add_theme_stylebox_override("panel", style)
+	
+	# Very compact, clean panel size with no wasted space
+	panel.custom_minimum_size = Vector2(220, 75)
+	panel.size = Vector2(220, 75)
+	
+	var name_lbl = Label.new()
+	name_lbl.name = "NameLabel"
+	name_lbl.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0)) # Dark text
+	name_lbl.add_theme_font_size_override("font_size", 12)
+	
+	var hp_lbl = Label.new()
+	hp_lbl.name = "HPLabelText"
+	hp_lbl.text = "HP"
+	hp_lbl.add_theme_color_override("font_color", Color(0.8, 0.2, 0.2, 1.0)) # Darker red text
+	hp_lbl.add_theme_font_size_override("font_size", 10)
+	
+	var hp_bar = ProgressBar.new()
+	hp_bar.name = "HPBar"
+	hp_bar.show_percentage = false
+	hp_bar.size = Vector2(80, 16) # Thinner horizontally
+	
+	var bg_style = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.15, 0.15, 0.18, 0.8) # Dark inset background
+	bg_style.border_width_left = 1
+	bg_style.border_width_top = 1
+	bg_style.border_width_right = 1
+	bg_style.border_width_bottom = 1
+	bg_style.border_color = Color(0.65, 0.25, 0.15, 0.5) # Sienna subtle border matching HUD
+	bg_style.corner_radius_top_left = 4
+	bg_style.corner_radius_top_right = 4
+	bg_style.corner_radius_bottom_left = 4
+	bg_style.corner_radius_bottom_right = 4
+	
+	var fg_style = StyleBoxFlat.new()
+	if is_player:
+		fg_style.bg_color = Color(0.35, 0.7, 0.35, 1.0) # Pleasant green
+	else:
+		fg_style.bg_color = Color(0.8, 0.35, 0.35, 1.0) # Pleasant red
+	fg_style.corner_radius_top_left = 3
+	fg_style.corner_radius_top_right = 3
+	fg_style.corner_radius_bottom_left = 3
+	fg_style.corner_radius_bottom_right = 3
+	
+	hp_bar.add_theme_stylebox_override("background", bg_style)
+	hp_bar.add_theme_stylebox_override("fill", fg_style)
+	
+	var block_icon = TextureRect.new()
+	block_icon.name = "BlockIcon"
+	block_icon.size = Vector2(20, 20)
+	block_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	block_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	block_icon.visible = true
+	# Fixed correct texture path for the shield icon
+	if FileAccess.file_exists("res://Assets/UI/block_icon_16x16 (armor readout shield).png"):
+		block_icon.texture = load("res://Assets/UI/block_icon_16x16 (armor readout shield).png")
+	else:
+		block_icon.modulate = Color(0,0,0,0) # Hide if asset missing
+	
+	var block_lbl = Label.new()
+	block_lbl.name = "BlockLabel"
+	block_lbl.add_theme_color_override("font_color", Color(0.2, 0.4, 0.8, 1.0)) # Darker blue text
+	block_lbl.add_theme_font_size_override("font_size", 10)
+	block_lbl.visible = false # Hidden if 0
+	
+	var intent_icon = TextureRect.new()
+	intent_icon.name = "IntentIcon"
+	intent_icon.size = Vector2(16, 16)
+	intent_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	intent_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	
+	var intent_lbl = Label.new()
+	intent_lbl.name = "IntentLabel"
+	intent_lbl.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0)) # Dark text
+	intent_lbl.add_theme_font_size_override("font_size", 12)
+	
+	var portrait = TextureRect.new()
+	portrait.name = "Portrait"
+	portrait.size = Vector2(48, 48)
+	portrait.position = Vector2(10, 13) # Perfect fit for the 75px height
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	if is_player:
+		if FileAccess.file_exists("res://Assets/Sprites/character3.png"):
+			portrait.texture = load("res://Assets/Sprites/character3.png")
+		name_lbl.text = "HILBERT"
+	else:
+		if FileAccess.file_exists("res://Assets/Sprites/PACKLEADER.png"):
+			portrait.texture = load("res://Assets/Sprites/PACKLEADER.png")
+			
+	panel.add_child(portrait)
+	
+	# Clean layout for 220x75
+	name_lbl.position = Vector2(65, 8)
+	hp_lbl.position = Vector2(65, 30)
+	hp_bar.position = Vector2(85, 30)
+	block_icon.position = Vector2(65, 50)
+	block_lbl.position = Vector2(90, 52)
+	intent_icon.position = Vector2(175, 8) # Icon to the left
+	intent_lbl.position = Vector2(195, 8) # Number to the right
+		
+	panel.add_child(name_lbl)
+	panel.add_child(hp_lbl)
+	panel.add_child(hp_bar)
+	panel.add_child(block_icon)
+	panel.add_child(block_lbl)
+	panel.add_child(intent_icon)
+	panel.add_child(intent_lbl)
+
 func _ready() -> void:
+	# Set a global theme font for all UI elements to PixelifySans per user request
+	var global_theme = Theme.new()
+	var main_font = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+	if main_font:
+		global_theme.default_font = main_font
+	for child in $UI.get_children():
+		if child is Control:
+			child.theme = global_theme
+	
 	# Initialize wave stages data structures
 	_init_stages_data()
+	
+	# Spawn a banner background TextureRect behind the feedback label
+	var banner_bg = TextureRect.new()
+	banner_bg.name = "FeedbackBannerBg"
+	banner_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	banner_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	banner_bg.visible = false
+	banner_bg.anchor_left = 0.0
+	banner_bg.anchor_top = 0.0
+	banner_bg.anchor_right = 0.0
+	banner_bg.anchor_bottom = 0.0
+	banner_bg.position = Vector2(376, 20)
+	
+	if has_node("UI/FeedbackLabel"):
+		var fb_lbl = $UI/FeedbackLabel
+		var fb_idx = fb_lbl.get_index()
+		fb_lbl.get_parent().add_child(banner_bg)
+		fb_lbl.get_parent().move_child(banner_bg, fb_idx)
+		fb_lbl.position = Vector2(376, 45)
+		fb_lbl.size = Vector2(400, 30)
+		fb_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		fb_lbl.add_theme_font_size_override("font_size", 24)
 	
 	# Hide default enemy panel template since wave panels are spawned programmatically
 	$UI/EnemyPanel.visible = false
 	
-	# Programmatically spawn player sprite facing right
+	_build_hud_panel($UI/PlayerPanel, true)
+	_build_hud_panel($UI/EnemyPanel, false)
+	
+	# Programmatically spawn player sprite facing right using dream-world sideways sprite
+	# RATIONALE: DreamHilbertSideways.png is 128x128 real pixels. To render at ~96px: scale 0.75
 	player_sprite = Sprite2D.new()
-	player_sprite.texture = load("res://Assets/Sprites/character3.png")
+	var player_tex_path = "res://Assets/Sprites/DreamHilbertSideways.png"
+	if not FileAccess.file_exists(player_tex_path):
+		player_tex_path = "res://Assets/Sprites/HilbertDream (hilbert in dream).png"
+	if FileAccess.file_exists(player_tex_path):
+		player_sprite.texture = load(player_tex_path)
 	player_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	player_sprite.scale = Vector2(1.8, 1.8)
-	player_sprite.position = Vector2(250, 391) # aligned feet to ground Y = 420
-	add_child(player_sprite)
+	player_sprite.scale = Vector2(1.5, 1.5) 
+	player_sprite.position = Vector2(200, 310) # Lowered to touch the ground plane
+	player_sprite.z_index = 10
+	$UI.add_child(player_sprite) # Reparent to UI layer to guarantee visibility
 	
 	# Create top bar progression and booklet deck viewer UI
 	_create_top_bar()
 	_create_deck_viewer()
 
 	# Programmatically spawn the RetainButton if it is missing from the scene tree.
+	# RATIONALE: Avoids binary scene file corruption by instantiating the UI control in code.
 	var action_vbox = $UI/ActionPanel/VBox
 	if action_vbox and not action_vbox.has_node("RetainButton"):
 		retain_btn = Button.new()
@@ -257,89 +428,101 @@ func _ready() -> void:
 		visuals.set_script(visuals_script)
 		add_child(visuals)
 
-	# Warm beige background for dream child world combat sketch.
+	# Disable background so actual scene (apartment/field) shows through
 	if $UI/Background:
-		$UI/Background.color = Color(0.95, 0.93, 0.87, 1.0)
-		
-	# Instantiate turn/victory/defeat banner TextureRect background behind feedback label.
-	feedback_banner_bg = TextureRect.new()
-	feedback_banner_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	feedback_banner_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	feedback_banner_bg.visible = false
-	$UI.add_child(feedback_banner_bg)
-	$UI.move_child(feedback_banner_bg, feedback_label.get_index())
+		$UI/Background.visible = false
 
-	# Style HandPanel and ActionPanel with warm tan paper tiled StyleBoxTexture (non-stretching).
-	var style_panel = StyleBoxTexture.new()
-	style_panel.texture = load("res://Assets/UI/9-patch_dream_panel_24x24 .png")
-	style_panel.texture_margin_left = 8
-	style_panel.texture_margin_right = 8
-	style_panel.texture_margin_top = 8
-	style_panel.texture_margin_bottom = 8
-	style_panel.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-	style_panel.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	# Style HandPanel and ActionPanel with warm tan paper styleboxes and drop shadows.
+	# Restyled to translucent glassmorphism with square corners and a thin highlight.
+	var panel_bg = Color(0.95, 0.93, 0.88, 0.5) # Translucent beige glass base
+	var panel_border = Color(1.0, 1.0, 1.0, 0.25) # Thin white glass shine border
 	
-	$UI/HandPanel.add_theme_stylebox_override("panel", style_panel)
-	$UI/ActionPanel.add_theme_stylebox_override("panel", style_panel)
-
-	# Style PlayerPanel and EnemyPanel with hud_stats_box_160x50.png (forced size 160x50).
-	var style_stats = StyleBoxTexture.new()
-	style_stats.texture = load("res://Assets/UI/hud_stats_box_160x50.png")
-	style_stats.texture_margin_left = 6
-	style_stats.texture_margin_right = 6
-	style_stats.texture_margin_top = 6
-	style_stats.texture_margin_bottom = 6
-	style_stats.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-	style_stats.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	var style_panel = StyleBoxFlat.new()
+	style_panel.bg_color = panel_bg
+	style_panel.border_width_left = 2
+	style_panel.border_width_top = 2
+	style_panel.border_width_right = 2
+	style_panel.border_width_bottom = 2
+	style_panel.border_color = panel_border
+	style_panel.anti_aliasing = false
+	style_panel.corner_radius_top_left = 0
+	style_panel.corner_radius_top_right = 0
+	style_panel.corner_radius_bottom_left = 0
+	style_panel.corner_radius_bottom_right = 0
+	style_panel.shadow_color = Color(0, 0, 0, 0.1) # Soft subtle shadow
+	style_panel.shadow_size = 2
+	style_panel.shadow_offset = Vector2(2, 2)
 	
-	$UI/PlayerPanel.add_theme_stylebox_override("panel", style_stats)
-	$UI/EnemyPanel.add_theme_stylebox_override("panel", style_stats)
+	$UI/HandPanel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	$UI/HandPanel.position = Vector2(250, 420)
+	$UI/HandPanel.size = Vector2(650, 200)
+	for child in $UI/HandPanel.get_children():
+		child.queue_free()
+	$UI/ActionPanel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	$UI/ActionPanel.position = Vector2(1000, 480) # Move to bottom right
 
-	# Reposition PlayerPanel and EnemyPanel to float directly under the sprite characters (Y = 430).
-	$UI/PlayerPanel.position = Vector2(170, 430)
-	$UI/PlayerPanel.custom_minimum_size = Vector2(160, 50)
-	$UI/PlayerPanel.size = Vector2(160, 50)
+	# RATIONALE: Programmatically build the customized HUD badges
+	$UI/EnemyPanel.visible = false
+	_build_hud_panel($UI/PlayerPanel, true)
+	_build_hud_panel($UI/EnemyPanel, false)
 	
-	$UI/EnemyPanel.position = Vector2(820, 430)
-	$UI/EnemyPanel.custom_minimum_size = Vector2(160, 50)
-	$UI/EnemyPanel.size = Vector2(160, 50)
+	# Hover badge at the top left
+	$UI/PlayerPanel.position = Vector2(40, 80)
 
-	# Make labels dark slate for high contrast readability and apply retro VT323 font where needed.
-	var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
+	
+	# Shift Gauge setup
+	var sg = TextureProgressBar.new()
+	sg.name = "ShiftGauge"
+	if FileAccess.file_exists("res://Assets/UI/shift_gauge_bar_0_120x16.png"):
+		sg.texture_under = load("res://Assets/UI/shift_gauge_bar_0_120x16.png")
+	if FileAccess.file_exists("res://Assets/UI/shift_gauge_bar_3_120x16.png"):
+		sg.texture_progress = load("res://Assets/UI/shift_gauge_bar_3_120x16.png")
+	sg.nine_patch_stretch = true
+	# Fixes gauge scaling explosion when texture sizes change
+	# Increased size by 1.5x (from 120x35) per user request, rotated downwards
+	sg.size = Vector2(180, 52) 
+	sg.rotation_degrees = -90
+	sg.position = Vector2(8, 414) # Middle left, rotated bottom-up
+	sg.max_value = 100
+	sg.value = 100
+	$UI.add_child(sg)
+	
 	var label_color = Color(0.12, 0.12, 0.15, 1.0)
-	for label in [
-		$UI/PlayerPanel/VBox/NameLabel,
-		$UI/PlayerPanel/VBox/HPLabel,
-		$UI/PlayerPanel/VBox/BlockLabel,
-		$UI/EnemyPanel/VBox/NameLabel,
-		$UI/EnemyPanel/VBox/HPLabel,
-		$UI/EnemyPanel/VBox/BlockLabel,
-		$UI/EnemyPanel/VBox/IntentLabel,
-		$UI/FeedbackLabel
-	]:
-		if label:
-			label.add_theme_color_override("font_color", label_color)
-			if font_retro:
-				label.add_theme_font_override("font", font_retro)
-				if label.name == "FeedbackLabel":
-					label.add_theme_font_size_override("font_size", 16)
-				else:
-					label.add_theme_font_size_override("font_size", 12)
+	if has_node("UI/FeedbackLabel"):
+		$UI/FeedbackLabel.add_theme_color_override("font_color", label_color)
 
-	# Hide default energy label inside VBox since we have a dedicated circular energy orb.
-	player_energy_label.visible = false
 	
-	# Apply tiled StyleBoxTexture and forced sizes to action buttons.
-	_style_action_button(end_turn_btn, "res://Assets/UI/end_turn_btn_96x32.png", "res://Assets/UI/end_turn_btn_96x32.png", "res://Assets/UI/end_turn_btn_96x32.png", Vector2(96, 32))
-	_style_action_button(shift_btn, "res://Assets/UI/shift_button_80x32.png", "res://Assets/UI/shift_button_80x32.png", "res://Assets/UI/shift_button_80x32.png", Vector2(80, 32))
-	_style_action_button(reroll_btn, "res://Assets/UI/reroll_button_32x32.png", "res://Assets/UI/reroll_button_32x32.png", "res://Assets/UI/reroll_button_32x32.png", Vector2(32, 32))
-	_style_action_button(retain_btn, "res://Assets/UI/dream_button_32x12_default.png", "res://Assets/UI/dream_button_32x12_hover.png", "res://Assets/UI/dream_button_32x12_pressed.png", Vector2(80, 32))
+	# Apply texture-based styling to combat action buttons using real UI assets.
+	# RATIONALE: Each button has a custom pixel-art texture. We map each button to its texture
+	# and force the standardized render size (derived from filename label vs real pixel measurement).
+	# (Removed custom button texture styling per user request, using default UI style)
+	for btn in [end_turn_btn, reroll_btn, shift_btn, retain_btn]:
+		if not btn:
+			continue
+			
+		_style_action_button(btn)
+		btn.resized.connect(func(): btn.pivot_offset = btn.size / 2)
+		btn.mouse_entered.connect(func():
+			var tw = btn.create_tween().set_parallel(true)
+			tw.tween_property(btn, "scale", Vector2(1.05, 1.05), 0.1)
+		)
+		btn.mouse_exited.connect(func():
+			var tw = btn.create_tween().set_parallel(true)
+			tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1)
+		)
 
 	# Create Slay the Spire style Energy Orb.
 	_create_energy_orb()
 
 	# Entry animations: slide character panels from off-screen into their layout position.
 	call_deferred("_animate_combat_entry")
+	
+	if enemy_name == "Castle Boss":
+		# Play the ambient gears looping sound for the Castle Boss level
+		EventBus.play_sound.emit("gears_loop")
+		EventBus.play_sound.emit("amb_nn_propeller")
+	elif enemy_name == "Pack Leader":
+		EventBus.play_sound.emit("amb_nn_propeller")
 
 	# Reset combat-specific flags at the start of each combat.
 	GlobalState.reset_combat_flags()
@@ -474,17 +657,49 @@ func transition_to(new_state: State) -> void:
 				
 		State.VICTORY:
 			set_buttons_disabled(true)
-			animate_feedback("Victory! " + enemy_name + " Slayed.")
+			EventBus.stop_sound.emit("gears_loop")
+			EventBus.stop_sound.emit("amb_nn_propeller")
+			EventBus.play_sound.emit("victory_chord")
+			animate_feedback("VICTORY", true)
+			
+			var banner_bg = $UI.get_node_or_null("FeedbackBannerBg")
+			if banner_bg:
+				var vic_tex = "res://Assets/Combat/UI/victory_banner_240x48.png"
+				if FileAccess.file_exists(vic_tex):
+					banner_bg.texture = load(vic_tex)
+					banner_bg.custom_minimum_size = Vector2(360, 72)
+					banner_bg.position = feedback_label.position + (feedback_label.size / 2.0) - Vector2(180, 36)
+					banner_bg.visible = true
+					banner_bg.modulate.a = 1.0
 			
 			# Reset cache since fight is complete.
 			ShiftManager.clear_cache()
+			
+			if enemy_name == "Castle Boss":
+				SceneManager.stop_sfx("gears_loop")
 			
 			# Trigger victory sequence.
 			_resolve_victory()
 			
 		State.DEFEAT:
 			set_buttons_disabled(true)
-			animate_feedback("Defeated...")
+			EventBus.stop_sound.emit("gears_loop")
+			EventBus.stop_sound.emit("amb_nn_propeller")
+			EventBus.play_sound.emit("defeat_strike")
+			animate_feedback("DEFEATED", true)
+			
+			var banner_bg = $UI.get_node_or_null("FeedbackBannerBg")
+			if banner_bg:
+				var def_tex = "res://Assets/Combat/UI/defeat_banner_240x48.png"
+				if FileAccess.file_exists(def_tex):
+					banner_bg.texture = load(def_tex)
+					banner_bg.custom_minimum_size = Vector2(360, 72)
+					banner_bg.position = feedback_label.position + (feedback_label.size / 2.0) - Vector2(180, 36)
+					banner_bg.visible = true
+					banner_bg.modulate.a = 1.0
+			
+			if enemy_name == "Castle Boss":
+				SceneManager.stop_sfx("gears_loop")
 			
 			# RATIONALE: Contextual defeat line - grounds the restart in the narrative.
 			# If defeated by the Pack Leader without the confidence buff, point them back to the classroom Paper Monster.
@@ -524,69 +739,6 @@ func transition_to(new_state: State) -> void:
 
 func _on_defeat_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_defeat_dialogue_finished)
-	
-	# Helper function to style button with custom StyleBoxTexture (non-stretching tiled mode).
-func _style_action_button(btn: Button, texture_default: String, texture_hover: String, texture_pressed: String, btn_size: Vector2) -> void:
-	if not btn:
-		return
-	btn.custom_minimum_size = btn_size
-	btn.size = btn_size
-	
-	var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
-	if font_retro:
-		btn.add_theme_font_override("font", font_retro)
-		btn.add_theme_font_size_override("font_size", 14)
-		
-	var style_normal = StyleBoxTexture.new()
-	style_normal.texture = load(texture_default)
-	
-	# Fallback if specific hover or pressed texture is not present.
-	# Modulates colors slightly to create distinct visual states.
-	var style_hover = StyleBoxTexture.new()
-	style_hover.texture = load(texture_hover)
-	if texture_hover == texture_default:
-		style_hover.modulate_color = Color(1.1, 1.1, 1.15, 1.0)
-		
-	var style_pressed = StyleBoxTexture.new()
-	style_pressed.texture = load(texture_pressed)
-	if texture_pressed == texture_default:
-		style_pressed.modulate_color = Color(0.8, 0.8, 0.85, 1.0)
-		
-	for st in [style_normal, style_hover, style_pressed]:
-		st.texture_margin_left = 4
-		st.texture_margin_right = 4
-		st.texture_margin_top = 4
-		st.texture_margin_bottom = 4
-		st.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		st.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		
-	var style_disabled = style_normal.duplicate()
-	style_disabled.modulate_color = Color(0.5, 0.5, 0.5, 0.5)
-	
-	btn.add_theme_stylebox_override("normal", style_normal)
-	btn.add_theme_stylebox_override("hover", style_hover)
-	btn.add_theme_stylebox_override("pressed", style_pressed)
-	btn.add_theme_stylebox_override("disabled", style_disabled)
-	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	
-	btn.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
-	btn.add_theme_color_override("font_hover_color", Color(0.65, 0.25, 0.15, 1.0))
-	btn.add_theme_color_override("font_pressed_color", Color(0.12, 0.12, 0.15, 1.0))
-	btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.5, 0.6))
-	
-	btn.resized.connect(func(): btn.pivot_offset = btn.size / 2)
-	btn.mouse_entered.connect(func():
-		if not btn.text.begins_with("▼ "):
-			btn.text = "▼ " + btn.text
-		var tw = btn.create_tween().set_parallel(true)
-		tw.tween_property(btn, "scale", Vector2(1.05, 1.05), 0.1)
-	)
-	btn.mouse_exited.connect(func():
-		if btn.text.begins_with("▼ "):
-			btn.text = btn.text.substr(2)
-		var tw = btn.create_tween().set_parallel(true)
-		tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1)
-	)
 	
 	# RATIONALE: Clear the shift cached combat state to avoid resuming a dead combat on retry.
 	ShiftManager.clear_cache()
@@ -652,6 +804,7 @@ func decide_enemy_intent() -> void:
 				enemy["intent_value"] = enemy["defend_val"]
 				
 	if is_burning:
+		EventBus.play_sound.emit("burn_tick")
 		GlobalState.set_flag("enemy_burning", false) # Consume burning flag
 		animate_feedback("The enemies are burning - defense cancelled!")
 		
@@ -677,6 +830,7 @@ func execute_enemy_action() -> void:
 				damage -= player_block
 				player_block = 0
 				player_hp = max(0, player_hp - damage)
+				EventBus.play_sound.emit("player_hit")
 				GlobalState.player_current_hp = player_hp
 				animate_feedback(enemy["name"] + " deals " + str(damage) + " damage!")
 				
@@ -739,10 +893,12 @@ func play_card(card: CardData) -> void:
 		return
 	
 	if player_energy < card.energy_cost:
+		EventBus.play_sound.emit("error")
 		animate_feedback("Not enough energy!")
 		return
 		
 	player_energy -= card.energy_cost
+	EventBus.play_sound.emit("card_lift")
 	
 	# Execute effect depending on card.
 	var targets: Array = []
@@ -825,6 +981,7 @@ func cancel_enemy_defend() -> void:
 			enemy["intent_value"] = 0
 			cancelled = true
 	if cancelled:
+		EventBus.play_sound.emit("burn_tick")
 		GlobalState.set_flag("enemy_burning", false) # Consume the burn flag
 		animate_feedback("The enemies are burning - defense cancelled!")
 		update_ui()
@@ -927,6 +1084,7 @@ func _on_end_turn_pressed() -> void:
 				}
 			}, "start")
 			return
+	EventBus.play_sound.emit("end_turn")
 	transition_to(State.PLAYER_END)
 
 # Update screen widgets.
@@ -937,17 +1095,20 @@ func update_ui() -> void:
 		buff_text = " [Confidence: +100% DMG]"
 	elif GlobalState.has_flag("buff_courage_active"):
 		buff_text = " [Courage: +50% DMG]"
-	$UI/PlayerPanel/VBox/NameLabel.text = "Hilbert Hickman" + buff_text
 	
-	player_hp_label.text = "HP: " + str(player_hp) + "/" + str(player_max_hp)
+	var p_name = $UI/PlayerPanel.get_node_or_null("NameLabel")
+	var p_hp_bar = $UI/PlayerPanel.get_node_or_null("HPBar")
+	var p_block_lbl = $UI/PlayerPanel.get_node_or_null("BlockLabel")
+	var p_block_icon = $UI/PlayerPanel.get_node_or_null("BlockIcon")
 	
-	# Highlight active block protection.
-	if player_block > 0:
-		player_block_label.text = "[SHIELDED] Block: " + str(player_block)
-	else:
-		player_block_label.text = "Block: " + str(player_block)
-		
-	player_energy_label.text = "Energy: " + str(player_energy) + "/" + str(MAX_ENERGY)
+	if p_name: p_name.text = "HILBERT" # Buff text removed to prevent overflow
+	if p_hp_bar:
+		p_hp_bar.max_value = player_max_hp
+		p_hp_bar.value = player_hp
+	if p_block_lbl: p_block_lbl.text = str(player_block)
+	if p_block_icon: p_block_icon.visible = player_block > 0
+	if p_block_lbl: p_block_lbl.visible = player_block > 0
+
 	
 	# Update top bar progress and gold count labels
 	if progress_label:
@@ -960,47 +1121,80 @@ func update_ui() -> void:
 		var enemy = active_enemies[idx]
 		var panel = enemy["panel"]
 		if panel:
-			var name_lbl = panel.get_node_or_null("VBox/NameLabel")
-			var hp_lbl = panel.get_node_or_null("VBox/HPLabel")
-			var block_lbl = panel.get_node_or_null("VBox/BlockLabel")
-			var intent_lbl = panel.get_node_or_null("VBox/IntentLabel")
+			var name_lbl = panel.get_node_or_null("NameLabel")
+			var hp_bar = panel.get_node_or_null("HPBar")
+			var block_lbl = panel.get_node_or_null("BlockLabel")
+			var block_icon = panel.get_node_or_null("BlockIcon")
+			
+			var intent_lbl = panel.get_node_or_null("IntentLabel")
+			var intent_icon = panel.get_node_or_null("IntentIcon")
 			
 			if name_lbl:
-				var name_text = enemy["name"]
+				var name_text = enemy["name"].to_upper()
 				if idx == selected_enemy_idx:
-					name_text = "=> " + name_text + " <="
 					name_lbl.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0)) # Sienna targeted
 				else:
-					name_lbl.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0)) # Graphite default
+					name_lbl.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0)) # Dark text default
 				name_lbl.text = name_text
-			if hp_lbl:
-				hp_lbl.text = "HP: " + str(enemy["hp"]) + "/" + str(enemy["max_hp"])
+				
+			if hp_bar:
+				hp_bar.max_value = enemy["max_hp"]
+				hp_bar.value = enemy["hp"]
+				
 			if block_lbl:
-				if enemy["block"] > 0:
-					block_lbl.text = "[SHIELDED] Block: " + str(enemy["block"])
-				else:
-					block_lbl.text = "Block: " + str(enemy["block"])
+				block_lbl.text = str(enemy["block"])
+				block_lbl.visible = enemy["block"] > 0
+			if block_icon:
+				block_icon.visible = true # Always visible now
+				
 			if intent_lbl:
 				if enemy["hp"] <= 0:
 					intent_lbl.text = "Defeated"
-				elif enemy["intent"] == "Attack":
-					intent_lbl.text = "Intent: Attack (" + str(enemy["intent_value"]) + ")"
-				elif enemy["intent"] == "Defend":
-					intent_lbl.text = "Intent: Defend (" + str(enemy["intent_value"]) + ")"
+					intent_icon.visible = false
+					if enemy["name"] == "Castle Boss" or enemy["name"] == "Pack Leader":
+						EventBus.stop_sound.emit("gears_loop")
+						EventBus.stop_sound.emit("amb_nn_propeller")
+					if enemy.get("arrow") and is_instance_valid(enemy["arrow"]):
+						enemy["arrow"].visible = false
+						if enemy["arrow"].has_meta("tween") and is_instance_valid(enemy["arrow"].get_meta("tween")):
+							enemy["arrow"].get_meta("tween").kill()
 				else:
-					intent_lbl.text = "Intent: Idle"
+					var icon_file = ""
+					if enemy["intent"] == "Attack":
+						intent_lbl.text = str(enemy["intent_value"])
+						icon_file = "res://Assets/UI/attack_indicator_16x16.png"
+					elif enemy["intent"] == "Defend":
+						intent_lbl.text = str(enemy["intent_value"])
+						icon_file = "res://Assets/UI/defend_indicator_16x16.png"
+					else:
+						intent_lbl.text = ""
+						icon_file = "res://Assets/UI/special_indicator_16x16.png"
+						
+					if intent_icon:
+						if icon_file != "" and FileAccess.file_exists(icon_file):
+							intent_icon.texture = load(icon_file)
+							intent_icon.visible = true
+						else:
+							intent_icon.visible = false
+					intent_lbl.visible = (intent_lbl.text != "")
 	
 	# Dimension shifting button logic in Pack Leader fight.
-	if enemy_name == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active"):
+	var action_vbox = $UI/ActionPanel/VBox
+	if enemy_name == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active") and ShiftManager.can_shift():
 		shift_btn.visible = true
-		if ShiftManager.can_shift():
-			shift_btn.disabled = false
-			_update_btn_text(shift_btn, "Shift to Reality\n(READY)")
-		else:
-			shift_btn.disabled = true
-			_update_btn_text(shift_btn, "Shift to Reality\n(" + str(GlobalState.dimension_charge) + "/3)")
+		shift_btn.disabled = GlobalState.dimension_charge < 3
+		shift_btn.text = "Shift to Dream"
 	else:
 		shift_btn.visible = false
+		
+	# Update the True Shift Gauge in the center of the screen
+	var true_gauge = $UI.get_node_or_null("ShiftGauge")
+	if true_gauge:
+		true_gauge.value = 100 # Force it to draw the full texture
+		var charge_clamped = clampi(GlobalState.dimension_charge, 0, 3)
+		var gauge_path = "res://Assets/UI/shift_gauge_bar_" + str(charge_clamped) + "_120x16.png"
+		if FileAccess.file_exists(gauge_path):
+			true_gauge.texture_progress = load(gauge_path)
 		
 	# Reroll button: disabled if used this round.
 	reroll_btn.disabled = not DeckManager.can_reroll
@@ -1008,8 +1202,6 @@ func update_ui() -> void:
 	# Retain button: disabled if used this round or in retain mode.
 	if retain_btn:
 		retain_btn.disabled = not DeckManager.can_retain or _retain_mode_active
-		if not _retain_mode_active:
-			_update_btn_text(retain_btn, "Retain Card")
 
 	# Update circular energy orb label
 	if energy_orb_label:
@@ -1024,125 +1216,122 @@ func update_ui() -> void:
 	for child in hand_container.get_children():
 		child.queue_free()
 		
+	var hand_size = DeckManager.hand.size()
 	var card_index = 0
+	# Squish overlapping cards slightly if there are many
+	var card_spacing = min(150.0, 700.0 / max(1.0, float(hand_size)))
+	var combat_font = load("res://Assets/Fonts/VT323-Regular.ttf")
+	var card_font_main = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+	
 	for card in DeckManager.hand:
 		var btn = Button.new()
-		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		btn.custom_minimum_size = Vector2(98, 140)
 		btn.size = Vector2(98, 140)
+		btn.text = "" 
 		
-		# RATIONALE: Create vertical cards containing custom illustrations and VT323 labels.
-		# Background loads illustration texture directly from Assets/Cards/.
-		var card_style = StyleBoxTexture.new()
-		var card_name_clean = card.card_name.to_lower().replace(" ", "_")
-		var illustration_path = "res://Assets/Cards/" + card_name_clean + ".png"
-		var tex = load(illustration_path)
-		if tex:
-			card_style.texture = tex
+		var card_img_name = card.card_name.to_lower().replace(" ", "_")
+		var illustration_path = "res://Assets/Cards/" + card_img_name + ".png"
+		
+		var style_normal = StyleBoxTexture.new()
+		if FileAccess.file_exists(illustration_path):
+			style_normal.texture = load(illustration_path)
+		else:
+			var style_fallback = StyleBoxFlat.new()
+			style_fallback.bg_color = Color(0.95, 0.93, 0.88, 0.95)
+			style_fallback.border_width_left = 2
+			style_fallback.border_width_top = 2
+			style_fallback.border_width_right = 2
+			style_fallback.border_width_bottom = 2
+			style_fallback.border_color = Color(0.12, 0.12, 0.15, 0.25)
+			style_normal = style_fallback
 			
-		card_style.texture_margin_left = 6
-		card_style.texture_margin_right = 6
-		card_style.texture_margin_top = 6
-		card_style.texture_margin_bottom = 6
-		card_style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		card_style.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		
-		var card_style_hover = card_style.duplicate()
-		card_style_hover.modulate_color = Color(1.1, 1.1, 1.1, 1.0)
-		
-		var card_style_pressed = card_style.duplicate()
-		card_style_pressed.modulate_color = Color(0.8, 0.8, 0.85, 1.0)
-		
-		btn.add_theme_stylebox_override("normal", card_style)
-		btn.add_theme_stylebox_override("hover", card_style_hover)
-		btn.add_theme_stylebox_override("pressed", card_style_pressed)
+		var style_hover = style_normal.duplicate()
+		if style_hover is StyleBoxTexture:
+			style_hover.modulate_color = Color(1.1, 1.1, 1.1, 1.0)
+		else:
+			style_hover.bg_color = Color(0.99, 0.98, 0.95, 1.0)
+			
+		var style_pressed = style_normal.duplicate()
+		if style_pressed is StyleBoxTexture:
+			style_pressed.modulate_color = Color(0.85, 0.85, 0.85, 1.0)
+		else:
+			style_pressed.bg_color = Color(0.85, 0.83, 0.78, 1.0)
+			
+		btn.add_theme_stylebox_override("normal", style_normal)
+		btn.add_theme_stylebox_override("hover", style_hover)
+		btn.add_theme_stylebox_override("pressed", style_pressed)
 		btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 		
-		# Clear default text of the button
-		btn.text = ""
+		# User requested names drawn on top of the illustrations
+		var title_lbl = Label.new()
+		title_lbl.text = card.card_name
+		if card_font_main:
+			title_lbl.add_theme_font_override("font", card_font_main)
+		title_lbl.add_theme_font_size_override("font_size", 10)
+		title_lbl.add_theme_color_override("font_color", Color.WHITE)
+		title_lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
+		title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		title_lbl.position = Vector2(0, 8)
+		title_lbl.size = Vector2(98, 20)
+		btn.add_child(title_lbl)
+		
+		if DeckManager.retained_card == card:
+			var ret_lbl = Label.new()
+			ret_lbl.text = "R"
+			ret_lbl.add_theme_font_override("font", combat_font)
+			ret_lbl.add_theme_font_size_override("font_size", 12)
+			ret_lbl.add_theme_color_override("font_color", Color(0.9, 0.7, 0.1, 1.0))
+			ret_lbl.position = Vector2(84, 6)
+			btn.add_child(ret_lbl)
+			
 		btn.pressed.connect(func(): play_card(card))
 		hand_container.add_child(btn)
 		
-		# Create overlay labels inside the card
-		var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
+		btn.pivot_offset = Vector2(49, 140) # Pivot at bottom center for realistic fanning
 		
-		# Energy Cost Badge (top-left)
-		var energy_lbl = Label.new()
-		energy_lbl.text = str(card.energy_cost)
-		if font_retro:
-			energy_lbl.add_theme_font_override("font", font_retro)
-			energy_lbl.add_theme_font_size_override("font_size", 14)
-		energy_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-		energy_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
-		energy_lbl.add_theme_constant_override("outline_size", 4)
-		energy_lbl.position = Vector2(8, 6)
-		btn.add_child(energy_lbl)
+		# --- Slay the Spire Fanning Math ---
+		var relative_i = float(card_index) - (float(hand_size) - 1.0) / 2.0
+		var base_rot = deg_to_rad(relative_i * 6.0) # 6 degrees of fan per card
+		var base_x = 325.0 + (relative_i * card_spacing) - 49.0 # Center of HandPanel is 325
+		var base_y = 40.0 + (abs(relative_i) * abs(relative_i) * 4.0) # Parabolic dip
+		var base_pos = Vector2(base_x, base_y)
 		
-		# Card Name (bottom, centered with shadow outline)
-		var name_lbl = Label.new()
-		name_lbl.text = card.card_name
-		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.custom_minimum_size = Vector2(82, 20)
-		name_lbl.position = Vector2(8, 114)
-		if font_retro:
-			name_lbl.add_theme_font_override("font", font_retro)
-			name_lbl.add_theme_font_size_override("font_size", 12)
-		name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-		name_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
-		name_lbl.add_theme_constant_override("outline_size", 4)
-		btn.add_child(name_lbl)
+		btn.rotation = base_rot
+		btn.position = Vector2(base_x, base_y + 200) # Start from bottom offscreen
+		btn.z_index = card_index
 		
-		if DeckManager.retained_card == card:
-			# Draw a retain badge on the card
-			var retain_lbl = Label.new()
-			retain_lbl.text = "RETAIN"
-			retain_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			retain_lbl.position = Vector2(8, 20)
-			if font_retro:
-				retain_lbl.add_theme_font_override("font", font_retro)
-				retain_lbl.add_theme_font_size_override("font_size", 10)
-			retain_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.4, 1.0))
-			retain_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
-			retain_lbl.add_theme_constant_override("outline_size", 3)
-			btn.add_child(retain_lbl)
-		
-		# Center the scaling pivot and set snappy hover transitions
-		btn.pivot_offset = Vector2(49, 70)
-		btn.resized.connect(func(): btn.pivot_offset = btn.size / 2)
-		
-		# Set mouse enter/exit: shows description in the main FeedbackLabel, scales up and rotates.
-		var tilt_angle = deg_to_rad(3.0)
-		
-		# Capture a unique hover tween state for this button closure.
 		var active_tweens = { "tween": null }
+		var hover_pos = Vector2(base_x, base_y - 40.0) # Pop upwards slightly
 		
-		var display_text = card.card_name
 		btn.mouse_entered.connect(func():
-			if active_tweens["tween"]:
-				active_tweens["tween"].kill()
+			EventBus.play_sound.emit("card_hover")
+			if active_tweens["tween"]: active_tweens["tween"].kill()
 			feedback_label.text = card.description
+			btn.z_index = 100 # Bring to very front
 			active_tweens["tween"] = btn.create_tween().set_parallel(true)
-			active_tweens["tween"].tween_property(btn, "scale", Vector2(1.1, 1.1), 0.12).set_trans(Tween.TRANS_SINE)
-			active_tweens["tween"].tween_property(btn, "rotation", tilt_angle, 0.12).set_trans(Tween.TRANS_SINE)
-			active_tweens["tween"].tween_property(btn, "modulate", Color(1.2, 1.2, 1.2, 1.0), 0.12)
+			active_tweens["tween"].tween_property(btn, "scale", Vector2(1.8, 1.8), 0.12).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "rotation", 0.0, 0.12).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "position", hover_pos, 0.12).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "modulate", Color(1.15, 1.15, 1.15, 1.0), 0.12)
 		)
 		btn.mouse_exited.connect(func():
-			if active_tweens["tween"]:
-				active_tweens["tween"].kill()
+			if active_tweens["tween"]: active_tweens["tween"].kill()
 			feedback_label.text = ""
+			btn.z_index = card_index # Restore correct Z-order
 			active_tweens["tween"] = btn.create_tween().set_parallel(true)
-			active_tweens["tween"].tween_property(btn, "scale", Vector2(1.0, 1.0), 0.12).set_trans(Tween.TRANS_SINE)
-			active_tweens["tween"].tween_property(btn, "rotation", 0.0, 0.12).set_trans(Tween.TRANS_SINE)
-			active_tweens["tween"].tween_property(btn, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.12)
+			active_tweens["tween"].tween_property(btn, "scale", Vector2(1.5, 1.5), 0.1).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "rotation", base_rot, 0.1).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "position", base_pos, 0.1).set_trans(Tween.TRANS_SINE)
+			active_tweens["tween"].tween_property(btn, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.1)
 		)
 		
-		# Sequential dynamic pop-in bounce animation for card drawing.
+		# Draw animation
 		var delay = card_index * 0.04
 		btn.scale = Vector2(0.5, 0.5)
 		btn.modulate.a = 0.0
 		var pop_tw = btn.create_tween().set_parallel(true)
-		pop_tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(delay)
+		pop_tw.tween_property(btn, "scale", Vector2(1.5, 1.5), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(delay)
+		pop_tw.tween_property(btn, "position", base_pos, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(delay)
 		pop_tw.tween_property(btn, "modulate:a", 1.0, 0.2).set_delay(delay)
 		
 		card_index += 1
@@ -1153,7 +1342,8 @@ func set_buttons_disabled(disabled: bool) -> void:
 	if retain_btn:
 		retain_btn.disabled = disabled or not DeckManager.can_retain
 	for btn in hand_container.get_children():
-		btn.disabled = disabled
+		if btn is Button:
+			btn.disabled = disabled
 
 # RATIONALE: Visual juice helpers: shaking panels on damage, pulsing text, and turn banners.
 func shake_node(node: Control) -> void:
@@ -1175,63 +1365,77 @@ func pulse_label(label: Label) -> void:
 func update_stats_pulsed(pulse_player: bool, pulse_enemy: bool) -> void:
 	update_ui()
 	if pulse_player:
-		pulse_label(player_hp_label)
-		pulse_label(player_block_label)
-		pulse_label(player_energy_label)
+		var p_hp_val = $UI/PlayerPanel.get_node_or_null("HPValue")
+		var p_block_lbl = $UI/PlayerPanel.get_node_or_null("BlockLabel")
+		if p_hp_val: pulse_label(p_hp_val)
+		if p_block_lbl: pulse_label(p_block_lbl)
+		if energy_orb_label: pulse_label(energy_orb_label)
 	if pulse_enemy:
 		if selected_enemy_idx >= 0 and selected_enemy_idx < active_enemies.size():
 			var panel = active_enemies[selected_enemy_idx]["panel"]
 			if panel:
-				var hp_lbl = panel.get_node_or_null("VBox/HPLabel")
-				var block_lbl = panel.get_node_or_null("VBox/BlockLabel")
-				if hp_lbl: pulse_label(hp_lbl)
+				var hp_val = panel.get_node_or_null("HPValue")
+				var block_lbl = panel.get_node_or_null("BlockLabel")
+				if hp_val: pulse_label(hp_val)
 				if block_lbl: pulse_label(block_lbl)
 
 func animate_feedback(text: String, is_turn_banner: bool = false) -> void:
 	feedback_label.text = text
 	feedback_label.pivot_offset = feedback_label.size / 2
 	
-	# Position and draw the feedback banners
-	if feedback_banner_bg:
-		if is_turn_banner:
-			feedback_banner_bg.texture = load("res://Assets/UI/turn_banner_400x80.png")
-			feedback_banner_bg.custom_minimum_size = Vector2(400, 80)
-			feedback_banner_bg.size = Vector2(400, 80)
-			feedback_banner_bg.position = feedback_label.position + (feedback_label.size - Vector2(400, 80)) / 2
-			feedback_banner_bg.visible = true
-			feedback_banner_bg.modulate.a = 0.0
-			
-			var tween_bg = create_tween()
-			tween_bg.tween_property(feedback_banner_bg, "modulate:a", 1.0, 0.1)
-			tween_bg.tween_interval(0.3)
-			tween_bg.tween_property(feedback_banner_bg, "modulate:a", 0.0, 0.15)
-			tween_bg.finished.connect(func(): feedback_banner_bg.visible = false)
-		elif text.contains("Victory") or text.contains("Win"):
-			feedback_banner_bg.texture = load("res://Assets/UI/victory_banner_240x48.png")
-			feedback_banner_bg.custom_minimum_size = Vector2(240, 48)
-			feedback_banner_bg.size = Vector2(240, 48)
-			feedback_banner_bg.position = feedback_label.position + (feedback_label.size - Vector2(240, 48)) / 2
-			feedback_banner_bg.visible = true
-			feedback_banner_bg.modulate.a = 1.0
-		elif text.contains("Defeat") or text.contains("Lost"):
-			feedback_banner_bg.texture = load("res://Assets/UI/defeat_banner_240x48.png")
-			feedback_banner_bg.custom_minimum_size = Vector2(240, 48)
-			feedback_banner_bg.size = Vector2(240, 48)
-			feedback_banner_bg.position = feedback_label.position + (feedback_label.size - Vector2(240, 48)) / 2
-			feedback_banner_bg.visible = true
-			feedback_banner_bg.modulate.a = 1.0
-		else:
-			feedback_banner_bg.visible = false
-
+	# Apply pixel font to the feedback label
+	var combat_font = load("res://Assets/Fonts/VT323-Regular.ttf")
+	feedback_label.add_theme_font_override("font", combat_font)
+	
+	var banner_bg = $UI.get_node_or_null("FeedbackBannerBg")
+	if banner_bg:
+		banner_bg.visible = false # Default hide
+		
 	var tween = create_tween()
 	if is_turn_banner:
+		if banner_bg:
+			# RATIONALE: Select the appropriate banner texture based on the feedback text.
+			# turn_banner_400x80 (1207x256 real -> render at 400x80) for turn transitions.
+			# victory_banner_240x48 (583x211 real -> render at 240x48) for victory.
+			# defeat_banner_240x48 (583x211 real -> render at 240x48) for defeat.
+			var tex_path = "res://Assets/UI/turn_banner_400x80.png"
+			var banner_w = 400.0
+			var banner_h = 80.0
+			
+			if "VICTORY" in text.to_upper():
+				tex_path = "res://Assets/UI/victory_banner_240x48.png"
+				banner_w = 240.0
+				banner_h = 48.0
+			elif "DEFEAT" in text.to_upper():
+				tex_path = "res://Assets/UI/defeat_banner_240x48.png"
+				banner_w = 240.0
+				banner_h = 48.0
+			
+			if FileAccess.file_exists(tex_path):
+				banner_bg.texture = load(tex_path)
+				banner_bg.custom_minimum_size = Vector2(banner_w, banner_h)
+				# Center the banner behind the feedback label
+				banner_bg.position = feedback_label.position + (feedback_label.size / 2.0) - Vector2(banner_w / 2.0, banner_h / 2.0)
+				banner_bg.visible = true
+				banner_bg.modulate.a = 0.0
+				
 		feedback_label.scale = Vector2(0.7, 0.7)
 		feedback_label.modulate.a = 0.0
+		
 		tween.tween_property(feedback_label, "modulate:a", 1.0, 0.1)
+		if banner_bg and banner_bg.visible:
+			var tween_bg = create_tween()
+			tween_bg.tween_property(banner_bg, "modulate:a", 1.0, 0.1)
+			
 		tween.tween_property(feedback_label, "scale", Vector2(1.4, 1.4), 0.1)
-		tween.tween_interval(0.3)
+		tween.tween_interval(0.5)
 		tween.tween_property(feedback_label, "modulate:a", 0.8, 0.1)
+		if banner_bg and banner_bg.visible:
+			var tween_bg2 = create_tween()
+			tween_bg2.tween_property(banner_bg, "modulate:a", 0.0, 0.15)
+			
 		tween.tween_property(feedback_label, "scale", Vector2(1.0, 1.0), 0.1)
+		tween.tween_property(feedback_label, "modulate:a", 0.0, 0.15)
 	else:
 		feedback_label.scale = Vector2(1.1, 1.1)
 		tween.tween_property(feedback_label, "scale", Vector2(1.0, 1.0), 0.08)
@@ -1433,15 +1637,52 @@ func _animate_combat_entry() -> void:
 		var e_tween = create_tween()
 		e_tween.tween_property(e_panel, "position:x", target_x, 0.55).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
+func _style_action_button(btn: Button) -> void:
+	if not btn: return
+	var normal = StyleBoxFlat.new()
+	normal.bg_color = Color(0.95, 0.93, 0.88, 0.9) # Warm beige
+	normal.border_width_left = 2
+	normal.border_width_top = 2
+	normal.border_width_right = 2
+	normal.border_width_bottom = 2
+	normal.border_color = Color(0.65, 0.25, 0.15, 0.8) # Sienna border
+	normal.corner_radius_top_left = 4
+	normal.corner_radius_top_right = 4
+	normal.corner_radius_bottom_left = 4
+	normal.corner_radius_bottom_right = 4
+	
+	var hover = normal.duplicate()
+	hover.bg_color = Color(1.0, 0.98, 0.94, 1.0)
+	
+	var pressed = normal.duplicate()
+	pressed.bg_color = Color(0.85, 0.83, 0.78, 1.0)
+	
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("disabled", normal)
+	
+	# Fix text color for contrast
+	btn.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+	btn.add_theme_color_override("font_hover_color", Color(0.12, 0.12, 0.15, 1.0))
+	btn.add_theme_color_override("font_pressed_color", Color(0.12, 0.12, 0.15, 1.0))
+	btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.5, 1.0))
+
 # Creates the Slay the Spire style Energy Orb programmatically.
 func _create_energy_orb() -> void:
 	energy_orb = Panel.new()
-	energy_orb.custom_minimum_size = Vector2(64, 64)
-	energy_orb.position = Vector2(90, 480) # Next to the cards layout
+	energy_orb.custom_minimum_size = Vector2(96, 96)
+	energy_orb.position = Vector2(40, 480) # Moved up by 20 pixels
+	var global_theme = Theme.new()
+	var main_font = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+	if main_font:
+		global_theme.default_font = main_font
+	energy_orb.theme = global_theme # Inherit universal font
 	
-	# Transparent stylebox since CombatVisuals.gd renders the sketchy orb backgrounds
-	var empty_style = StyleBoxEmpty.new()
-	energy_orb.add_theme_stylebox_override("panel", empty_style)
+	var orb_tex = StyleBoxTexture.new()
+	if FileAccess.file_exists("res://Assets/UI/energy_orb_48x48.png"):
+		orb_tex.texture = load("res://Assets/UI/energy_orb_48x48.png")
+	energy_orb.add_theme_stylebox_override("panel", orb_tex)
 	$UI.add_child(energy_orb)
 	
 	energy_orb_label = Label.new()
@@ -1449,13 +1690,10 @@ func _create_energy_orb() -> void:
 	energy_orb_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	energy_orb_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	energy_orb_label.text = "3/3"
-	energy_orb_label.add_theme_font_size_override("font_size", 18)
-	# High contrast bold text with a dark drop shadow for maximum readability over sketchy rays
+	energy_orb_label.add_theme_font_size_override("font_size", 36)
 	energy_orb_label.add_theme_color_override("font_color", Color.WHITE)
-	energy_orb_label.add_theme_color_override("font_shadow_color", Color(0.12, 0.12, 0.15, 1.0))
-	energy_orb_label.add_theme_constant_override("shadow_offset_x", 1)
-	energy_orb_label.add_theme_constant_override("shadow_offset_y", 1)
-	energy_orb_label.add_theme_constant_override("shadow_outline_size", 3)
+	energy_orb_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	energy_orb_label.add_theme_constant_override("outline_size", 4)
 	energy_orb.add_child(energy_orb_label)
 
 # Triggered when n.n.'s introduction dialogue completes.
@@ -1551,7 +1789,16 @@ func _init_stages_data() -> void:
 
 # RATIONALE: Spawns sprites, duplicated panels, and target-select overlays for a specific stage wave index.
 func _start_wave(stage_idx: int) -> void:
+	# RATIONALE: Bounds-check before accessing stages_data to prevent
+	# the out-of-bounds crash when _transition_to_next_wave is called
+	# after the final wave (index == stages_data.size()).
+	if stage_idx >= stages_data.size():
+		push_error("_start_wave: stage_idx %d is out of bounds (size %d)" % [stage_idx, stages_data.size()])
+		return
 	current_stage_idx = stage_idx
+	
+	if stage_idx == 0 and enemy_name == "Castle Boss":
+		EventBus.play_sound.emit("gears_loop")
 	
 	# Clean up any existing nodes from a previous wave stage.
 	for enemy in active_enemies:
@@ -1561,6 +1808,10 @@ func _start_wave(stage_idx: int) -> void:
 			enemy["panel"].queue_free()
 		if enemy.get("target_btn") and is_instance_valid(enemy["target_btn"]):
 			enemy["target_btn"].queue_free()
+		if enemy.get("arrow") and is_instance_valid(enemy["arrow"]):
+			enemy["arrow"].queue_free()
+		if enemy.get("intent_hbox") and is_instance_valid(enemy["intent_hbox"]):
+			enemy["intent_hbox"].queue_free()
 			
 	active_enemies.clear()
 	
@@ -1572,9 +1823,9 @@ func _start_wave(stage_idx: int) -> void:
 	if enemy_count == 1:
 		x_coords = [850]
 	elif enemy_count == 2:
-		x_coords = [750, 950]
+		x_coords = [720, 980] # Widened to prevent overlapping HUDs
 	elif enemy_count == 3:
-		x_coords = [700, 850, 1000]
+		x_coords = [600, 820, 1040] # Widened to completely prevent overlapping HUDs
 		
 	# Instantiate each wave enemy's sprite, stat panel, and click target.
 	for i in range(enemy_count):
@@ -1598,40 +1849,91 @@ func _start_wave(stage_idx: int) -> void:
 		
 		# Programmatically spawn the enemy sprite facing left (flipped).
 		var sprite = Sprite2D.new()
-		
-		# RATIONALE: Determine enemy sprite texture based on the configuration name.
-		var enemy_name_str = conf.get("name", "")
-		var tex_path = "res://Assets/Sprites/Monster1.png"
-		if enemy_name_str == "Castle Boss":
-			tex_path = "res://Assets/Sprites/Monster1.png"
-		elif enemy_name_str == "Sentry":
-			tex_path = "res://Assets/Sprites/Monster2.png"
-		elif enemy_name_str == "Pack Leader":
-			tex_path = "res://Assets/Sprites/PACKLEADER.png"
-		elif enemy_name_str in ["Beta Wolf", "Feral Wolf"]:
-			tex_path = "res://Assets/Sprites/PACKLEADER 2.png"
-			
-		sprite.texture = load(tex_path)
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		sprite.scale = Vector2(1.8, 1.8) # matches standard environment pixel scaling
-		sprite.position = Vector2(x_coords[i], 360)
+		
+		# Map conf["name"] to correct custom texture path
+		var texture_path = "res://Assets/Sprites/Monster1.png"
+		var name_lower = conf["name"].to_lower()
+		if "sentry" in name_lower:
+			texture_path = "res://Assets/Sprites/Monster2.png"
+		elif "pack leader" in name_lower:
+			texture_path = "res://Assets/Sprites/PACKLEADER.png"
+		elif "wolf" in name_lower:
+			texture_path = "res://Assets/Sprites/PACKLEADER 2.png"
+			
+		if FileAccess.file_exists(texture_path):
+			sprite.texture = load(texture_path)
+		else:
+			if FileAccess.file_exists("res://Assets/Sprites/Monster1.png"):
+				sprite.texture = load("res://Assets/Sprites/Monster1.png")
+			
+		# RATIONALE: All monster sprites are 256x256 real pixels.
+		# Standard enemies render at ~96px (scale 0.375), bosses/pack leaders at ~128px (scale 0.5).
+		# Significantly increased enemy scale
+		var base_scale = Vector2(0.7, 0.7)
+		if "pack leader" in name_lower or "boss" in name_lower:
+			base_scale = Vector2(1.0, 1.0)
+		sprite.scale = base_scale
+			
+		sprite.position = Vector2(x_coords[i], 310) # Lowered to exactly match Hilbert's Y level
 		sprite.flip_h = true
-		add_child(sprite)
+		sprite.z_index = 10
+		$UI.add_child(sprite) # Reparent to UI layer to guarantee visibility
 		enemy_data["sprite"] = sprite
 		
-		# Programmatically duplicate the template EnemyPanel for clean sienna styling layout.
+		# Place the HUD panel directly above the specific enemy sprite
 		var panel = $UI/EnemyPanel.duplicate()
 		panel.visible = true
-		panel.position = Vector2(x_coords[i] - 80, 430) # sit directly under the enemy sprite
-		panel.custom_minimum_size = Vector2(160, 50)
-		panel.size = Vector2(160, 50)
+		panel.size = Vector2(220, 75)
+		panel.position = Vector2(x_coords[i] - (panel.size.x / 2), 110) # Fixed level vertically!
+		
+		# Set the exact enemy portrait
+		var portrait = panel.get_node_or_null("Portrait")
+		if portrait and FileAccess.file_exists(texture_path):
+			portrait.texture = load(texture_path)
+			
 		$UI.add_child(panel)
 		enemy_data["panel"] = panel
 		
+		# Programmatically spawn a floating targeting arrow for selection animation
+		var arrow = Sprite2D.new()
+		if FileAccess.file_exists("res://Assets/UI/targeting_arrow_32x32.png"):
+			arrow.texture = load("res://Assets/UI/targeting_arrow_32x32.png")
+		arrow.position = Vector2(x_coords[i], 160)
+		arrow.scale = Vector2(0.5, 0.5) # Shrink the size of the arrow like before
+		arrow.visible = false
+		$UI.add_child(arrow)
+		enemy_data["arrow"] = arrow
+		
 		# Programmatically spawn a transparent overlay button covering the sprite to detect target clicks.
 		var target_btn = Button.new()
-		target_btn.size = Vector2(160, 240)
-		target_btn.position = Vector2(x_coords[i] - 80, 240)
+		target_btn.size = Vector2(130, 130) # Tightly hugs the sprite so hovering empty space doesn't trigger it!
+		target_btn.position = Vector2(x_coords[i] - 65, 245) # Centered tightly around the sprite at Y=310
+		
+		var idx_closure = i
+		target_btn.mouse_entered.connect(func():
+			if current_state == State.PLAYER_ACTION and is_instance_valid(sprite) and active_enemies[idx_closure]["hp"] > 0:
+				sprite.modulate = Color(1.5, 1.5, 1.5)
+				sprite.scale = base_scale * 1.1 # Scale accurately from base_scale!
+				if is_instance_valid(arrow):
+					if arrow.has_meta("tween") and is_instance_valid(arrow.get_meta("tween")):
+						arrow.get_meta("tween").kill()
+					arrow.visible = true
+					arrow.position.y = 160.0
+					var tween = create_tween().set_loops()
+					tween.tween_property(arrow, "position:y", 175.0, 0.4).set_trans(Tween.TRANS_SINE)
+					tween.tween_property(arrow, "position:y", 160.0, 0.4).set_trans(Tween.TRANS_SINE)
+					arrow.set_meta("tween", tween)
+		)
+		target_btn.mouse_exited.connect(func():
+			if is_instance_valid(sprite):
+				sprite.modulate = Color(1.0, 1.0, 1.0)
+				sprite.scale = base_scale # Return to original base scale!
+			if is_instance_valid(arrow):
+				arrow.visible = false
+				if arrow.has_meta("tween") and is_instance_valid(arrow.get_meta("tween")):
+					arrow.get_meta("tween").kill()
+		)
 		var empty_style = StyleBoxEmpty.new()
 		target_btn.add_theme_stylebox_override("normal", empty_style)
 		target_btn.add_theme_stylebox_override("hover", empty_style)
@@ -1642,7 +1944,6 @@ func _start_wave(stage_idx: int) -> void:
 		add_child(target_btn)
 		enemy_data["target_btn"] = target_btn
 		
-		var idx_closure = i
 		target_btn.pressed.connect(func(): _on_enemy_clicked(idx_closure))
 		
 		active_enemies.append(enemy_data)
@@ -1673,6 +1974,11 @@ func _auto_select_alive_enemy() -> void:
 
 # RATIONALE: Verifies if all active enemies of the current stage wave are defeated.
 func _check_wave_victory() -> bool:
+	# RATIONALE: An empty active_enemies array is not a victory condition.
+	# It occurs during scene init before _start_wave has populated enemies.
+	# Returning false here prevents spurious wave-advance calls on load.
+	if active_enemies.is_empty():
+		return false
 	for enemy in active_enemies:
 		if enemy["hp"] > 0:
 			return false
@@ -1721,29 +2027,26 @@ func _create_top_bar() -> void:
 	
 	deck_booklet_btn = Button.new()
 	deck_booklet_btn.name = "DeckBookletBtn"
-	deck_booklet_btn.text = "Deck Booklet"
-	deck_booklet_btn.position = Vector2(950, 10)
-	deck_booklet_btn.size = Vector2(150, 30)
+	deck_booklet_btn.text = ""
+	deck_booklet_btn.position = Vector2(20, 580) # Extreme bottom left corner
+	deck_booklet_btn.size = Vector2(48, 48)
 	
-	var btn_style_normal = StyleBoxFlat.new()
-	btn_style_normal.bg_color = Color(0.92, 0.90, 0.84, 0.8)
-	btn_style_normal.border_width_left = 1
-	btn_style_normal.border_width_top = 1
-	btn_style_normal.border_width_right = 1
-	btn_style_normal.border_width_bottom = 1
-	btn_style_normal.border_color = Color(0.12, 0.12, 0.15, 0.25)
-	
+	var btn_style_normal = StyleBoxTexture.new()
+	var icon_path = "res://Assets/UI/card_pile_icon_32x32.png"
+	if FileAccess.file_exists(icon_path):
+		btn_style_normal.texture = load(icon_path)
 	var btn_style_hover = btn_style_normal.duplicate()
-	btn_style_hover.bg_color = Color(0.97, 0.95, 0.90, 0.9)
-	btn_style_hover.border_color = Color(0.65, 0.25, 0.15, 0.5)
+	btn_style_hover.modulate_color = Color(1.2, 1.2, 1.2, 1.0)
+	var btn_style_pressed = btn_style_normal.duplicate()
+	btn_style_pressed.modulate_color = Color(0.8, 0.8, 0.8, 1.0)
 	
 	deck_booklet_btn.add_theme_stylebox_override("normal", btn_style_normal)
 	deck_booklet_btn.add_theme_stylebox_override("hover", btn_style_hover)
-	deck_booklet_btn.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
-	deck_booklet_btn.add_theme_color_override("font_hover_color", Color(0.65, 0.25, 0.15, 1.0))
+	deck_booklet_btn.add_theme_stylebox_override("pressed", btn_style_pressed)
+	deck_booklet_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	
 	deck_booklet_btn.pressed.connect(_toggle_deck_viewer)
-	top_bar.add_child(deck_booklet_btn)
+	$UI.add_child(deck_booklet_btn)
 
 # RATIONALE: Creates a booklet modal popup rendering on a separate high CanvasLayer (92),
 # ensuring input events are never captured when the panel is set to invisible.
@@ -1758,6 +2061,11 @@ func _create_deck_viewer() -> void:
 	deck_viewer_panel.size = Vector2(752, 450)
 	deck_viewer_panel.visible = false
 	deck_viewer_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var global_theme = Theme.new()
+	var main_font = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+	if main_font:
+		global_theme.default_font = main_font
+	deck_viewer_panel.theme = global_theme
 	
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.95, 0.93, 0.88, 0.95)
@@ -1828,7 +2136,7 @@ func _create_deck_viewer() -> void:
 	deck_viewer_panel.add_child(deck_scroll_container)
 	
 	deck_grid = GridContainer.new()
-	deck_grid.columns = 4
+	deck_grid.columns = 6
 	deck_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	deck_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	deck_grid.add_theme_constant_override("h_separation", 15)
@@ -1849,45 +2157,64 @@ func _render_deck_grid(pile_name: String) -> void:
 	elif pile_name == "Discard":
 		pile = DeckManager.discard_pile
 		
+	var card_font_main = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+	
 	for card in pile:
-		var card_panel = Panel.new()
-		card_panel.custom_minimum_size = Vector2(160, 100)
+		var btn = Button.new()
+		btn.custom_minimum_size = Vector2(98, 140)
+		btn.size = Vector2(98, 140)
+		btn.text = "" 
 		
-		var panel_style = StyleBoxFlat.new()
-		panel_style.bg_color = Color(0.96, 0.95, 0.92, 1.0)
-		panel_style.border_width_left = 2
-		panel_style.border_width_top = 2
-		panel_style.border_width_right = 2
-		panel_style.border_width_bottom = 2
+		var card_img_name = card.card_name.to_lower().replace(" ", "_")
+		var illustration_path = "res://Assets/Cards/" + card_img_name + ".png"
 		
-		var border_color = Color(0.4, 0.4, 0.4, 0.6)
-		if card.card_type == "Attack":
-			border_color = Color(0.8, 0.3, 0.3, 0.6)
-		elif card.card_type == "Defense":
-			border_color = Color(0.3, 0.5, 0.8, 0.6)
-		elif card.card_type == "Special":
-			border_color = Color(0.8, 0.55, 0.2, 0.6)
-		panel_style.border_color = border_color
+		var style_normal = StyleBoxTexture.new()
+		if FileAccess.file_exists(illustration_path):
+			style_normal.texture = load(illustration_path)
+		else:
+			var style_fallback = StyleBoxFlat.new()
+			style_fallback.bg_color = Color(0.95, 0.93, 0.88, 0.95)
+			style_fallback.border_width_left = 2
+			style_fallback.border_width_top = 2
+			style_fallback.border_width_right = 2
+			style_fallback.border_width_bottom = 2
+			style_fallback.border_color = Color(0.12, 0.12, 0.15, 0.25)
+			style_normal = style_fallback
+			
+		var style_hover = style_normal.duplicate()
+		if style_hover is StyleBoxTexture:
+			style_hover.modulate_color = Color(1.1, 1.1, 1.1, 1.0)
+		else:
+			style_hover.bg_color = Color(0.99, 0.98, 0.95, 1.0)
+			
+		var style_pressed = style_normal.duplicate()
+		if style_pressed is StyleBoxTexture:
+			style_pressed.modulate_color = Color(0.85, 0.85, 0.85, 1.0)
+		else:
+			style_pressed.bg_color = Color(0.85, 0.83, 0.78, 1.0)
+			
+		btn.add_theme_stylebox_override("normal", style_normal)
+		btn.add_theme_stylebox_override("hover", style_hover)
+		btn.add_theme_stylebox_override("pressed", style_pressed)
+		btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 		
-		card_panel.add_theme_stylebox_override("panel", panel_style)
-		deck_grid.add_child(card_panel)
+		# Add title text to top of booklet cards
+		var title_lbl = Label.new()
+		title_lbl.text = card.card_name
+		if card_font_main:
+			title_lbl.add_theme_font_override("font", card_font_main)
+		title_lbl.add_theme_font_size_override("font_size", 10)
+		title_lbl.add_theme_color_override("font_color", Color.WHITE)
+		title_lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
+		title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		title_lbl.position = Vector2(0, 8)
+		title_lbl.size = Vector2(98, 20)
+		btn.add_child(title_lbl)
 		
-		var name_lbl = Label.new()
-		name_lbl.text = card.card_name + " (" + str(card.energy_cost) + "E)"
-		name_lbl.position = Vector2(10, 10)
-		name_lbl.size = Vector2(140, 20)
-		name_lbl.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
-		name_lbl.add_theme_font_size_override("font_size", 14)
-		card_panel.add_child(name_lbl)
+		# Booklet cards show their effect via tooltip
+		btn.tooltip_text = card.description
 		
-		var desc_lbl = Label.new()
-		desc_lbl.text = card.description
-		desc_lbl.position = Vector2(10, 40)
-		desc_lbl.size = Vector2(140, 50)
-		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4, 1.0))
-		desc_lbl.add_theme_font_size_override("font_size", 11)
-		card_panel.add_child(desc_lbl)
+		deck_grid.add_child(btn)
 
 # RATIONALE: Toggles visibility of the booklet deck viewer panel.
 func _toggle_deck_viewer() -> void:
@@ -1943,6 +2270,7 @@ func damage_enemy(idx: int, amount: int) -> void:
 func clear_enemy_block(idx: int) -> void:
 	if idx < 0 or idx >= active_enemies.size():
 		return
+	EventBus.play_sound.emit("block_break")
 	active_enemies[idx]["block"] = 0
 	animate_feedback("Heavy Slash breaks through the defense of " + active_enemies[idx]["name"] + "!")
 	update_stats_pulsed(false, true)

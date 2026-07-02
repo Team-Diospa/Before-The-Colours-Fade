@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cljirxug15uoq"
+path="res://.godot/imported/sfx_lighter.mp3-e2674054981795a172f752b349611b5d.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/sfx_lighter.mp3"
+dest_files=["res://.godot/imported/sfx_lighter.mp3-e2674054981795a172f752b349611b5d.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

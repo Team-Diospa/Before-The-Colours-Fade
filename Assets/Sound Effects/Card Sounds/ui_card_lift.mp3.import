@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://qo735w7wn4oa"
+path="res://.godot/imported/ui_card_lift.mp3-9083f93f958ef33380b2690f41c83acd.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Card Sounds/ui_card_lift.mp3"
+dest_files=["res://.godot/imported/ui_card_lift.mp3-9083f93f958ef33380b2690f41c83acd.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

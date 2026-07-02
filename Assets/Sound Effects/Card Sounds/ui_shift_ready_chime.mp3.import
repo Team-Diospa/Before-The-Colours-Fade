@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b3m3hv1fe4td4"
+path="res://.godot/imported/ui_shift_ready_chime.mp3-57bb852a6370cdb7a505172bce6ed131.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Card Sounds/ui_shift_ready_chime.mp3"
+dest_files=["res://.godot/imported/ui_shift_ready_chime.mp3-57bb852a6370cdb7a505172bce6ed131.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bqd2ocorsidv6"
+path="res://.godot/imported/metal_clamp.mp3-260c9921e766dbed2fd2876215054519.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Combat Deck/metal_clamp.mp3"
+dest_files=["res://.godot/imported/metal_clamp.mp3-260c9921e766dbed2fd2876215054519.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://o4tutet24j72"
+path="res://.godot/imported/amb_college_hallway.mp3-1be42df22ffe96c0d56ccd6c6c14f63d.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/amb_college_hallway.mp3"
+dest_files=["res://.godot/imported/amb_college_hallway.mp3-1be42df22ffe96c0d56ccd6c6c14f63d.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

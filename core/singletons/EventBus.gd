@@ -25,4 +25,5 @@ signal fragment_used(problem_id: String)
 
 # Audio and Visual Effects Signals
 signal play_sound(sound_name: String)
+signal stop_sound(sound_name: String)
 signal trigger_visual_effect(effect_name: String)

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dk4j6knj7h6m1"
+path="res://.godot/imported/amb_20hz_bass (too loud, lower the volume a lot please).mp3-5d6856c3e51a38525b9ef37eda0881f0.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/amb_20hz_bass (too loud, lower the volume a lot please).mp3"
+dest_files=["res://.godot/imported/amb_20hz_bass (too loud, lower the volume a lot please).mp3-5d6856c3e51a38525b9ef37eda0881f0.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

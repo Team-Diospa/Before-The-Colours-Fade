@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://4b7fnx0hndgx"
+path="res://.godot/imported/ui_card_shuffle.mp3-b28ba9bf77ead2f02db3c62b6fc197ee.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Card Sounds/ui_card_shuffle.mp3"
+dest_files=["res://.godot/imported/ui_card_shuffle.mp3-b28ba9bf77ead2f02db3c62b6fc197ee.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

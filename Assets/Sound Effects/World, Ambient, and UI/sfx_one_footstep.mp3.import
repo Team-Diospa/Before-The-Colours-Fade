@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bdvtn4dupnr3s"
+path="res://.godot/imported/sfx_one_footstep.mp3-5c50748dd52205efee8d6134d7a804da.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/World, Ambient, and UI/sfx_one_footstep.mp3"
+dest_files=["res://.godot/imported/sfx_one_footstep.mp3-5c50748dd52205efee8d6134d7a804da.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

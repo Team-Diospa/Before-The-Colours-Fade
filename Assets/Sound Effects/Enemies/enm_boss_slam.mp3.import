@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://calkodhp6k8s"
+path="res://.godot/imported/enm_boss_slam.mp3-4526a9f9c647ef8f2bf226ca41d17814.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Enemies/enm_boss_slam.mp3"
+dest_files=["res://.godot/imported/enm_boss_slam.mp3-4526a9f9c647ef8f2bf226ca41d17814.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

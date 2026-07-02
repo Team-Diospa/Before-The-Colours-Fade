@@ -1,52 +1,93 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://gst2tu8r1w7b"]
 
-[ext_resource type="Script" path="res://scenes/exploration/hallway.gd" id="1_hall"]
+[ext_resource type="Script" uid="uid://bb0way80pdcgt" path="res://scenes/exploration/hallway.gd" id="1_hall"]
+[ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="10_interact"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/npc.png" id="11_npc"]
 [ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
-[ext_resource type="Texture2D" path="res://Assets/Environments/HALLWAY3.png" id="3_hallway"]
+[ext_resource type="Texture2D" uid="uid://ddbwci0mp2ivt" path="res://Assets/Environments/HALLWAY3.png" id="3_hall_bottom"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hall_trigger"]
 size = Vector2(80, 200)
 
-[node name="Hallway" type="Node2D"]
+[node name="Hallway" type="Node2D" unique_id=2062354250]
 script = ExtResource("1_hall")
 
-[node name="HallwayBackground" type="Sprite2D" parent="."]
+[node name="HallwayBottom" type="Sprite2D" parent="." unique_id=263208232]
 texture_filter = 1
 position = Vector2(600, 324)
 scale = Vector2(1.875, 1.875)
-texture = ExtResource("3_hallway")
+texture = ExtResource("3_hall_bottom")
 
-[node name="Player" parent="." instance=ExtResource("2_player")]
-position = Vector2(100, 520)
+[node name="Player" parent="." unique_id=2060877902 instance=ExtResource("2_player")]
+position = Vector2(-722, 376)
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
-limit_left = 0
-limit_right = 1200
-limit_bottom = 648
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=212908330]
+limit_left = -795
+limit_top = -9999902
+limit_right = 2009
+limit_bottom = 642
 
-[node name="LeftWall" type="StaticBody2D" parent="."]
+[node name="LeftWall" type="StaticBody2D" parent="." unique_id=1390494320]
+position = Vector2(-790, -84)
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="LeftWall"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="LeftWall" unique_id=1179860036]
+position = Vector2(9, 23)
 polygon = PackedVector2Array(0, 0, -20, 0, -20, 648, 0, 648)
 
-[node name="RightWall" type="StaticBody2D" parent="."]
-position = Vector2(1200, 0)
+[node name="RightWall" type="StaticBody2D" parent="." unique_id=208482530]
+position = Vector2(2001, 20)
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RightWall"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RightWall" unique_id=452854886]
 polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
 
-[node name="PanicTrigger" type="Area2D" parent="."]
-position = Vector2(600, 500)
-collision_layer = 1
-collision_mask = 1
+[node name="PanicTrigger" type="Area2D" parent="." unique_id=294252017]
+position = Vector2(1899, 420)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PanicTrigger"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PanicTrigger" unique_id=1607875575]
 position = Vector2(0, -50)
 shape = SubResource("RectangleShape2D_hall_trigger")
 
-[node name="TriggerVisual" type="ColorRect" parent="PanicTrigger"]
+[node name="TriggerVisual" type="ColorRect" parent="PanicTrigger" unique_id=1555033190]
 offset_left = -40.0
 offset_top = -150.0
 offset_right = 40.0
 offset_bottom = 50.0
 color = Color(0.9, 0.3, 0.3, 0.2)
+metadata/_edit_use_anchors_ = true
+
+[node name="Board" parent="." instance=ExtResource("10_interact")]
+position = Vector2(200, 490)
+interaction_id = "board"
+prompt_message = "Press E to read Bulletin Board"
+
+[node name="PeerA" parent="." instance=ExtResource("10_interact")]
+position = Vector2(350, 490)
+interaction_id = "peer_a"
+prompt_message = "Press E to talk to Student"
+
+[node name="Sprite2D" type="Sprite2D" parent="PeerA"]
+texture_filter = 1
+position = Vector2(0, -45)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("11_npc")
+
+[node name="PeerB" parent="." instance=ExtResource("10_interact")]
+position = Vector2(550, 490)
+interaction_id = "peer_b"
+prompt_message = "Press E to talk to Student"
+
+[node name="Sprite2D" type="Sprite2D" parent="PeerB"]
+texture_filter = 1
+position = Vector2(0, -45)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("11_npc")
+
+[node name="Fountain" parent="." instance=ExtResource("10_interact")]
+position = Vector2(700, 490)
+interaction_id = "fountain"
+prompt_message = "Press E to use Water Fountain"
+
+[node name="AptDoor" parent="." instance=ExtResource("10_interact")]
+position = Vector2(50, 490)
+interaction_id = "apt_door"
+prompt_message = "Press E to look at Exit"

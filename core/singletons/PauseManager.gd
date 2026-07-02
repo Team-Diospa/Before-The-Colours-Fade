@@ -14,10 +14,15 @@ var _is_paused: bool = false
 const SETTINGS_PATH: String = "user://settings.json"
 var _vbox: VBoxContainer
 var _settings_vbox: VBoxContainer
-var _volume_slider: HSlider
+var _music_slider: HSlider
+var _sfx_slider: HSlider
 var _status_lbl: Label
 var _load_game_btn: Button
 var _save_game_btn: Button
+
+# Custom Fonts
+var font_main = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
 
 func _ready() -> void:
 	# RATIONALE: PROCESS_MODE_ALWAYS is required so _input continues to fire after
@@ -63,16 +68,18 @@ func _ready() -> void:
 	inner.offset_right = 140.0
 	inner.offset_bottom = 140.0
 	
-	# RATIONALE: Use StyleBoxTexture for non-stretching modular panel borders.
-	# Slicing margins set to 12px, axis stretch mode set to TILE_FIT to keep pixel art crisp.
-	var inner_style = StyleBoxTexture.new()
-	inner_style.texture = load("res://Assets/Menu and Settings/UI/9-patch_slice_menu.png")
-	inner_style.texture_margin_left = 12
-	inner_style.texture_margin_right = 12
-	inner_style.texture_margin_top = 12
-	inner_style.texture_margin_bottom = 12
-	inner_style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-	inner_style.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	var inner_style = StyleBoxFlat.new()
+	inner_style.bg_color = Color(0.06, 0.06, 0.09, 0.88)
+	inner_style.border_width_left = 1
+	inner_style.border_width_top = 1
+	inner_style.border_width_right = 1
+	inner_style.border_width_bottom = 1
+	inner_style.border_color = Color(1.0, 1.0, 1.0, 0.12)
+	inner_style.corner_radius_top_left = 0
+	inner_style.corner_radius_top_right = 0
+	inner_style.corner_radius_bottom_left = 0
+	inner_style.corner_radius_bottom_right = 0
+	inner_style.anti_aliasing = false
 	inner.add_theme_stylebox_override("panel", inner_style)
 	_overlay.add_child(inner)
 	
@@ -89,17 +96,11 @@ func _ready() -> void:
 	_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	margin.add_child(_vbox)
 	
-	var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
-	var font_main = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
-	
 	var title_lbl = Label.new()
 	title_lbl.text = "Paused"
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	if font_retro:
-		title_lbl.add_theme_font_override("font", font_retro)
-		title_lbl.add_theme_font_size_override("font_size", 24)
-	else:
-		title_lbl.add_theme_font_size_override("font_size", 18)
+	title_lbl.add_theme_font_override("font", font_retro)
+	title_lbl.add_theme_font_size_override("font_size", 22)
 	title_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
 	_vbox.add_child(title_lbl)
 	
@@ -144,11 +145,8 @@ func _ready() -> void:
 	var s_title_lbl = Label.new()
 	s_title_lbl.text = "Settings"
 	s_title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	if font_retro:
-		s_title_lbl.add_theme_font_override("font", font_retro)
-		s_title_lbl.add_theme_font_size_override("font_size", 24)
-	else:
-		s_title_lbl.add_theme_font_size_override("font_size", 18)
+	s_title_lbl.add_theme_font_override("font", font_retro)
+	s_title_lbl.add_theme_font_size_override("font_size", 22)
 	s_title_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
 	_settings_vbox.add_child(s_title_lbl)
 	
@@ -157,56 +155,100 @@ func _ready() -> void:
 	_settings_vbox.add_child(s_spacer)
 	
 	# Volume Control Container
-	var vol_hbox = HBoxContainer.new()
+	var vol_hbox = VBoxContainer.new()
 	vol_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	_settings_vbox.add_child(vol_hbox)
 	
-	var vol_lbl = Label.new()
-	vol_lbl.text = "Vol: "
-	vol_lbl.add_theme_font_size_override("font_size", 13)
-	vol_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
-	vol_hbox.add_child(vol_lbl)
-	
-	_volume_slider = HSlider.new()
-	_volume_slider.min_value = 0.0
-	_volume_slider.max_value = 1.0
-	_volume_slider.step = 0.05
-	_volume_slider.custom_minimum_size = Vector2(130, 20)
-	_volume_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_volume_slider.value_changed.connect(_on_volume_changed)
-	
-	# RATIONALE: Style volume slider using custom slider textures.
-	var knob_tex = load("res://Assets/Menu and Settings/UI/slider_knob.png")
-	var track_empty_tex = load("res://Assets/Menu and Settings/UI/slider_track_empty.png")
-	var track_full_tex = load("res://Assets/Menu and Settings/UI/slider_track_full.png")
-	
-	if knob_tex:
-		_volume_slider.add_theme_icon_override("grabber", knob_tex)
-		_volume_slider.add_theme_icon_override("grabber_highlight", knob_tex)
+	# Load volume slider textures for customized grabber and track if they exist
+	var grabber_tex = null
+	if FileAccess.file_exists("res://Assets/Menu and Settings/UI/slider_knob.png"):
+		grabber_tex = load("res://Assets/Menu and Settings/UI/slider_knob.png")
 		
-	if track_empty_tex:
-		var style_empty = StyleBoxTexture.new()
-		style_empty.texture = track_empty_tex
-		style_empty.texture_margin_left = 3
-		style_empty.texture_margin_right = 3
-		style_empty.texture_margin_top = 3
-		style_empty.texture_margin_bottom = 3
-		style_empty.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		style_empty.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		_volume_slider.add_theme_stylebox_override("slider", style_empty)
+	var track_empty_style = StyleBoxEmpty.new()
+	if FileAccess.file_exists("res://Assets/Menu and Settings/UI/slider_track_empty.png"):
+		var tex = load("res://Assets/Menu and Settings/UI/slider_track_empty.png")
+		var s = StyleBoxTexture.new()
+		s.texture = tex
+		s.texture_margin_left = 3
+		s.texture_margin_right = 3
+		s.texture_margin_top = 3
+		s.texture_margin_bottom = 3
+		track_empty_style = s
 		
-	if track_full_tex:
-		var style_full = StyleBoxTexture.new()
-		style_full.texture = track_full_tex
-		style_full.texture_margin_left = 3
-		style_full.texture_margin_right = 3
-		style_full.texture_margin_top = 3
-		style_full.texture_margin_bottom = 3
-		style_full.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		style_full.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		_volume_slider.add_theme_stylebox_override("area", style_full)
+	var track_full_style = StyleBoxEmpty.new()
+	if FileAccess.file_exists("res://Assets/Menu and Settings/UI/slider_track_full.png"):
+		var tex = load("res://Assets/Menu and Settings/UI/slider_track_full.png")
+		var s = StyleBoxTexture.new()
+		s.texture = tex
+		s.texture_margin_left = 3
+		s.texture_margin_right = 3
+		s.texture_margin_top = 3
+		s.texture_margin_bottom = 3
+		track_full_style = s
+	
+	# Music Volume
+	var music_hbox = HBoxContainer.new()
+	music_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vol_hbox.add_child(music_hbox)
+	
+	var m_lbl = Label.new()
+	m_lbl.text = "Music: "
+	m_lbl.add_theme_font_override("font", font_retro)
+	m_lbl.add_theme_font_size_override("font_size", 14)
+	m_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
+	music_hbox.add_child(m_lbl)
+	
+	_music_slider = HSlider.new()
+	_music_slider.min_value = 0.0
+	_music_slider.max_value = 1.0
+	_music_slider.step = 0.05
+	_music_slider.custom_minimum_size = Vector2(130, 20)
+	_music_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_music_slider.value_changed.connect(_on_music_volume_changed)
+	
+	if grabber_tex:
+		_music_slider.add_theme_icon_override("grabber", grabber_tex)
+		_music_slider.add_theme_icon_override("grabber_highlight", grabber_tex)
+	if not track_empty_style is StyleBoxEmpty:
+		_music_slider.add_theme_stylebox_override("slider", track_empty_style)
+	if not track_full_style is StyleBoxEmpty:
+		_music_slider.add_theme_stylebox_override("area", track_full_style)
 		
-	vol_hbox.add_child(_volume_slider)
+	music_hbox.add_child(_music_slider)
+	
+	var m_gap = Control.new()
+	m_gap.custom_minimum_size.y = 4
+	vol_hbox.add_child(m_gap)
+	
+	# SFX Volume
+	var sfx_hbox = HBoxContainer.new()
+	sfx_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vol_hbox.add_child(sfx_hbox)
+	
+	var s_lbl = Label.new()
+	s_lbl.text = "SFX:   "
+	s_lbl.add_theme_font_override("font", font_retro)
+	s_lbl.add_theme_font_size_override("font_size", 14)
+	s_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
+	sfx_hbox.add_child(s_lbl)
+	
+	_sfx_slider = HSlider.new()
+	_sfx_slider.min_value = 0.0
+	_sfx_slider.max_value = 1.0
+	_sfx_slider.step = 0.05
+	_sfx_slider.custom_minimum_size = Vector2(130, 20)
+	_sfx_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_sfx_slider.value_changed.connect(_on_sfx_volume_changed)
+	
+	if grabber_tex:
+		_sfx_slider.add_theme_icon_override("grabber", grabber_tex)
+		_sfx_slider.add_theme_icon_override("grabber_highlight", grabber_tex)
+	if not track_empty_style is StyleBoxEmpty:
+		_sfx_slider.add_theme_stylebox_override("slider", track_empty_style)
+	if not track_full_style is StyleBoxEmpty:
+		_sfx_slider.add_theme_stylebox_override("area", track_full_style)
+		
+	sfx_hbox.add_child(_sfx_slider)
 	
 	var vol_gap = Control.new()
 	vol_gap.custom_minimum_size.y = 8
@@ -234,63 +276,45 @@ func _ready() -> void:
 	
 	_status_lbl = Label.new()
 	_status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_lbl.add_theme_font_size_override("font_size", 10)
+	_status_lbl.add_theme_font_override("font", font_main)
+	_status_lbl.add_theme_font_size_override("font_size", 11)
 	_status_lbl.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7, 1.0))
 	_settings_vbox.add_child(_status_lbl)
 
 func _make_pause_button(label_text: String) -> Button:
-	# RATIONALE: Style button using StyleBoxTexture to prevent pixel art distortion.
-	# Uses the modular reality button frames with tiled stretch mode (4px margin).
+	# Consistent button style with DialogueSystem and main_menu.
 	var btn = Button.new()
 	btn.text = label_text
+	btn.add_theme_font_override("font", font_retro)
+	btn.add_theme_font_size_override("font_size", 14)
 	
-	var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
-	if font_retro:
-		btn.add_theme_font_override("font", font_retro)
-		btn.add_theme_font_size_override("font_size", 16)
-	else:
-		btn.add_theme_font_size_override("font_size", 13)
+	var style_normal = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.1, 0.1, 0.14, 0.6)
+	style_normal.border_width_left = 1
+	style_normal.border_width_top = 1
+	style_normal.border_width_right = 1
+	style_normal.border_width_bottom = 1
+	style_normal.border_color = Color(1.0, 1.0, 1.0, 0.15)
+	style_normal.corner_radius_top_left = 0
+	style_normal.corner_radius_top_right = 0
+	style_normal.corner_radius_bottom_left = 0
+	style_normal.corner_radius_bottom_right = 0
+	style_normal.anti_aliasing = false
 	
-	var style_normal = StyleBoxTexture.new()
-	style_normal.texture = load("res://Assets/UI/reality_button_32x12_default.png")
-	style_normal.texture_margin_left = 4
-	style_normal.texture_margin_right = 4
-	style_normal.texture_margin_top = 4
-	style_normal.texture_margin_bottom = 4
-	style_normal.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-	style_normal.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	var style_hover = style_normal.duplicate()
+	style_hover.bg_color = Color(0.18, 0.18, 0.24, 0.7)
+	style_hover.border_color = Color(0.8, 0.8, 0.8, 0.4)
 	
-	var style_hover = StyleBoxTexture.new()
-	style_hover.texture = load("res://Assets/UI/reality_button_32x12_hover.png")
-	style_hover.texture_margin_left = 4
-	style_hover.texture_margin_right = 4
-	style_hover.texture_margin_top = 4
-	style_hover.texture_margin_bottom = 4
-	style_hover.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-	style_hover.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-	
-	var style_pressed = StyleBoxTexture.new()
-	style_pressed.texture = load("res://Assets/UI/reality_button_32x12_pressed.png")
-	style_pressed.texture_margin_left = 4
-	style_pressed.texture_margin_right = 4
-	style_pressed.texture_margin_top = 4
-	style_pressed.texture_margin_bottom = 4
-	style_pressed.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-	style_pressed.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-	
-	var style_disabled = style_normal.duplicate()
-	style_disabled.modulate_color = Color(0.5, 0.5, 0.5, 0.5)
+	var style_pressed = style_normal.duplicate()
+	style_pressed.bg_color = Color(0.05, 0.05, 0.07, 0.8)
 	
 	btn.add_theme_stylebox_override("normal", style_normal)
 	btn.add_theme_stylebox_override("hover", style_hover)
 	btn.add_theme_stylebox_override("pressed", style_pressed)
-	btn.add_theme_stylebox_override("disabled", style_disabled)
 	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	
 	btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.85))
 	btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
 	btn.add_theme_color_override("font_pressed_color", Color(0.7, 0.7, 0.75, 1.0))
-	btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.45, 0.6))
 	
 	return btn
 
@@ -311,6 +335,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _toggle_pause() -> void:
+	EventBus.play_sound.emit("ui_booklet_open")
 	_is_paused = not _is_paused
 	_overlay.visible = _is_paused
 	# RATIONALE: get_tree().paused freezes all _process and _physics_process calls
@@ -354,14 +379,28 @@ func _apply_saved_volume() -> void:
 		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(vol))
 
 # Handles slider volume changes and writes them immediately to the settings file.
-func _on_volume_changed(value: float) -> void:
-	var bus_idx = AudioServer.get_bus_index("Master")
+func _on_music_volume_changed(value: float) -> void:
+	var bus_idx = AudioServer.get_bus_index("Music")
 	if bus_idx != -1:
 		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value))
-		
+	_save_settings()
+
+func _on_sfx_volume_changed(value: float) -> void:
+	var bus_idx = AudioServer.get_bus_index("SFX")
+	if bus_idx != -1:
+		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value))
+	# Play click sound so player can hear volume
+	EventBus.play_sound.emit("ui_hover_tick")
+	_save_settings()
+
+func _save_settings() -> void:
 	var file = FileAccess.open(SETTINGS_PATH, FileAccess.WRITE)
 	if file:
-		file.store_string(JSON.stringify({"volume": value}))
+		var data = {
+			"music_volume": _music_slider.value,
+			"sfx_volume": _sfx_slider.value
+		}
+		file.store_string(JSON.stringify(data))
 		file.close()
 
 # Switches panel visibility to settings and updates elements state.
@@ -371,15 +410,31 @@ func _show_settings() -> void:
 	_status_lbl.text = ""
 	
 	# Fetch volume
-	var vol = 0.8
+	var music_vol = 0.8
+	var sfx_vol = 0.8
 	if FileAccess.file_exists(SETTINGS_PATH):
 		var file = FileAccess.open(SETTINGS_PATH, FileAccess.READ)
 		if file:
 			var json = JSON.new()
 			if json.parse(file.get_as_text()) == OK and typeof(json.data) == TYPE_DICTIONARY:
-				vol = float(json.data.get("volume", 0.8))
+				if json.data.has("music_volume"):
+					music_vol = float(json.data["music_volume"])
+				elif json.data.has("volume"):
+					music_vol = float(json.data["volume"])
+					
+				if json.data.has("sfx_volume"):
+					sfx_vol = float(json.data["sfx_volume"])
+				elif json.data.has("volume"):
+					sfx_vol = float(json.data["volume"])
 			file.close()
-	_volume_slider.value = vol
+			
+	_music_slider.value = music_vol
+	_sfx_slider.value = sfx_vol
+	
+	var m_bus = AudioServer.get_bus_index("Music")
+	if m_bus != -1: AudioServer.set_bus_volume_db(m_bus, linear_to_db(music_vol))
+	var s_bus = AudioServer.get_bus_index("SFX")
+	if s_bus != -1: AudioServer.set_bus_volume_db(s_bus, linear_to_db(sfx_vol))
 	
 	# Enable load button if save exists
 	_load_game_btn.disabled = not SaveManager.has_save()

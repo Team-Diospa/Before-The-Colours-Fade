@@ -29,6 +29,8 @@ func execute_effect(user: Node, targets: Array) -> void:
 	match card_name:
 		"Strike":
 			# Standard single-target hit. The mechanical baseline.
+			# canvas_tear = canvas_tear.wav per design doc (Strike card SFX)
+			EventBus.play_sound.emit("canvas_tear")
 			if not targets.is_empty():
 				var dmg = int(base_value * damage_multiplier)
 				targets[0].take_damage(dmg)
@@ -36,6 +38,8 @@ func execute_effect(user: Node, targets: Array) -> void:
 		"Heavy Slash":
 			# RATIONALE: Heavy Slash is the block-breaker. It clears all enemy block first,
 			# then deals full damage. Best against an enemy that just defended.
+			# crash_metal = heavy_metal_crash per design doc (Heavy Slash card SFX)
+			EventBus.play_sound.emit("crash_metal")
 			if not targets.is_empty():
 				var dmg = int(base_value * damage_multiplier)
 				targets[0].clear_block()  # Strip enemy block before damage lands.
@@ -45,6 +49,7 @@ func execute_effect(user: Node, targets: Array) -> void:
 			# RATIONALE: Hits twice but at half base_value per hit (rounded up).
 			# Total damage equals base_value when unblocked, but each hit applies block separately.
 			# Good against unshielded enemies, weak against high-block enemies.
+			EventBus.play_sound.emit("double_slice")
 			if not targets.is_empty():
 				var half_dmg = int(ceil(base_value / 2.0) * damage_multiplier)
 				targets[0].take_damage(half_dmg)
@@ -52,17 +57,23 @@ func execute_effect(user: Node, targets: Array) -> void:
 				
 		"Defend":
 			# Standard block. Lower base value than Fortress, but no side effects.
+			# wood_impact = wood_impact.wav per design doc (Defend card SFX)
+			EventBus.play_sound.emit("wood_impact")
 			user.gain_block(base_value)
 			
 		"Fortress":
 			# RATIONALE: The engineering defense card. Gaining a Fortress also generates 1 dimension
 			# charge - the blueprint logic translates into both structural defense and dimensional power.
+			# metal_clamp = metal_clamp_lock per design doc (Fortress card SFX)
+			EventBus.play_sound.emit("metal_clamp")
 			user.gain_block(base_value)
 			ShiftManager.add_charge()
 			
 		"Counter Stance":
 			# RATIONALE: Counter Stance converts incoming force into a counter-response (gear-brake metaphor).
 			# Block value from base_value. Counter damage is always unscaled - it is a reaction, not an attack.
+			# gear_click = mechanical_gear_click per design doc (Counter Stance card SFX)
+			EventBus.play_sound.emit("gear_click")
 			user.gain_block(base_value)
 			if not targets.is_empty():
 				targets[0].take_damage(4)  # Counter damage is fixed and unscaled.
@@ -71,6 +82,8 @@ func execute_effect(user: Node, targets: Array) -> void:
 			# RATIONALE: Fireball deals damage to all targets AND applies a burning flag.
 			# On the enemy's next turn, the burning flag cancels their Defend intent, forcing an Attack.
 			# We also immediately cancel any pending Defend action on the current turn.
+			# bass_rumble = bass_rumble_boom per design doc (Fireball card SFX)
+			EventBus.play_sound.emit("bass_rumble")
 			for t in targets:
 				var dmg = int(base_value * damage_multiplier)
 				t.take_damage(dmg)
@@ -82,6 +95,8 @@ func execute_effect(user: Node, targets: Array) -> void:
 			# RATIONALE: Thunder is momentum and acceleration. It deals damage AND generates
 			# 2 dimension charges instead of the standard 1, charging the shift mechanic faster.
 			# Best used in the Pack Leader fight to reach the shift threshold quickly.
+			# thunderclap = thunderclap per design doc (Thunder card SFX)
+			EventBus.play_sound.emit("thunderclap")
 			if not targets.is_empty():
 				var dmg = int(base_value * damage_multiplier)
 				targets[0].take_damage(dmg)

@@ -27,6 +27,8 @@ var cached_current_stage_idx: int = 0
 func add_charge() -> void:
 	if GlobalState.dimension_charge < GlobalState.MAX_CHARGE:
 		GlobalState.dimension_charge += 1
+		if GlobalState.dimension_charge >= GlobalState.MAX_CHARGE:
+			EventBus.play_sound.emit("shift_ready")
 		EventBus.ui_charge_updated.emit(GlobalState.dimension_charge)
 
 # Check if the player is ready to shift dimensions.

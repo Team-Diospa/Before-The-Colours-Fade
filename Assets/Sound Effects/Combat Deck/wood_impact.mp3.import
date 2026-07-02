@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://d2l0xxp2mfyfx"
+path="res://.godot/imported/wood_impact.mp3-35577c2ee1627a0db0f21e40dd4e0cc7.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Combat Deck/wood_impact.mp3"
+dest_files=["res://.godot/imported/wood_impact.mp3-35577c2ee1627a0db0f21e40dd4e0cc7.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -19,8 +19,16 @@ var is_player_near: bool = false
 static var nearby_interactables: Array = []
 static var active_player: Node2D = null
 static var targeted_index: int = 0
+static var all_interactables: Dictionary = {}
 
 func _ready() -> void:
+	# Ensure interaction prompts render above all world geometry and UI layers
+	z_index = 100
+	z_as_relative = false
+
+	if interaction_id != "":
+		Interactable.all_interactables[interaction_id] = self
+		
 	# Connect local Area2D signals to handle proximity detection.
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
@@ -31,6 +39,12 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	# Redraw the custom vector indicators to reflect active target state.
 	queue_redraw()
+
+func _exit_tree() -> void:
+	if interaction_id != "" and Interactable.all_interactables.get(interaction_id) == self:
+		Interactable.all_interactables.erase(interaction_id)
+	if Interactable.nearby_interactables.has(self):
+		Interactable.nearby_interactables.erase(self)
 
 func _draw() -> void:
 	if not is_player_near:
@@ -43,13 +57,14 @@ func _draw() -> void:
 	var center = Vector2(0, -90)
 	var radius = 11.0
 	
-	# Targeted item glows warm sienna/orange; inactive items are faint grey.
-	var col = Color(0.8, 0.4, 0.1, 0.8) if is_targeted else Color(0.5, 0.5, 0.5, 0.3)
+	# Sleek, standardized style: White/slate for targeted, faint translucent for inactive
+	var col = Color(0.95, 0.95, 0.95, 1.0) if is_targeted else Color(1.0, 1.0, 1.0, 0.3)
+	var bg_col = Color(0.12, 0.15, 0.22, 0.9) if is_targeted else Color(0.1, 0.1, 0.14, 0.4)
 	
 	# Outer border ring.
 	draw_circle(center, radius, col)
-	# Inner dark cutout.
-	draw_circle(center, radius - 1.5, Color(0.08, 0.08, 0.1, col.a))
+	# Inner dark background.
+	draw_circle(center, radius - 1.5, bg_col)
 	
 	# Render the action icon shape inside the circle.
 	if interaction_id in ["bed", "desk", "window", "papers", "blackboard"]:
@@ -69,15 +84,18 @@ func _draw() -> void:
 			draw_line(center + Vector2.from_angle(angle) * 2.5, center + Vector2.from_angle(angle) * 5.0, col, 1.2)
 
 	# RATIONALE: Draw the interaction prompt message above the targeted circle indicator
-	# to give clear visual feedback on which object is selected and what key to press.
-	# We draw a thick black outline first to ensure high readability against any background art.
 	if is_targeted and prompt_message != "":
-		var fallback_font = ThemeDB.get_fallback_font()
-		var font_size = 11
+		var font = load("res://Assets/Fonts/VT323-Regular.ttf") if FileAccess.file_exists("res://Assets/Fonts/VT323-Regular.ttf") else ThemeDB.get_fallback_font()
+		var font_size = 14
 		# Center the text horizontally by centering a 300px box at x = -150 relative to the interactable.
 		var text_pos = Vector2(-150, -115)
-		draw_string_outline(fallback_font, text_pos, prompt_message, HORIZONTAL_ALIGNMENT_CENTER, 300.0, font_size, 3, Color(0.0, 0.0, 0.0, 0.85))
-		draw_string(fallback_font, text_pos, prompt_message, HORIZONTAL_ALIGNMENT_CENTER, 300.0, font_size, Color(0.95, 0.95, 1.0, 1.0))
+		
+		# Draw text background pill for better readability
+		var str_size = font.get_string_size(prompt_message, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
+		var pill_rect = Rect2(text_pos.x + 150 - (str_size.x / 2.0) - 6, text_pos.y - str_size.y + 2, str_size.x + 12, str_size.y + 4)
+		draw_rect(pill_rect, Color(0.12, 0.15, 0.22, 0.85))
+		
+		draw_string(font, text_pos, prompt_message, HORIZONTAL_ALIGNMENT_CENTER, 300.0, font_size, Color(0.95, 0.95, 1.0, 1.0))
 
 func _input(event: InputEvent) -> void:
 	if not is_player_near:

@@ -168,12 +168,9 @@ func _ready() -> void:
 	# Move panic trigger further right to give player more space to explore.
 	trigger_area.position.x = 850
 
-	# Programmatically spawn interactables to prevent scene file corruption.
-	_spawn_interactable("board", "Press E to read Bulletin Board", Vector2(200, 500))
-	_spawn_interactable("peer_a", "Press E to talk to Student", Vector2(350, 500))
-	_spawn_interactable("peer_b", "Press E to talk to Student", Vector2(550, 500))
-	_spawn_interactable("fountain", "Press E to use Water Fountain", Vector2(700, 500))
-	_spawn_interactable("apt_door", "Press E to look at Exit", Vector2(50, 500))
+	var interactables = [$Board, $PeerA, $PeerB, $Fountain, $AptDoor]
+	for obj in interactables:
+		if obj: obj.interacted.connect(_on_object_interacted)
 
 	# RATIONALE: Disable panic attack trigger if secret ending is active, and trigger key discovery dialogue.
 	if GlobalState.has_flag("secret_ending_active"):
@@ -259,7 +256,7 @@ func _on_panic_trigger_body_entered(body: Node2D) -> void:
 		
 		# Lock UI and fade background sound.
 		EventBus.lock_player_ui.emit()
-		SceneManager.fade_out_ambient(1.5)
+		EventBus.play_sound.emit("murmur_fade_out")
 		
 		# Play the full atmospheric panic and memory sequence.
 		# RATIONALE: Pass true to render this heavy panic attack and threshold transition sequence in fullscreen mode.

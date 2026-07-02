@@ -200,25 +200,8 @@ func _ready() -> void:
 	$Locker.interacted.connect(_on_locker_interacted)
 	$Desk.interacted.connect(_on_desk_interacted)
 	
-	# Programmatically spawn the blackboard interactable to keep scene files clean.
-	var blackboard_scene = load("res://core/components/interactable.tscn")
-	if blackboard_scene:
-		var blackboard = blackboard_scene.instantiate()
-		blackboard.name = "Blackboard"
-		blackboard.interaction_id = "blackboard"
-		blackboard.prompt_message = "Press E to look at Blackboard"
-		blackboard.position = Vector2(150, 500)
-		blackboard.interacted.connect(_on_blackboard_interacted)
-		add_child(blackboard)
-		
-		# RATIONALE: Programmatically spawn the adjacent empty desk interactable.
-		var empty_desk = blackboard_scene.instantiate()
-		empty_desk.name = "EmptyDesk"
-		empty_desk.interaction_id = "empty_desk"
-		empty_desk.prompt_message = "Press E to look at Adjacent Desk"
-		empty_desk.position = Vector2(1050, 500)
-		empty_desk.interacted.connect(_on_empty_desk_interacted)
-		add_child(empty_desk)
+	$Blackboard.interacted.connect(_on_blackboard_interacted)
+	$EmptyDesk.interacted.connect(_on_empty_desk_interacted)
 		
 	# Configure the Quiz Paper stressor depending on whether we are mid-combat.
 	# RATIONALE: Focuses on the test sheet rather than a literal fantasy monster.
@@ -263,6 +246,7 @@ func _on_peer2_dialogue_finished() -> void:
 			GlobalState.starting_draw_modifier = 1
 
 func _on_locker_interacted(_id: String) -> void:
+	EventBus.play_sound.emit("locker_open")
 	# RATIONALE: locker searched flag is stored globally, preventing the locker re-loot exploit after shifting.
 	if not GlobalState.has_flag("locker_searched"):
 		DialogueSystem.start_dialogue(locker_dialogue, "start")
@@ -305,11 +289,14 @@ func _on_paper_monster_dialogue_finished() -> void:
 func _on_desk_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_desk_dialogue_finished)
 	if DialogueSystem.dialogue_tree == desk_dialogue and DialogueSystem.current_node_id == "quiz_fade":
+		# Play the school bell sound effect to mark the exam transition start
+		EventBus.play_sound.emit("bell")
 		GlobalState.set_flag("quiz_started", true)
 		SceneManager.transition_to_state("S_dream2")
 
 # Routes blackboard interactions.
 func _on_blackboard_interacted(_id: String) -> void:
+	EventBus.play_sound.emit("chalk_formula")
 	if GlobalState.has_flag("blackboard_inspected"):
 		DialogueSystem.start_dialogue({"start": {"text": "The chalk equations are dusty. The little gear sketch remains in the corner.", "next": ""}}, "start")
 		return

@@ -11,29 +11,30 @@ var current_node_id: String = ""
 var canvas_layer: CanvasLayer
 var root_control: Control
 var dialogue_panel: Panel
+var speaker_badge_panel: Panel
 var speaker_label: Label
 var text_label: Label
 var options_container: VBoxContainer
 # Continuation indicator character for classic RPG dialog feel.
 var continue_indicator: TextureRect
 
-# Visual Novel style portrait containers.
+# Left speaker portrait container and assets (protagonist side).
 var portrait_left: Panel
+var portrait_bg_left: ColorRect
+var portrait_head_left: ColorRect
+var portrait_shoulders_left: ColorRect
+var portrait_texture_left: TextureRect
+
+# Right speaker portrait container and assets (NPC side).
 var portrait_right: Panel
-var portrait_left_tex: TextureRect
-var portrait_right_tex: TextureRect
+var portrait_bg_right: ColorRect
+var portrait_head_right: ColorRect
+var portrait_shoulders_right: ColorRect
+var portrait_texture_right: TextureRect
 
-# Speaker badge panel.
-var speaker_badge_panel: Panel
-var speaker_label_normal: Label
-var speaker_label_fullscreen: Label
-
-# Speaker portrait container and assets (legacy references kept for compatibility).
-var portrait_container: Panel
-var portrait_bg: ColorRect
-var portrait_head: ColorRect
-var portrait_shoulders: ColorRect
-var portrait_texture: TextureRect
+# Custom Fonts
+var font_main = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
+var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
 
 # Toast container for non-intrusive system notifications.
 var _toast_container: VBoxContainer
@@ -92,20 +93,29 @@ var _is_dream_world: bool = false
 # Dynamically updates the dialogue styling depending on whether the scene is dream or reality.
 # Ensures seamless visual transitions between the warm beige sketch and cold slate aesthetics.
 func _update_ui_style() -> void:
-	# RATIONALE: Set up the styleboxes and alignment depending on layout mode.
+	# RATIONALE: Standard Godot flat styleboxes are used instead of stretched 9-patches for the dialogue box.
+	var style_box = StyleBoxFlat.new()
+	style_box.corner_radius_top_left = 4
+	style_box.corner_radius_top_right = 4
+	style_box.corner_radius_bottom_left = 4
+	style_box.corner_radius_bottom_right = 4
+	style_box.anti_aliasing = false
+	
+	# Override font families on all labels
+	text_label.add_theme_font_override("font", font_main)
+	speaker_label.add_theme_font_override("font", font_retro)
+	
+	# Dynamically modify panel anchors, borders, and margins based on whether we are in fullscreen cutscene mode.
 	if _is_fullscreen_mode:
-		var style_box = StyleBoxFlat.new()
-		style_box.corner_radius_top_left = 0
-		style_box.corner_radius_top_right = 0
-		style_box.corner_radius_bottom_left = 0
-		style_box.corner_radius_bottom_right = 0
-		style_box.anti_aliasing = false
-		
 		style_box.border_width_left = 0
 		style_box.border_width_top = 0
 		style_box.border_width_right = 0
 		style_box.border_width_bottom = 0
 		style_box.shadow_size = 0
+		
+		# Hide exploration dialogue portraits in fullscreen cutscene mode
+		portrait_left.visible = false
+		portrait_right.visible = false
 		
 		# Anchor dialogue panel to fill the entire rect.
 		dialogue_panel.anchor_top = 0.0
@@ -126,7 +136,7 @@ func _update_ui_style() -> void:
 		# Center-align text and speaker labels.
 		text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		speaker_label_fullscreen.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		speaker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		
 		# Stack options vertically beneath the text.
 		layout_container.vertical = true
@@ -134,138 +144,114 @@ func _update_ui_style() -> void:
 		layout_container.add_theme_constant_override("separation", 20)
 		
 		# Position continue indicator in the lower-middle portion of the screen.
-		if continue_indicator:
-			continue_indicator.anchor_left = 0.5
-			continue_indicator.anchor_top = 0.9
-			continue_indicator.anchor_right = 0.5
-			continue_indicator.anchor_bottom = 0.9
-			continue_indicator.offset_left = -6.0
-			continue_indicator.offset_top = -6.0
-			continue_indicator.offset_right = 6.0
-			continue_indicator.offset_bottom = 6.0
-			
+		continue_indicator.anchor_left = 0.5
+		continue_indicator.anchor_top = 0.9
+		continue_indicator.anchor_right = 0.5
+		continue_indicator.anchor_bottom = 0.9
+		continue_indicator.offset_left = -6.0
+		continue_indicator.offset_top = -6.0
+		continue_indicator.offset_right = 6.0
+		continue_indicator.offset_bottom = 6.0
+		
 		# Configure solid background color depending on dream vs reality.
 		if _is_dream_world:
 			style_box.bg_color = Color(0.94, 0.92, 0.88, 0.98) # High-opacity warm sketch paper
 			text_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
-			speaker_label_fullscreen.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0)) # Brick red speaker badge
+			speaker_label.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0))
 			continue_indicator.modulate = Color(0.12, 0.12, 0.15, 1.0)
 		else:
 			style_box.bg_color = Color(0.02, 0.02, 0.03, 0.98) # Cinematic near-black reality overlay
 			text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-			speaker_label_fullscreen.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0)) # Silver speaker badge
+			speaker_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0))
 			continue_indicator.modulate = Color(0.6, 0.7, 0.8, 1.0)
-			
-		dialogue_panel.add_theme_stylebox_override("panel", style_box)
-		
-		if speaker_badge_panel:
-			speaker_badge_panel.visible = false
-		speaker_label_fullscreen.visible = (speaker_label.text != "")
 	else:
-		# RATIONALE: Standard exploration layout.
-		# Apply tiled (non-stretching) StyleBoxTexture to dialogue_panel to preserve pixel borders.
-		var style_box = StyleBoxTexture.new()
-		if _is_dream_world:
-			style_box.texture = load("res://Assets/UI/9-patch_dream_panel_24x24 .png")
-		else:
-			style_box.texture = load("res://Assets/UI/9-patch_reality_panel_24x24.png")
-		style_box.texture_margin_left = 8
-		style_box.texture_margin_right = 8
-		style_box.texture_margin_top = 8
-		style_box.texture_margin_bottom = 8
-		style_box.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		style_box.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-		dialogue_panel.add_theme_stylebox_override("panel", style_box)
+		style_box.border_width_left = 2
+		style_box.border_width_top = 2
+		style_box.border_width_right = 2
+		style_box.border_width_bottom = 2
+		style_box.shadow_offset = Vector2(2, 2)
 		
-		# Position dialogue panel centered at the bottom of the screen with dimensions 700x110.
-		dialogue_panel.anchor_left = 0.5
+		# RATIONALE: Positions the bottom dialogue panel centered horizontally (width 800)
+		# overlapping and layering in front of the characters' lower bodies.
 		dialogue_panel.anchor_top = 1.0
+		dialogue_panel.anchor_left = 0.5
 		dialogue_panel.anchor_right = 0.5
 		dialogue_panel.anchor_bottom = 1.0
-		dialogue_panel.offset_left = -350.0
-		dialogue_panel.offset_top = -130.0
-		dialogue_panel.offset_right = 350.0
+		dialogue_panel.offset_left = -400.0 # Spans X = 176 to X = 976
+		dialogue_panel.offset_right = 400.0
+		dialogue_panel.offset_top = -180.0  # Spans Y = 468 to Y = 628 (height 160)
 		dialogue_panel.offset_bottom = -20.0
 		
-		# Reset standard margins.
+		# Position visual novel dialogue portraits (Hilbert on left, NPCs on right)
+		# RATIONALE: Enlarged and offset slightly below screen bounds so STRETCH_KEEP_ASPECT_CENTERED
+		# naturally crops the lower body out, creating a dynamic upper-body VN aesthetic.
+		portrait_left.anchor_left = 0.5
+		portrait_left.anchor_top = 1.0
+		portrait_left.anchor_right = 0.5
+		portrait_left.anchor_bottom = 1.0
+		portrait_left.offset_left = -650.0 # Spans X = -150 to X = 350 relative to center
+		portrait_left.offset_right = -150.0
+		portrait_left.offset_top = -600.0  # Height 750 (lowered from -800)
+		portrait_left.offset_bottom = 250.0 # Offset downwards to sink character lower
+		
+		portrait_right.anchor_left = 0.5
+		portrait_right.anchor_top = 1.0
+		portrait_right.anchor_right = 0.5
+		portrait_right.anchor_bottom = 1.0
+		portrait_right.offset_left = 150.0 # Spans X = 650 to X = 1150
+		portrait_right.offset_right = 650.0
+		portrait_right.offset_top = -600.0  # Height 750 (lowered from -800)
+		portrait_right.offset_bottom = 250.0 # Offset downwards to sink character lower
+		
+		# Reset standard small margins inside the dialogue panel textbox
 		margin_container.add_theme_constant_override("margin_left", 20)
 		margin_container.add_theme_constant_override("margin_right", 20)
-		margin_container.add_theme_constant_override("margin_top", 10)
-		margin_container.add_theme_constant_override("margin_bottom", 10)
+		margin_container.add_theme_constant_override("margin_top", 12)
+		margin_container.add_theme_constant_override("margin_bottom", 12)
 		
 		# Reset text alignment to top-left.
 		text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		text_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-		speaker_label_fullscreen.visible = false
+		speaker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		
 		# Reset container layout to horizontal.
 		layout_container.vertical = false
 		layout_container.alignment = BoxContainer.ALIGNMENT_BEGIN
 		layout_container.add_theme_constant_override("separation", 15)
 		
-		# Reset continue indicator to bottom-right corner of the panel (12x12).
-		if continue_indicator:
-			continue_indicator.anchor_left = 1.0
-			continue_indicator.anchor_top = 1.0
-			continue_indicator.anchor_right = 1.0
-			continue_indicator.anchor_bottom = 1.0
-			continue_indicator.offset_left = -22.0
-			continue_indicator.offset_top = -22.0
-			continue_indicator.offset_right = -10.0
-			continue_indicator.offset_bottom = -10.0
+		# Reset continue indicator to bottom-right corner of the panel.
+		continue_indicator.anchor_left = 1.0
+		continue_indicator.anchor_top = 1.0
+		continue_indicator.anchor_right = 1.0
+		continue_indicator.anchor_bottom = 1.0
+		continue_indicator.offset_left = -25.0
+		continue_indicator.offset_top = -25.0
+		continue_indicator.offset_right = -13.0
+		continue_indicator.offset_bottom = -13.0
+		
+		if _is_dream_world:
+			style_box.bg_color = Color(0.96, 0.95, 0.92, 0.75) # Warm beige translucent paper
+			style_box.border_color = Color(0.12, 0.12, 0.15, 0.15)
+			style_box.shadow_color = Color(0, 0, 0, 0.1)
+			style_box.shadow_size = 2
 			
-		# Configure speaker badge panel position and style.
-		if speaker_badge_panel:
-			speaker_badge_panel.visible = (speaker_label.text != "")
-			speaker_badge_panel.anchor_left = 0.0
-			speaker_badge_panel.anchor_top = 0.0
-			speaker_badge_panel.anchor_right = 0.0
-			speaker_badge_panel.anchor_bottom = 0.0
-			speaker_badge_panel.offset_left = 15.0
-			speaker_badge_panel.offset_top = -24.0 # placed above top edge
-			speaker_badge_panel.offset_right = 115.0
-			speaker_badge_panel.offset_bottom = -2.0
+			speaker_label.add_theme_color_override("font_color", Color(0.96, 0.95, 0.92, 1.0))
+			text_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
+			continue_indicator.modulate = Color(0.12, 0.12, 0.15, 1.0)
+		else:
+			style_box.bg_color = Color(0.06, 0.08, 0.12, 0.5) # Dark slate translucent glass
+			style_box.border_color = Color(1.0, 1.0, 1.0, 0.15)
+			style_box.shadow_color = Color(0, 0, 0, 0.25)
+			style_box.shadow_size = 4
 			
-			var badge_style = StyleBoxTexture.new()
-			if _is_dream_world:
-				badge_style.texture = load("res://Assets/UI/9-patch_text_speaker_badge_dream_100x22.png")
-				text_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
-				speaker_label_normal.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0))
-				continue_indicator.modulate = Color(0.12, 0.12, 0.15, 1.0)
-			else:
-				badge_style.texture = load("res://Assets/UI/9-patch_text_speaker_badge_reality_100x22.png")
-				text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-				speaker_label_normal.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0))
-				continue_indicator.modulate = Color(0.6, 0.7, 0.8, 1.0)
-			badge_style.texture_margin_left = 6
-			badge_style.texture_margin_right = 6
-			badge_style.texture_margin_top = 4
-			badge_style.texture_margin_bottom = 4
-			badge_style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-			badge_style.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-			speaker_badge_panel.add_theme_stylebox_override("panel", badge_style)
+			speaker_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.95))
+			text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+			continue_indicator.modulate = Color(0.6, 0.7, 0.8, 1.0)
 			
-		# VN-style unbounded portraits coordinates.
-		# Placed on left (Hilbert) and right (NPCs) of screen, stretched on bottom to crop legs/feet.
-		if portrait_left:
-			portrait_left.anchor_left = 0.0
-			portrait_left.anchor_top = 1.0
-			portrait_left.anchor_right = 0.0
-			portrait_left.anchor_bottom = 1.0
-			portrait_left.offset_left = 60.0
-			portrait_left.offset_top = -440.0
-			portrait_left.offset_right = 380.0
-			portrait_left.offset_bottom = 0.0
-			
-		if portrait_right:
-			portrait_right.anchor_left = 1.0
-			portrait_right.anchor_top = 1.0
-			portrait_right.anchor_right = 1.0
-			portrait_right.anchor_bottom = 1.0
-			portrait_right.offset_left = -380.0 # 1152 - 380 = 772
-			portrait_right.offset_top = -440.0
-			portrait_right.offset_right = -60.0 # 1152 - 60 = 1092
-			portrait_right.offset_bottom = 0.0
+		# RATIONALE: User requested removing the background box behind the speaker name.
+		speaker_badge_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		
+	dialogue_panel.add_theme_stylebox_override("panel", style_box)
 
 func _ready() -> void:
 	# Build dialogue overlay UI programmatically.
@@ -276,60 +262,78 @@ func _ready() -> void:
 	# Root control node covering full viewport.
 	root_control = Control.new()
 	root_control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Set mouse filter to ignore so clicks pass through empty spaces.
 	root_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root_control.visible = false # Hidden initially
 	canvas_layer.add_child(root_control)
 	
-	# RATIONALE: Create Visual Novel style left/right unbounded character portraits.
-	# Placed in tree before dialogue_panel so they draw behind the dialogue panel.
+	# Left speaker portrait container and assets (unbounded panel)
 	portrait_left = Panel.new()
-	portrait_left.visible = false
+	portrait_left.name = "PortraitLeft"
+	portrait_left.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	root_control.add_child(portrait_left)
 	
-	portrait_left_tex = TextureRect.new()
-	portrait_left_tex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	portrait_left_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	portrait_left_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	portrait_left.add_child(portrait_left_tex)
+	portrait_bg_left = ColorRect.new()
+	portrait_bg_left.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	portrait_bg_left.color = Color(0.25, 0.25, 0.3, 1.0)
+	portrait_left.add_child(portrait_bg_left)
 	
+	portrait_head_left = ColorRect.new()
+	portrait_head_left.anchor_left   = 0.25
+	portrait_head_left.anchor_right  = 0.75
+	portrait_head_left.anchor_top    = 0.10
+	portrait_head_left.anchor_bottom = 0.48
+	portrait_head_left.color = Color(0.85, 0.72, 0.60, 1.0)
+	portrait_left.add_child(portrait_head_left)
+	
+	portrait_shoulders_left = ColorRect.new()
+	portrait_shoulders_left.anchor_left   = 0.10
+	portrait_shoulders_left.anchor_right  = 0.90
+	portrait_shoulders_left.anchor_top    = 0.55
+	portrait_shoulders_left.anchor_bottom = 1.00
+	portrait_shoulders_left.color = Color(0.55, 0.45, 0.38, 1.0)
+	portrait_left.add_child(portrait_shoulders_left)
+	
+	portrait_texture_left = TextureRect.new()
+	portrait_texture_left.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	portrait_texture_left.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait_texture_left.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait_texture_left.visible = false
+	portrait_left.add_child(portrait_texture_left)
+
+	# Right speaker portrait container and assets (unbounded panel)
 	portrait_right = Panel.new()
-	portrait_right.visible = false
+	portrait_right.name = "PortraitRight"
+	portrait_right.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	root_control.add_child(portrait_right)
 	
-	portrait_right_tex = TextureRect.new()
-	portrait_right_tex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	portrait_right_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	portrait_right_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	portrait_right.add_child(portrait_right_tex)
+	portrait_bg_right = ColorRect.new()
+	portrait_bg_right.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	portrait_bg_right.color = Color(0.25, 0.25, 0.3, 1.0)
+	portrait_right.add_child(portrait_bg_right)
 	
-	var empty_style = StyleBoxEmpty.new()
-	portrait_left.add_theme_stylebox_override("panel", empty_style)
-	portrait_right.add_theme_stylebox_override("panel", empty_style)
+	portrait_head_right = ColorRect.new()
+	portrait_head_right.anchor_left   = 0.25
+	portrait_head_right.anchor_right  = 0.75
+	portrait_head_right.anchor_top    = 0.10
+	portrait_head_right.anchor_bottom = 0.48
+	portrait_head_right.color = Color(0.85, 0.72, 0.60, 1.0)
+	portrait_right.add_child(portrait_head_right)
 	
-	# Keep legacy reference pointing to portrait_left for safety
-	portrait_container = portrait_left
-	portrait_texture = portrait_left_tex
+	portrait_shoulders_right = ColorRect.new()
+	portrait_shoulders_right.anchor_left   = 0.10
+	portrait_shoulders_right.anchor_right  = 0.90
+	portrait_shoulders_right.anchor_top    = 0.55
+	portrait_shoulders_right.anchor_bottom = 1.00
+	portrait_shoulders_right.color = Color(0.55, 0.45, 0.38, 1.0)
+	portrait_right.add_child(portrait_shoulders_right)
 	
-	portrait_bg = ColorRect.new()
-	portrait_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	portrait_bg.color = Color(0.25, 0.25, 0.3, 1.0)
-	portrait_left.add_child(portrait_bg)
-	
-	portrait_head = ColorRect.new()
-	portrait_head.anchor_left   = 0.25
-	portrait_head.anchor_right  = 0.75
-	portrait_head.anchor_top    = 0.10
-	portrait_head.anchor_bottom = 0.48
-	portrait_head.color = Color(0.85, 0.72, 0.60, 1.0)
-	portrait_left.add_child(portrait_head)
-	
-	portrait_shoulders = ColorRect.new()
-	portrait_shoulders.anchor_left   = 0.10
-	portrait_shoulders.anchor_right  = 0.90
-	portrait_shoulders.anchor_top    = 0.55
-	portrait_shoulders.anchor_bottom = 1.00
-	portrait_shoulders.color = Color(0.55, 0.45, 0.38, 1.0)
-	portrait_left.add_child(portrait_shoulders)
+	portrait_texture_right = TextureRect.new()
+	portrait_texture_right.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	portrait_texture_right.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait_texture_right.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait_texture_right.visible = false
+	portrait_right.add_child(portrait_texture_right)
 	
 	# Main dialog container panel.
 	dialogue_panel = Panel.new()
@@ -337,19 +341,8 @@ func _ready() -> void:
 	dialogue_panel.modulate.a = 0.0 # Start transparent for fade-in
 	root_control.add_child(dialogue_panel)
 	
-	# RATIONALE: Create speaker name badge panel (100x22 pixels) sitting just above dialogue_panel.
-	speaker_badge_panel = Panel.new()
-	speaker_badge_panel.custom_minimum_size = Vector2(100, 22)
-	dialogue_panel.add_child(speaker_badge_panel)
-	
-	speaker_label_normal = Label.new()
-	speaker_label_normal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	speaker_label_normal.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	speaker_label_normal.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	speaker_badge_panel.add_child(speaker_label_normal)
-	speaker_label = speaker_label_normal # legacy reference compatibility
-	
 	# MarginContainer for padding.
+	# RATIONALE: We make this a class member to dynamically override margins for fullscreen cutscene layouts.
 	margin_container = MarginContainer.new()
 	margin_container.anchor_right = 1.0
 	margin_container.anchor_bottom = 1.0
@@ -357,27 +350,41 @@ func _ready() -> void:
 	margin_container.offset_bottom = 0.0
 	margin_container.offset_left = 0.0
 	margin_container.offset_top = 0.0
+	margin_container.add_theme_constant_override("margin_left", 30)
+	margin_container.add_theme_constant_override("margin_right", 30)
+	margin_container.add_theme_constant_override("margin_top", 20)
+	margin_container.add_theme_constant_override("margin_bottom", 20)
 	dialogue_panel.add_child(margin_container)
 	
+	# BoxContainer to support dynamic switching between horizontal and vertical layouts.
 	layout_container = BoxContainer.new()
 	margin_container.add_child(layout_container)
 	
-	# Nesting labels inside a VBox container.
+	# RATIONALE: Nesting labels inside a VBox container to show speaker badge above dialogue text.
 	text_vbox = VBoxContainer.new()
 	text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	layout_container.add_child(text_vbox)
 	
-	# Fullscreen speaker label.
-	speaker_label_fullscreen = Label.new()
-	speaker_label_fullscreen.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	speaker_label_fullscreen.text = ""
-	text_vbox.add_child(speaker_label_fullscreen)
+	# Speaker badge wrapper panel container
+	speaker_badge_panel = Panel.new()
+	speaker_badge_panel.custom_minimum_size = Vector2(100, 22)
+	speaker_badge_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	text_vbox.add_child(speaker_badge_panel)
+	
+	# Speaker label widget.
+	speaker_label = Label.new()
+	speaker_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	speaker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	speaker_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	speaker_label.text = ""
+	speaker_badge_panel.add_child(speaker_label)
 	
 	# Label to render the text.
 	text_label = Label.new()
 	text_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_label.add_theme_font_size_override("font_size", 16)
 	text_vbox.add_child(text_label)
 	
 	# VBoxContainer to render branch choice buttons.
@@ -386,32 +393,16 @@ func _ready() -> void:
 	options_container.custom_minimum_size.x = 220
 	layout_container.add_child(options_container)
 	
-	# Continuation indicator using TextureRect (forced to 12x12).
+	# Continuation indicator: TextureRect with forced visual sizing of 12x12
 	continue_indicator = TextureRect.new()
-	continue_indicator.texture = load("res://Assets/UI/textbox_continue_arrow_12x12.png")
+	var continue_arrow_path = "res://Assets/UI/textbox_continue_arrow_12x12.png"
+	if FileAccess.file_exists(continue_arrow_path):
+		continue_indicator.texture = load(continue_arrow_path)
 	continue_indicator.custom_minimum_size = Vector2(12, 12)
 	continue_indicator.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	continue_indicator.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	continue_indicator.visible = false
 	dialogue_panel.add_child(continue_indicator)
-	
-	# Load retro pixel-art fonts and apply to labels.
-	var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
-	var font_main = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
-	
-	if font_main:
-		text_label.add_theme_font_override("font", font_main)
-		text_label.add_theme_font_size_override("font_size", 12) # forced size to fit 110px height
-	else:
-		text_label.add_theme_font_size_override("font_size", 16)
-		
-	if font_retro:
-		speaker_label_normal.add_theme_font_override("font", font_retro)
-		speaker_label_normal.add_theme_font_size_override("font_size", 18)
-		speaker_label_fullscreen.add_theme_font_override("font", font_retro)
-		speaker_label_fullscreen.add_theme_font_size_override("font_size", 24)
-	else:
-		speaker_label_normal.add_theme_font_size_override("font_size", 14)
 	
 	# Dynamically apply initial dialogue styling based on current scene state.
 	_update_ui_style()
@@ -438,10 +429,12 @@ func _input(event: InputEvent) -> void:
 	if not is_active:
 		return
 		
-	# Advance dialogue when E or Space is pressed, if there are no branching options.
-	if (event.is_action_pressed("e") or event.is_action_pressed("space")):
+	# Advance dialogue when E, Space, or Left Mouse Click is pressed.
+	var left_clicked = event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed
+	if (event.is_action_pressed("e") or event.is_action_pressed("space") or left_clicked):
 		# RATIONALE: If dialogue is still drawing, first press stops typewriter animation.
 		# A subsequent press is required to advance nodes, preventing skipping.
+		# Do NOT play ui_dialogue_skip here - it should only fire on actual node transitions.
 		if _is_typing:
 			_is_typing = false # Will break the typing coroutine
 			_fast_forward = true
@@ -487,6 +480,8 @@ func _input(event: InputEvent) -> void:
 					fade_tw.tween_property(dialogue_panel, "modulate:a", 0.0, 0.25).set_trans(Tween.TRANS_SINE)
 					await fade_tw.finished
 					
+				# Play page-turn sound only when actually advancing to the next node.
+				EventBus.play_sound.emit("ui_dialogue_skip")
 				_play_node(next_node_id)
 			else:
 				# End of dialogue tree reached.
@@ -606,56 +601,19 @@ func _play_node(node_id: String) -> void:
 		var fade_in_tw = create_tween()
 		fade_in_tw.tween_property(dialogue_panel, "modulate:a", 1.0, 0.25).set_trans(Tween.TRANS_SINE)
 	
-	var name_text = ""
 	if speaker != "":
 		# RATIONALE: Strip brackets if the name is wrapped in them, and do not add brackets to speaker names.
 		if speaker.begins_with("[") and speaker.ends_with("]"):
-			name_text = speaker.substr(1, speaker.length() - 2)
+			speaker_label.text = speaker.substr(1, speaker.length() - 2)
 		else:
-			name_text = speaker
-			
-	speaker_label_normal.text = name_text
-	speaker_label_fullscreen.text = name_text
-	speaker_label.text = name_text # legacy compatibility
-		
-	# RATIONALE: Setup visual novel style left/right unbounded character portraits.
-	# Hilbert is placed on the left side of the screen; NPCs are placed on the right side.
-	# Sprites are scaled so only their upper bodies show (anchor_bottom = 2.2).
-	if _is_fullscreen_mode or speaker == "":
-		portrait_left.visible = false
-		portrait_right.visible = false
+			speaker_label.text = speaker
+		speaker_badge_panel.visible = true
 	else:
-		if speaker == "Hilbert":
-			portrait_left.visible = true
-			portrait_right.visible = false
-			portrait_left_tex.visible = true
-			
-			# Load dream Hilbert or reality Hilbert depending on the active mode.
-			if _is_dream_world:
-				portrait_left_tex.texture = load("res://Assets/Sprites/DreamHilbertSideways.png")
-			else:
-				portrait_left_tex.texture = load("res://Assets/Sprites/character3.png")
-			
-			portrait_left_tex.anchor_bottom = 2.2
-			portrait_left_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			portrait_left_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		else:
-			portrait_right.visible = true
-			portrait_left.visible = false
-			portrait_right_tex.visible = true
-			
-			var npc_path = "res://Assets/Sprites/npc.png"
-			if speaker == "Landlady":
-				npc_path = "res://Assets/Sprites/Landlord (front facing full body (head to toe)).png"
-			elif speaker == "Professor":
-				npc_path = "res://Assets/Sprites/Professor.png"
-			elif speaker == "n.n.":
-				npc_path = "res://Assets/Sprites/n.n..png"
-				
-			portrait_right_tex.texture = load(npc_path)
-			portrait_right_tex.anchor_bottom = 2.2
-			portrait_right_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			portrait_right_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		speaker_label.text = ""
+		speaker_badge_panel.visible = false
+		
+	# Call helper to update the new left/right portraits layout
+	_update_speaker_portraits(speaker)
 	
 	# RATIONALE: All NPC dialogues are now routed to the bottom panel; speech bubbles are bypassed.
 	var _is_npc_line = false
@@ -700,42 +658,63 @@ func _play_node(node_id: String) -> void:
 			var opt = options[i]
 			var btn = Button.new()
 			btn.text = opt.get("text", "")
+			btn.add_theme_font_override("font", font_retro)
+			btn.add_theme_font_size_override("font_size", 16)
 			
-			var font_retro = load("res://Assets/Fonts/VT323-Regular.ttf")
-			if font_retro:
-				btn.add_theme_font_override("font", font_retro)
-				btn.add_theme_font_size_override("font_size", 16)
-			else:
-				btn.add_theme_font_size_override("font_size", 13)
-				
-			var style_normal = StyleBoxTexture.new()
-			var style_hover = StyleBoxTexture.new()
-			var style_pressed = StyleBoxTexture.new()
+			# Construct option button styleboxes to match dream or reality environments.
+			var style_normal = StyleBoxFlat.new()
+			style_normal.corner_radius_top_left = 0
+			style_normal.corner_radius_top_right = 0
+			style_normal.corner_radius_bottom_left = 0
+			style_normal.corner_radius_bottom_right = 0
+			style_normal.border_width_left = 2
+			style_normal.border_width_top = 2
+			style_normal.border_width_right = 2
+			style_normal.border_width_bottom = 2
+			style_normal.anti_aliasing = false
+			
+			var style_hover = style_normal.duplicate()
+			var style_pressed = style_normal.duplicate()
 			
 			if _is_dream_world:
-				style_normal.texture = load("res://Assets/UI/dream_button_32x12_default.png")
-				style_hover.texture = load("res://Assets/UI/dream_button_32x12_hover.png")
-				style_pressed.texture = load("res://Assets/UI/dream_button_32x12_pressed.png")
-			else:
-				style_normal.texture = load("res://Assets/UI/reality_button_32x12_default.png")
-				style_hover.texture = load("res://Assets/UI/reality_button_32x12_hover.png")
-				style_pressed.texture = load("res://Assets/UI/reality_button_32x12_pressed.png")
+				style_normal.bg_color = Color(0.92, 0.90, 0.84, 0.65) # Translucent paper cream
+				style_normal.border_color = Color(0.12, 0.12, 0.15, 0.15) # Very thin charcoal outline
+				style_normal.shadow_color = Color(0, 0, 0, 0.08)
+				style_normal.shadow_size = 1
+				style_normal.shadow_offset = Vector2(1, 1)
 				
-			for st in [style_normal, style_hover, style_pressed]:
-				st.texture_margin_left = 4
-				st.texture_margin_right = 4
-				st.texture_margin_top = 4
-				st.texture_margin_bottom = 4
-				st.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-				st.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+				style_hover.bg_color = Color(0.97, 0.95, 0.90, 0.75)
+				style_hover.border_color = Color(0.65, 0.25, 0.15, 0.5) # Soft brick red outline
+				style_hover.shadow_color = Color(0, 0, 0, 0.08)
+				style_hover.shadow_size = 1
+				style_hover.shadow_offset = Vector2(1, 1)
 				
-			if _is_dream_world:
+				style_pressed.bg_color = Color(0.85, 0.83, 0.77, 0.7)
+				style_pressed.border_color = Color(0.12, 0.12, 0.15, 0.15)
+				style_pressed.shadow_offset = Vector2(0, 0)
+				
 				btn.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
 				btn.add_theme_color_override("font_hover_color", Color(0.65, 0.25, 0.15, 1.0))
 				btn.add_theme_color_override("font_pressed_color", Color(0.12, 0.12, 0.15, 1.0))
 			else:
+				style_normal.bg_color = Color(0.08, 0.1, 0.16, 0.5) # Translucent slate
+				style_normal.border_color = Color(1.0, 1.0, 1.0, 0.1) # Translucent white highlight
+				style_normal.shadow_color = Color(0, 0, 0, 0.15)
+				style_normal.shadow_size = 2
+				style_normal.shadow_offset = Vector2(1, 1)
+				
+				style_hover.bg_color = Color(0.18, 0.18, 0.22, 0.6) # Translucent grey glass hover background
+				style_hover.border_color = Color(0.8, 0.8, 0.8, 0.5) # Soft silver highlight outline
+				style_hover.shadow_color = Color(0, 0, 0, 0.15)
+				style_hover.shadow_size = 2
+				style_hover.shadow_offset = Vector2(1, 1)
+				
+				style_pressed.bg_color = Color(0.05, 0.06, 0.08, 0.6)
+				style_pressed.border_color = Color(1.0, 1.0, 1.0, 0.05)
+				style_pressed.shadow_offset = Vector2(0, 0)
+				
 				btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-				btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
+				btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0)) # Crisp white hover text
 				btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0, 1.0))
 				
 			btn.add_theme_stylebox_override("normal", style_normal)
@@ -745,6 +724,7 @@ func _play_node(node_id: String) -> void:
 			
 			btn.pivot_offset = Vector2(110, 15) # Center for scaling
 			btn.mouse_entered.connect(func():
+				EventBus.play_sound.emit("hover")
 				btn.text = "▼ " + opt.get("text", "") # Prefix with upside-down triangle on hover
 				var tw = btn.create_tween().set_parallel(true)
 				tw.tween_property(btn, "scale", Vector2(1.05, 1.05), 0.1)
@@ -767,6 +747,10 @@ func _play_node(node_id: String) -> void:
 			
 			active_options.append(opt.get("next", ""))
 			
+		# RATIONALE: Grab focus on the first option to enable full keyboard/controller navigation (Up/Down/Enter).
+		if options_container.get_child_count() > 0:
+			options_container.get_child(0).grab_focus()
+			
 	EventBus.dialogue_text_updated.emit(raw_text, active_options)
 	
 	var active_text_label = text_label
@@ -786,16 +770,11 @@ func _play_node(node_id: String) -> void:
 			
 		active_text_label.visible_characters = i + 1
 		
-		# Play typewriter sound on non-space characters (throttled to every 2nd character to avoid overlap)
-		if i % 2 == 0 and body_text[i] != " ":
-			SceneManager.play_sfx("res://Assets/Sound Effects/sfx_ui_typewriter_click (one).wav")
-		
-		# RATIONALE: Check dynamically if the player is holding Space or E to speed up typewriter text.
+		var c = body_text[i]
 		var char_delay = 0.01
 		if Input.is_action_pressed("space") or Input.is_action_pressed("e"):
 			char_delay = 0.001
 		else:
-			var c = body_text[i]
 			if c in [".", "!", "?", ":"]:
 				char_delay = 0.15
 			elif c == ",":
@@ -804,6 +783,9 @@ func _play_node(node_id: String) -> void:
 		# Re-verify before yielding to make sure we respond instantly if Space was pressed this frame.
 		if not _is_typing or _fast_forward or current_session != _typing_session_id:
 			break
+			
+		if c != " ":
+			EventBus.play_sound.emit("typewriter")
 			
 		await get_tree().create_timer(char_delay).timeout
 		
@@ -816,6 +798,7 @@ func _play_node(node_id: String) -> void:
 
 # Callback when user presses an option button.
 func select_option(index: int) -> void:
+	EventBus.play_sound.emit("ui_pencil_check")
 	if index >= 0 and index < active_options.size():
 		var target_node = active_options[index]
 		_play_node(target_node)
@@ -926,6 +909,7 @@ func show_toast(message: String) -> void:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_override("font", font_main)
 	label.add_theme_font_size_override("font_size", 12)
 	
 	if _is_dream_world:
@@ -953,5 +937,104 @@ func show_toast(message: String) -> void:
 	tw_out.tween_property(toast_panel, "modulate:a", 0.0, 0.25).set_trans(Tween.TRANS_SINE)
 	tw_out.tween_property(toast_panel, "scale", Vector2(0.9, 0.9), 0.25).set_trans(Tween.TRANS_SINE)
 	await tw_out.finished
-	
 	toast_panel.queue_free()
+
+# Helper to load and render visual novel style character portraits (Hilbert on left, NPCs on right).
+# Uses transparent panels with aspect-ratio scaling to show only the upper body.
+func _update_speaker_portraits(speaker: String) -> void:
+	if _is_fullscreen_mode or speaker == "" or speaker == "System":
+		portrait_left.visible = false
+		portrait_right.visible = false
+		return
+		
+	if speaker == "Hilbert":
+		portrait_left.visible = true
+		portrait_right.visible = false
+		
+		# Resolve Hilbert's active sprite, prioritizing 3_4test.png as the main VN representation
+		var texture_path = "res://Assets/Sprites/3_4test.png"
+		if not FileAccess.file_exists(texture_path):
+			texture_path = "res://Assets/Sprites/character3.png"
+			
+		if _is_dream_world:
+			if FileAccess.file_exists("res://Assets/Sprites/DreamHilbertSideways.png"):
+				texture_path = "res://Assets/Sprites/DreamHilbertSideways.png"
+			elif FileAccess.file_exists("res://Assets/Sprites/HilbertDream (hilbert in dream).png"):
+				texture_path = "res://Assets/Sprites/HilbertDream (hilbert in dream).png"
+				
+		if FileAccess.file_exists(texture_path):
+			portrait_texture_left.visible = true
+			portrait_texture_left.texture = load(texture_path)
+			
+			# Fill the large panel area naturally
+			portrait_texture_left.anchor_left = 0.0
+			portrait_texture_left.anchor_top = 0.0
+			portrait_texture_left.anchor_right = 1.0
+			portrait_texture_left.anchor_bottom = 1.0
+			portrait_texture_left.offset_left = 0.0
+			portrait_texture_left.offset_top = 0.0
+			portrait_texture_left.offset_right = 0.0
+			portrait_texture_left.offset_bottom = 0.0
+			portrait_texture_left.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			
+			portrait_bg_left.visible = false
+			portrait_head_left.visible = false
+			portrait_shoulders_left.visible = false
+		else:
+			portrait_texture_left.visible = false
+			portrait_bg_left.visible = true
+			portrait_head_left.visible = true
+			portrait_shoulders_left.visible = true
+			
+			# Warm grey silhouette fallback block
+			portrait_bg_left.color = Color(0.25, 0.25, 0.3, 1.0)
+			portrait_head_left.color = Color(0.75, 0.65, 0.55, 1.0)
+			portrait_shoulders_left.color = Color(0.15, 0.15, 0.2, 1.0)
+	else:
+		# All other speakers go to the right side of the screen
+		portrait_left.visible = false
+		portrait_right.visible = true
+		
+		var texture_path = ""
+		if speaker == "n.n.":
+			texture_path = "res://Assets/Sprites/n.n..png"
+		elif speaker == "Landlady":
+			texture_path = "res://Assets/Sprites/Landlord (front facing full body (head to toe)).png"
+		elif speaker == "Professor":
+			texture_path = "res://Assets/Sprites/Professor.png"
+		else:
+			# General peer or unknown NPC
+			texture_path = "res://Assets/Sprites/npc.png"
+			
+		if texture_path != "" and FileAccess.file_exists(texture_path):
+			portrait_texture_right.visible = true
+			portrait_texture_right.texture = load(texture_path)
+			
+			# Fill the large panel area naturally
+			portrait_texture_right.anchor_left = 0.0
+			portrait_texture_right.anchor_top = 0.0
+			portrait_texture_right.anchor_right = 1.0
+			portrait_texture_right.anchor_bottom = 1.0
+			portrait_texture_right.offset_left = 0.0
+			portrait_texture_right.offset_top = 0.0
+			portrait_texture_right.offset_right = 0.0
+			portrait_texture_right.offset_bottom = 0.0
+			portrait_texture_right.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			
+			portrait_bg_right.visible = false
+			portrait_head_right.visible = false
+			portrait_shoulders_right.visible = false
+		else:
+			# Fallback silhouette using character specific colors
+			portrait_texture_right.visible = false
+			portrait_bg_right.visible = true
+			portrait_head_right.visible = true
+			portrait_shoulders_right.visible = true
+			
+			var bg_col    = PORTRAIT_COLORS.get(speaker,      Color(0.25, 0.25, 0.3, 1.0))
+			var skin_col  = PORTRAIT_SKIN_COLORS.get(speaker, Color(0.75, 0.65, 0.55, 1.0))
+			var cloth_col = bg_col.darkened(0.25)
+			
+			portrait_bg_right.color        = bg_col
+			portrait_head_right.color      = skin_col
+			portrait_shoulders_right.color = cloth_col

@@ -901,11 +901,13 @@ func _ready() -> void:
 		call_deferred("_trigger_opening_narration")
 
 func _trigger_opening_narration() -> void:
-	# RATIONALE: Play alarm clock buzz at the start of the narration.
-	SceneManager.play_sfx("res://Assets/Sound Effects/sfx_alarm_buzz.mp3")
-	# Monitor dialogue text updates to coordinate lighting transitions during intro.
+	# RATIONALE: Monitor dialogue text updates to coordinate lighting transitions during intro.
 	if not EventBus.dialogue_text_updated.is_connected(_on_dialogue_text_updated):
 		EventBus.dialogue_text_updated.connect(_on_dialogue_text_updated)
+	
+	# Play the initial morning alarm buzz sound effect
+	EventBus.play_sound.emit("alarm")
+	
 	# RATIONALE: Pass true to enable the visual novel style dedicated fullscreen cutscene for the opening alarm narration.
 	DialogueSystem.start_dialogue(opening_narration, "start", true)
 	if not EventBus.dialogue_finished.is_connected(_on_opening_narration_finished):
@@ -913,10 +915,14 @@ func _trigger_opening_narration() -> void:
 
 # Coordinates lighting changes during the opening narration sequence.
 func _on_dialogue_text_updated(text: String, options: Array) -> void:
-	if DialogueSystem.dialogue_tree == opening_narration and DialogueSystem.current_node_id == "open_6":
-		# RATIONALE: Gradually fade the morning light in as the text mentions bright light filling the room.
-		var tween = create_tween()
-		tween.tween_property(CanvasModulateNode, "color", COLOR_MORNING, 3.5)
+	if DialogueSystem.dialogue_tree == opening_narration:
+		if DialogueSystem.current_node_id == "open_2":
+			# Play the second alarm ring to match the text beats
+			EventBus.play_sound.emit("alarm")
+		elif DialogueSystem.current_node_id == "open_6":
+			# RATIONALE: Gradually fade the morning light in as the text mentions bright light filling the room.
+			var tween = create_tween()
+			tween.tween_property(CanvasModulateNode, "color", COLOR_MORNING, 3.5)
 
 func _on_opening_narration_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_opening_narration_finished)
@@ -924,6 +930,8 @@ func _on_opening_narration_finished() -> void:
 		EventBus.dialogue_text_updated.disconnect(_on_dialogue_text_updated)
 	if DialogueSystem.dialogue_tree == opening_narration:
 		_advance_objective("bed")
+		# Play a low ticking clock background sfx when Hilbert wakes up
+		EventBus.play_sound.emit("clock")
 
 func _advance_objective(new_objective: String) -> void:
 	current_objective = new_objective
@@ -945,8 +953,10 @@ func _on_bed_interacted(_id: String) -> void:
 	if GlobalState.has_flag("bed_slept"):
 		DialogueSystem.start_dialogue({"start": {"text": "You've already made your choice about the bed.", "next": ""}}, "start")
 		return
-	# RATIONALE: Play bed creaking sound effect on interaction.
-	SceneManager.play_sfx("res://Assets/Sound Effects/sfx_bed_creak.wav")
+		
+	# Play the creaking wooden frame sound effect
+	EventBus.play_sound.emit("bed_creak")
+	
 	# RATIONALE: Pass true to enable the visual novel style dedicated fullscreen cutscene for the bed monologue choice.
 	DialogueSystem.start_dialogue(bed_dialogue, "start", true)
 	if not EventBus.dialogue_finished.is_connected(_on_bed_dialogue_finished):
@@ -982,8 +992,6 @@ func _on_guitar_interacted(_id: String) -> void:
 	if GlobalState.has_flag("guitar_played"):
 		DialogueSystem.start_dialogue({"start": {"text": "You don't feel like playing the guitar again.", "next": ""}}, "start")
 		return
-	# RATIONALE: Play open guitar chord sound effect.
-	SceneManager.play_sfx("res://Assets/Sound Effects/guitar_chord.wav")
 	DialogueSystem.start_dialogue(guitar_dialogue, "start")
 	if not EventBus.dialogue_finished.is_connected(_on_guitar_dialogue_finished):
 		EventBus.dialogue_finished.connect(_on_guitar_dialogue_finished)
@@ -991,6 +999,8 @@ func _on_guitar_interacted(_id: String) -> void:
 func _on_guitar_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_guitar_dialogue_finished)
 	if DialogueSystem.dialogue_tree == guitar_dialogue and DialogueSystem.current_node_id == "guitar_yes_sys":
+		# Play a single rich acoustic guitar chord sound effect
+		EventBus.play_sound.emit("guitar")
 		GlobalState.set_flag("guitar_played", true)
 		GlobalState.player_current_hp = GlobalState.player_max_hp
 		var hslash_res = load("res://data/cards/heavy_slash.tres")
@@ -1033,6 +1043,7 @@ var desk_secret_dialogue: Dictionary = {
 func _on_desk_interacted(_id: String) -> void:
 	if current_objective in ["wake_up", "bed"]:
 		return
+	EventBus.play_sound.emit("wood_drawer")
 	# RATIONALE: Handle secret ending desk interaction to unlock the drawer using the found walkie-talkie key.
 	if GlobalState.has_flag("secret_ending_active"):
 		DialogueSystem.start_dialogue(desk_secret_dialogue, "start")
@@ -1066,6 +1077,7 @@ func _on_desk_secret_dialogue_finished() -> void:
 func _on_toilet_interacted(_id: String) -> void:
 	if current_objective in ["wake_up", "bed"]:
 		return
+	EventBus.play_sound.emit("toilet_flush")
 	DialogueSystem.start_dialogue(toilet_dialogue, "start")
 
 func _on_shower_interacted(_id: String) -> void:
@@ -1075,8 +1087,8 @@ func _on_shower_interacted(_id: String) -> void:
 	if GlobalState.has_flag("has_showered"):
 		DialogueSystem.start_dialogue({"start": {"text": "You've already showered. The water has run cold.", "next": ""}}, "start")
 		return
-	# RATIONALE: Play running shower water sound effect.
-	SceneManager.play_sfx("res://Assets/Sound Effects/sfx_shower_running.wav")
+	# Play the shower running water sound effect
+	EventBus.play_sound.emit("shower")
 	# Shower tints the room dark as per script alur.md atmosphere note.
 	var tween = create_tween()
 	tween.tween_property(CanvasModulateNode, "color", COLOR_DEPRESSION, 5.0)
@@ -1090,6 +1102,8 @@ func _on_shower_interacted(_id: String) -> void:
 func _on_shower_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_shower_dialogue_finished)
 	if DialogueSystem.dialogue_tree == shower_dialogue:
+		EventBus.stop_sound.emit("shower")
+		EventBus.stop_sound.emit("sfx_shower_run")
 		_advance_objective("exit")
 
 func _on_exit_door_interacted(_id: String) -> void:
@@ -1120,12 +1134,22 @@ func _on_door_dialogue_finished() -> void:
 func _on_wardrobe_interacted(_id: String) -> void:
 	if current_objective in ["wake_up", "bed"]:
 		return
+	EventBus.play_sound.emit("wood_drawer")
 	DialogueSystem.start_dialogue(wardrobe_dialogue, "start")
 
 func _on_kitchen_interacted(_id: String) -> void:
 	if current_objective in ["wake_up", "bed"]:
 		return
+	EventBus.play_sound.emit("kettle_boil")
 	DialogueSystem.start_dialogue(kitchen_dialogue, "start")
+	if not EventBus.dialogue_finished.is_connected(_on_kitchen_dialogue_finished):
+		EventBus.dialogue_finished.connect(_on_kitchen_dialogue_finished)
+
+func _on_kitchen_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_kitchen_dialogue_finished)
+	if DialogueSystem.dialogue_tree == kitchen_dialogue:
+		EventBus.stop_sound.emit("kettle_boil")
+		EventBus.stop_sound.emit("sfx_kettle_boil")
 
 func _on_window_interacted(_id: String) -> void:
 	if current_objective in ["wake_up", "bed"]:
@@ -1155,4 +1179,5 @@ func _on_window_dialogue_finished() -> void:
 func _on_papers_interacted(_id: String) -> void:
 	if current_objective in ["wake_up", "bed"]:
 		return
+	EventBus.play_sound.emit("paper_rustle")
 	DialogueSystem.start_dialogue(papers_dialogue, "start")

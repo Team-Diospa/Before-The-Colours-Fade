@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://hl4vgywpdwe0"
+path="res://.godot/imported/canvas_tear.mp3-1c686982fab2a00c68c94aff024f6628.mp3str"
+
+[deps]
+
+source_file="res://Assets/Sound Effects/Combat Deck/canvas_tear.mp3"
+dest_files=["res://.godot/imported/canvas_tear.mp3-1c686982fab2a00c68c94aff024f6628.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
