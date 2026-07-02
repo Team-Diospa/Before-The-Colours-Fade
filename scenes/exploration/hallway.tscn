@@ -21,6 +21,7 @@ texture = ExtResource("3_hall_bottom")
 [node name="Player" parent="." unique_id=2060877902 instance=ExtResource("2_player")]
 position = Vector2(-722, 376)
 
+scale = Vector2(1.2, 1.2)
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=212908330]
 limit_left = -795
 limit_top = -9999902

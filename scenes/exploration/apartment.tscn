@@ -52,8 +52,8 @@ metadata/_aseprite_wizard_interface_config_ = {
 
 [node name="Player" parent="." unique_id=1096648528 instance=ExtResource("2_player")]
 position = Vector2(368, 468)
-
 scale = Vector2(1.15, 1.15)
+
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1869526077]
 position = Vector2(0, -24)
 limit_left = 0
@@ -79,7 +79,7 @@ position = Vector2(1191, 6)
 polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
 
 [node name="Bed" parent="." unique_id=314475394 instance=ExtResource("3_interactable")]
-position = Vector2(275, 544)
+position = Vector2(233, 553)
 interaction_id = "bed"
 prompt_message = "Press E to check Bed"
 
@@ -92,12 +92,6 @@ prompt_message = "Press E to inspect Guitar"
 position = Vector2(609, 542)
 interaction_id = "desk"
 prompt_message = "Press E to study Desk"
-
-[node name="Shower" parent="." unique_id=481263341 instance=ExtResource("3_interactable")]
-position = Vector2(992, 554)
-interaction_id = "shower"
-prompt_message = "Press E to use Shower"
-
 
 [node name="ExitDoor" parent="." unique_id=854293492 instance=ExtResource("3_interactable")]
 position = Vector2(1190, 522)
@@ -124,7 +118,7 @@ position = Vector2(930, 519)
 interaction_id = "kitchen"
 prompt_message = "Press E to check Kitchen"
 
-[node name="BathroomDoor" parent="." instance=ExtResource("3_interactable")]
-position = Vector2(120, 520)
+[node name="BathroomDoor" parent="." unique_id=1273033127 instance=ExtResource("3_interactable")]
+position = Vector2(999, 561)
 interaction_id = "bathroom_door"
 prompt_message = "Press E to enter Bathroom"

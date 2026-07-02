@@ -325,8 +325,8 @@ func _build_hud_panel(panel: Panel, is_player: bool) -> void:
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	if is_player:
-		if FileAccess.file_exists("res://Assets/Sprites/character3.png"):
-			portrait.texture = load("res://Assets/Sprites/character3.png")
+		if FileAccess.file_exists("res://Assets/Sprites/DreamHilbertSideways icon.png"):
+			portrait.texture = load("res://Assets/Sprites/DreamHilbertSideways icon.png")
 		name_lbl.text = "HILBERT"
 	else:
 		if FileAccess.file_exists("res://Assets/Sprites/PACKLEADER.png"):
@@ -392,19 +392,19 @@ func _ready() -> void:
 	_build_hud_panel($UI/PlayerPanel, true)
 	_build_hud_panel($UI/EnemyPanel, false)
 	
-	# Programmatically spawn player sprite facing right using dream-world sideways sprite
-	# RATIONALE: DreamHilbertSideways.png is 128x128 real pixels. To render at ~96px: scale 0.75
-	player_sprite = Sprite2D.new()
-	var player_tex_path = "res://Assets/Sprites/DreamHilbertSideways.png"
-	if not FileAccess.file_exists(player_tex_path):
-		player_tex_path = "res://Assets/Sprites/HilbertDream (hilbert in dream).png"
-	if FileAccess.file_exists(player_tex_path):
+	# Fetch player sprite from the scene instead of spawning programmatically
+	player_sprite = $UI.get_node_or_null("PlayerSprite")
+	if not player_sprite:
+		# Fallback just in case
+		player_sprite = Sprite2D.new()
+		var player_tex_path = "res://Assets/Sprites/DreamHilbertSideways.png"
+		if not FileAccess.file_exists(player_tex_path):
+			player_tex_path = "res://Assets/Sprites/character3.png"
 		player_sprite.texture = load(player_tex_path)
-	player_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	player_sprite.scale = Vector2(1.5, 1.5) 
-	player_sprite.position = Vector2(200, 310) # Lowered to touch the ground plane
-	player_sprite.z_index = 10
-	$UI.add_child(player_sprite) # Reparent to UI layer to guarantee visibility
+		player_sprite.scale = Vector2(0.75, 0.75)
+		player_sprite.position = Vector2(200, 310)
+		player_sprite.z_index = 10
+		$UI.add_child(player_sprite) # Reparent to UI layer to guarantee visibility
 	
 	# Create top bar progression and booklet deck viewer UI
 	_create_top_bar()
@@ -1879,7 +1879,7 @@ func _start_wave(stage_idx: int) -> void:
 		sprite.scale = base_scale
 			
 		sprite.position = Vector2(x_coords[i], 310) # Lowered to exactly match Hilbert's Y level
-		sprite.flip_h = true
+		sprite.flip_h = false
 		sprite.z_index = 10
 		$UI.add_child(sprite) # Reparent to UI layer to guarantee visibility
 		enemy_data["sprite"] = sprite
@@ -1894,6 +1894,7 @@ func _start_wave(stage_idx: int) -> void:
 		var portrait = panel.get_node_or_null("Portrait")
 		if portrait and FileAccess.file_exists(texture_path):
 			portrait.texture = load(texture_path)
+			portrait.flip_h = true
 			
 		$UI.add_child(panel)
 		enemy_data["panel"] = panel

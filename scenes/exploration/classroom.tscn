@@ -30,7 +30,7 @@ texture = ExtResource("3_class_bottom")
 
 [node name="Player" parent="." unique_id=953042844 instance=ExtResource("2_player")]
 position = Vector2(897, 456)
-scale = Vector2(0.85, 0.85)
+scale = Vector2(1.1, 1.1)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1650532013]
 limit_left = 0
@@ -38,7 +38,7 @@ limit_right = 1152
 limit_bottom = 648
 
 [node name="Orang1" parent="." unique_id=327751554 instance=ExtResource("3_interactable")]
-position = Vector2(680, 496)
+position = Vector2(677, 566)
 interaction_id = "orang1"
 prompt_message = "Press E to talk to Peer 1"
 
@@ -46,12 +46,12 @@ prompt_message = "Press E to talk to Peer 1"
 z_index = 2
 z_as_relative = false
 texture_filter = 1
-position = Vector2(-5.8411713, -1.0000076)
-scale = Vector2(-0.9935504, 1.0234375)
+position = Vector2(-0.8755994, -53.30647)
+scale = Vector2(-0.97639287, 0.9834035)
 texture = ExtResource("10_npc")
 
 [node name="Orang2" parent="." unique_id=104813054 instance=ExtResource("3_interactable")]
-position = Vector2(780, 497)
+position = Vector2(780, 587)
 interaction_id = "orang2"
 prompt_message = "Press E to talk to Peer 2"
 
@@ -59,8 +59,8 @@ prompt_message = "Press E to talk to Peer 2"
 z_index = 2
 z_as_relative = false
 texture_filter = 1
-position = Vector2(3.000023, -4.0000076)
-scale = Vector2(1.0527346, 1.0859375)
+position = Vector2(-4.8749895, -80.500015)
+scale = Vector2(0.99121106, 0.9648438)
 texture = ExtResource("10_npc")
 
 [node name="ClassroomUpper" type="Sprite2D" parent="." unique_id=315537022]
@@ -71,23 +71,24 @@ scale = Vector2(1.8, 1.8)
 texture = ExtResource("4_class_upper")
 
 [node name="LeftWall" type="StaticBody2D" parent="." unique_id=2095141546]
+position = Vector2(133, 15)
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="LeftWall" unique_id=117196913]
 polygon = PackedVector2Array(0, 0, -20, 0, -20, 648, 0, 648)
 
 [node name="RightWall" type="StaticBody2D" parent="." unique_id=1982936534]
-position = Vector2(1152, 0)
+position = Vector2(973, -4)
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RightWall" unique_id=1914600009]
 polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
 
 [node name="Locker" parent="." unique_id=2142155223 instance=ExtResource("3_interactable")]
-position = Vector2(884, 343)
+position = Vector2(879, 440)
 interaction_id = "locker"
 prompt_message = "Press E to search Locker"
 
 [node name="Desk" parent="." unique_id=1619080862 instance=ExtResource("3_interactable")]
-position = Vector2(430, 542)
+position = Vector2(477, 556)
 interaction_id = "desk"
 prompt_message = "Press E to sit at Desk"
 
@@ -97,7 +98,7 @@ interaction_id = "blackboard"
 prompt_message = "Press E to look at Blackboard"
 
 [node name="EmptyDesk" parent="." unique_id=607794367 instance=ExtResource("3_interactable")]
-position = Vector2(150, 630)
+position = Vector2(188, 562)
 interaction_id = "empty_desk"
 prompt_message = "Press E to look at Adjacent Desk"
 

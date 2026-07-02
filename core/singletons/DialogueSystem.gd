@@ -1021,6 +1021,11 @@ func _update_speaker_portraits(speaker: String) -> void:
 			portrait_texture_right.offset_bottom = 0.0
 			portrait_texture_right.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			
+			if speaker == "Landlady":
+				portrait_texture_right.flip_h = true
+			else:
+				portrait_texture_right.flip_h = false
+			
 			portrait_bg_right.visible = false
 			portrait_head_right.visible = false
 			portrait_shoulders_right.visible = false

@@ -145,25 +145,47 @@ func _ready() -> void:
 	$Shower.interacted.connect(_on_shower_interacted)
 	$Toilet.interacted.connect(_on_toilet_interacted)
 	$AptDoor.interacted.connect(_on_apt_door_interacted)
+	
+	# Ensure CanvasModulate exists for the shower depression effect
+	if not has_node("CanvasModulate"):
+		var cm = CanvasModulate.new()
+		cm.name = "CanvasModulate"
+		cm.color = Color(1, 1, 1, 1)
+		add_child(cm)
 
 func _on_shower_interacted(_id: String) -> void:
-	if GlobalState.has_flag("apt_showered"):
-		DialogueSystem.start_dialogue({"start": {"text": "You have already showered.", "next": ""}}, "start")
+	if GlobalState.has_flag("has_showered"):
+		DialogueSystem.start_dialogue({"start": {"text": "You've already showered. The water has run cold.", "next": ""}}, "start")
 		return
-	DialogueSystem.start_dialogue(shower_dialogue, "start")
+		
+	# Play the shower running water sound effect
+	EventBus.play_sound.emit("shower")
+	
+	# Shower tints the room dark as per script alur.md atmosphere note.
+	var tween = create_tween()
+	tween.tween_property($CanvasModulate, "color", Color(0.4, 0.4, 0.6), 5.0)
+	
+	GlobalState.set_flag("has_showered", true)
+	
+	# Pass true to trigger the sensory-based shower monologue sequence in fullscreen cutscene mode.
+	DialogueSystem.start_dialogue(shower_dialogue, "start", true)
 	if not EventBus.dialogue_finished.is_connected(_on_shower_dialogue_finished):
 		EventBus.dialogue_finished.connect(_on_shower_dialogue_finished)
 
 func _on_shower_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_shower_dialogue_finished)
-	if DialogueSystem.dialogue_tree == shower_dialogue and DialogueSystem.current_node_id == "shower_sys":
-		GlobalState.set_flag("apt_showered", true)
-		GlobalState.starting_energy_modifier += 1
-		GlobalState.player_current_hp += 10
-		if GlobalState.player_current_hp > GlobalState.player_max_hp:
-			GlobalState.player_current_hp = GlobalState.player_max_hp
+	if DialogueSystem.dialogue_tree == shower_dialogue:
+		EventBus.stop_sound.emit("shower")
+		EventBus.stop_sound.emit("sfx_shower_run")
+		
+		# Advance objective directly via HUD if it exists
+		if has_node("/root/ExplorationHUD"):
+			get_node("/root/ExplorationHUD").set_objective("Leave the apartment.")
+			# Keep the local state roughly in sync just in case
+			GlobalState.set_flag("objective_exit", true)
 
 func _on_toilet_interacted(_id: String) -> void:
+	EventBus.play_sound.emit("toilet_flush")
 	DialogueSystem.start_dialogue(toilet_dialogue, "start")
 
 func _on_apt_door_interacted(_id: String) -> void:

@@ -484,6 +484,11 @@ func stop_sfx(sound_name: String) -> void:
 func transition_to_state(target_state: String) -> void:
 	var target_scene_path: String = ""
 	match target_state:
+		"S_bathroom":
+			target_scene_path = "res://scenes/exploration/bathroom.tscn"
+			if has_node("/root/ExplorationHUD"):
+				get_node("/root/ExplorationHUD").show_hud()
+			stop_all_oneshot_sfx()
 		"S_apt":
 			target_scene_path = "res://scenes/exploration/apartment.tscn"
 			if has_node("/root/ExplorationHUD"):
