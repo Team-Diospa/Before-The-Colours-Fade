@@ -34,7 +34,7 @@ var enemy_intent_value: int = 0
 @onready var hand_container = $UI/HandPanel
 @onready var end_turn_btn = $UI/ActionPanel/VBox/EndTurnButton
 @onready var reroll_btn = $UI/ActionPanel/VBox/RerollButton
-@onready var shift_btn = $UI/ActionPanel/VBox/ShiftButton
+@onready var ultimate_btn = $UI/ActionPanel/VBox/UltimateButton
 @onready var retain_btn = $UI/ActionPanel/VBox/RetainButton
 @onready var feedback_label = $UI/FeedbackLabel
 @onready var energy_orb: Panel = $UI/EnergyOrb
@@ -357,8 +357,9 @@ func _ready() -> void:
 	# Nothing to spawn - just connect signals and wire the deck tab buttons.
 	_connect_deck_tabs()
 
-	# EnemyPanel is a template; hide it until a wave spawns a real enemy panel.
-	$UI/EnemyPanel.visible = false
+	# EnemyTemplate handles visibility internally when duplicated.
+	if has_node("UI/EnemyTemplate"):
+		$UI/EnemyTemplate.visible = false
 
 	# HandPanel children can be cleared safely since cards are spawned per-draw.
 	for child in $UI/HandPanel.get_children():
@@ -368,7 +369,7 @@ func _ready() -> void:
 	$UI/FeedbackLabel.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
 
 	# Action button hover tweens (runtime-only, not storable in .tscn).
-	for btn in [end_turn_btn, reroll_btn, shift_btn, retain_btn]:
+	for btn in [end_turn_btn, reroll_btn, ultimate_btn, retain_btn]:
 		if not btn:
 			continue
 			
@@ -909,14 +910,13 @@ func _on_retain_pressed() -> void:
 		_update_btn_text(retain_btn, "Retaining...\n(Click a card)")
 		update_ui()
 
-# Dimension Shift option button.
-func _on_shift_pressed() -> void:
+# Ultimate Attack option button.
+func _on_ultimate_pressed() -> void:
 	# RATIONALE: Block action while dialogue is active.
 	if DialogueSystem.is_active:
 		return
-	if ShiftManager.can_shift():
-		# RATIONALE: Bateson's Double-Bind. Shifting isn't a clean escape; it has a visual cost.
-		# Add a blinding white flash and violent screen shake before transitioning.
+	if GlobalState.dimension_charge >= 3:
+		# Add a blinding white flash and violent screen shake for the ultimate.
 		var flash = ColorRect.new()
 		flash.color = Color.WHITE
 		flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -929,27 +929,55 @@ func _on_shift_pressed() -> void:
 		var original_pos = position
 		var shake_tw = create_tween()
 		for i in range(6):
-			var offset = Vector2(randf_range(-15, 15), randf_range(-15, 15))
+			var offset = Vector2(randf_range(-25, 25), randf_range(-25, 25))
 			shake_tw.tween_property(self, "position", original_pos + offset, 0.05)
 		shake_tw.tween_property(self, "position", original_pos, 0.05)
 		
-		await shake_tw.finished
+		# Play multiple heavy SFX for the Ultimate attack!
+		EventBus.play_sound.emit("double_slice")
+		EventBus.play_sound.emit("metal_clamp")
 		
+		await shake_tw.finished
+		flash.queue_free()
+		
+		# Execute the ultimate attack!
+		GlobalState.dimension_charge -= 3
 		var current_enemy = active_enemies[selected_enemy_idx]
-		ShiftManager.serialize_combat(
-			player_hp, 
-			player_energy, 
-			player_block, 
-			enemy_name, 
-			current_enemy["hp"], 
-			current_enemy["max_hp"], 
-			current_enemy["intent"], 
-			current_enemy["intent_value"],
-			active_enemies,
-			current_stage_idx
-		)
-		GlobalState.acquired_fragments += 1
-		SceneManager.transition_to_state("S_class")
+		
+		# Deal 20 massive damage and gain 10 block.
+		var ult_damage = 20
+		var ult_block = 10
+		
+		current_enemy["hp"] -= ult_damage
+		player_block += ult_block
+		
+		animate_feedback("ULTIMATE! 20 Damage & 10 Block!")
+		
+		if current_enemy["hp"] <= 0:
+			current_enemy["hp"] = 0
+			animate_feedback(current_enemy["name"] + " is defeated!")
+			if current_enemy["sprite"]:
+				current_enemy["sprite"].visible = false
+			if current_enemy["panel"]:
+				current_enemy["panel"].visible = false
+			if current_enemy["target_btn"]:
+				current_enemy["target_btn"].visible = false
+			_auto_select_alive_enemy()
+			
+		update_ui()
+		# Play impact animation on the enemy sprite if it's still alive/visible
+		if is_instance_valid(current_enemy["sprite"]) and current_enemy["sprite"].visible:
+			var sprite_tw = create_tween()
+			sprite_tw.tween_property(current_enemy["sprite"], "modulate", Color(2.0, 0.0, 0.0), 0.1)
+			sprite_tw.tween_property(current_enemy["sprite"], "modulate", Color(1.0, 1.0, 1.0), 0.2)
+
+		# Check for wave victory
+		if _check_wave_victory():
+			if current_stage_idx < stages_data.size() - 1:
+				_transition_to_next_wave()
+			else:
+				transition_to(State.VICTORY)
+
 
 # End Turn option button.
 func _on_end_turn_pressed() -> void:
@@ -1061,17 +1089,15 @@ func update_ui() -> void:
 							intent_icon.visible = false
 					intent_lbl.visible = (intent_lbl.text != "")
 	
-	# Dimension shifting button logic in Pack Leader fight.
-	var action_vbox = $UI/ActionPanel/VBox
-	if enemy_name == "Pack Leader" and not GlobalState.has_flag("buff_confidence_active") and ShiftManager.can_shift():
-		shift_btn.visible = true
-		shift_btn.disabled = GlobalState.dimension_charge < 3
-		shift_btn.text = "Shift to Dream"
-	else:
-		shift_btn.visible = false
+	# Ultimate button logic in Pack Leader fight (or any fight now).
+	# Enable the ultimate button only if we have full charge.
+	if ultimate_btn:
+		ultimate_btn.visible = true
+		ultimate_btn.disabled = GlobalState.dimension_charge < 3
+		ultimate_btn.text = "Ultimate Attack"
 		
-	# Update the True Shift Gauge in the center of the screen
-	var true_gauge = $UI.get_node_or_null("ShiftGauge")
+	# Update the True Shift Gauge (Now Ultimate Gauge) in the center of the screen
+	var true_gauge = $UI.get_node_or_null("UltimateGauge")
 	if true_gauge:
 		true_gauge.value = 100 # Force it to draw the full texture
 		var charge_clamped = clampi(GlobalState.dimension_charge, 0, 3)
@@ -1585,9 +1611,10 @@ func _on_intro_dialogue_finished() -> void:
 	EventBus.dialogue_finished.disconnect(_on_intro_dialogue_finished)
 	if enemy_name == "Castle Boss" and not GlobalState.has_flag("tutorial_done"):
 		tutorial_step = 1
+		var intent_val = active_enemies[0]["intent_value"] if active_enemies.size() > 0 else 6
 		DialogueSystem.start_dialogue({
 			"start": {
-				"text": "Look at your cards at the bottom. Strike deals damage, and Defend blocks enemy attacks. Notice the Castle Boss intends to attack you for 6 damage this turn!",
+				"text": "Look at your cards at the bottom. Strike deals damage, and Defend blocks enemy attacks. Notice the Castle Boss intends to attack you for %d damage this turn!" % intent_val,
 				"speaker": "n.n.",
 				"next": "tut_2"
 			},
@@ -1612,7 +1639,7 @@ func _trigger_tutorial_step_2() -> void:
 func _trigger_tutorial_step_3() -> void:
 	DialogueSystem.start_dialogue({
 		"start": {
-			"text": "Perfect! You have 1 energy left. You cannot play any more cards because both Strike and Defend cost 1 energy. Press 'End Turn' to let the enemy act.",
+			"text": "Perfect! You have %d energy left. You cannot play any more cards because both Strike and Defend cost 1 energy. Press 'End Turn' to let the enemy act." % player_energy,
 			"speaker": "n.n.",
 			"next": ""
 		}
@@ -1622,7 +1649,17 @@ func _trigger_tutorial_step_3() -> void:
 func _trigger_tutorial_turn_2() -> void:
 	DialogueSystem.start_dialogue({
 		"start": {
-			"text": "Good job! Your block absorbed the damage. You also have a 'Reroll' button to replace your hand for free once per round, and a 'Retain' button to save a card for next turn. Use them wisely.",
+			"text": "Good job! Your block absorbed the damage. You also have a 'Reroll' button to replace your hand for free once per round, and a 'Retain' button to save a card for next turn.",
+			"speaker": "n.n.",
+			"next": "tut_intents"
+		},
+		"tut_intents": {
+			"text": "Pay close attention to Enemy Intents above their head. It tells you exactly what they will do this turn so you can plan accordingly.",
+			"speaker": "n.n.",
+			"next": "tut_ultimate"
+		},
+		"tut_ultimate": {
+			"text": "Finally, see that gauge on the left? Playing cards charges your Ultimate Attack! When it's fully charged, unleash a devastating blow!",
 			"speaker": "n.n.",
 			"next": "tut_end"
 		},
@@ -1686,14 +1723,9 @@ func _start_wave(stage_idx: int) -> void:
 	
 	# Clean up any existing nodes from a previous wave stage.
 	for enemy in active_enemies:
-		if enemy.get("sprite") and is_instance_valid(enemy["sprite"]):
-			enemy["sprite"].queue_free()
-		if enemy.get("panel") and is_instance_valid(enemy["panel"]):
-			enemy["panel"].queue_free()
-		if enemy.get("target_btn") and is_instance_valid(enemy["target_btn"]):
-			enemy["target_btn"].queue_free()
-		if enemy.get("arrow") and is_instance_valid(enemy["arrow"]):
-			enemy["arrow"].queue_free()
+		if enemy.get("template") and is_instance_valid(enemy["template"]):
+			enemy["template"].queue_free()
+		# Fallbacks for any dynamically added visual nodes that might not be in template
 		if enemy.get("intent_hbox") and is_instance_valid(enemy["intent_hbox"]):
 			enemy["intent_hbox"].queue_free()
 			
@@ -1726,13 +1758,22 @@ func _start_wave(stage_idx: int) -> void:
 			"phase3_atk": conf["phase3_atk"],
 			"defend_val": conf["defend_val"],
 			"smooth_hp_ratio": 1.0,
+			"template": null,
 			"sprite": null,
 			"panel": null,
-			"target_btn": null
+			"target_btn": null,
+			"arrow": null
 		}
 		
-		# Programmatically spawn the enemy sprite facing left (flipped).
-		var sprite = Sprite2D.new()
+		# Duplicate the EnemyTemplate which contains Sprite, Panel, Arrow, and TargetButton
+		var template = $UI/EnemyTemplate.duplicate()
+		template.visible = true
+		template.name = "EnemyTemplate_%d" % i
+		template.position = Vector2(x_coords[i], 310) # Base position is character level
+		$UI.add_child(template)
+		enemy_data["template"] = template
+		
+		var sprite = template.get_node("EnemySprite")
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		
 		# Map conf["name"] to correct custom texture path
@@ -1752,50 +1793,28 @@ func _start_wave(stage_idx: int) -> void:
 				sprite.texture = load("res://Assets/Sprites/Monster1.png")
 			
 		# RATIONALE: All monster sprites are 256x256 real pixels.
-		# Standard enemies render at ~96px (scale 0.375), bosses/pack leaders at ~128px (scale 0.5).
-		# Significantly increased enemy scale
 		var base_scale = Vector2(0.7, 0.7)
 		if "pack leader" in name_lower or "boss" in name_lower:
 			base_scale = Vector2(1.0, 1.0)
 		sprite.scale = base_scale
-			
-		sprite.position = Vector2(x_coords[i], 310) # Lowered to exactly match Hilbert's Y level
-		sprite.flip_h = false
-		sprite.z_index = 10
-		$UI.add_child(sprite) # Reparent to UI layer to guarantee visibility
+		
 		enemy_data["sprite"] = sprite
 		
-		# Place the HUD panel directly above the specific enemy sprite
-		var panel = $UI/EnemyPanel.duplicate()
-		panel.visible = true
-		panel.size = Vector2(220, 75)
-		panel.position = Vector2(x_coords[i] - (panel.size.x / 2), 110) # Fixed level vertically!
-		
-		# Set the exact enemy portrait
+		# Setup panel
+		var panel = template.get_node("EnemyPanel")
 		var portrait = panel.get_node_or_null("Portrait")
 		if portrait and FileAccess.file_exists(texture_path):
 			portrait.texture = load(texture_path)
-			portrait.flip_h = true
-			
-		$UI.add_child(panel)
 		enemy_data["panel"] = panel
 		
-		# Programmatically spawn a floating targeting arrow for selection animation
-		var arrow = Sprite2D.new()
-		if FileAccess.file_exists("res://Assets/UI/targeting_arrow_32x32.png"):
-			arrow.texture = load("res://Assets/UI/targeting_arrow_32x32.png")
-		arrow.position = Vector2(x_coords[i], 160)
-		arrow.scale = Vector2(0.5, 0.5) # Shrink the size of the arrow like before
-		arrow.visible = false
-		$UI.add_child(arrow)
+		# Setup arrow
+		var arrow = template.get_node("TargetArrow")
 		enemy_data["arrow"] = arrow
 		
-		# Programmatically spawn a transparent overlay button covering the sprite to detect target clicks.
-		var target_btn = Button.new()
-		target_btn.size = Vector2(130, 130) # Tightly hugs the sprite so hovering empty space doesn't trigger it!
-		target_btn.position = Vector2(x_coords[i] - 65, 245) # Centered tightly around the sprite at Y=310
-		
+		# Setup target button
+		var target_btn = template.get_node("TargetButton")
 		var idx_closure = i
+		
 		target_btn.mouse_entered.connect(func():
 			if current_state == State.PLAYER_ACTION and is_instance_valid(sprite) and active_enemies[idx_closure]["hp"] > 0:
 				sprite.modulate = Color(1.5, 1.5, 1.5)
@@ -1804,10 +1823,10 @@ func _start_wave(stage_idx: int) -> void:
 					if arrow.has_meta("tween") and is_instance_valid(arrow.get_meta("tween")):
 						arrow.get_meta("tween").kill()
 					arrow.visible = true
-					arrow.position.y = 160.0
+					arrow.position.y = -150.0 # Relative to template
 					var tween = create_tween().set_loops()
-					tween.tween_property(arrow, "position:y", 175.0, 0.4).set_trans(Tween.TRANS_SINE)
-					tween.tween_property(arrow, "position:y", 160.0, 0.4).set_trans(Tween.TRANS_SINE)
+					tween.tween_property(arrow, "position:y", -135.0, 0.4).set_trans(Tween.TRANS_SINE)
+					tween.tween_property(arrow, "position:y", -150.0, 0.4).set_trans(Tween.TRANS_SINE)
 					arrow.set_meta("tween", tween)
 		)
 		target_btn.mouse_exited.connect(func():
@@ -1819,14 +1838,9 @@ func _start_wave(stage_idx: int) -> void:
 				if arrow.has_meta("tween") and is_instance_valid(arrow.get_meta("tween")):
 					arrow.get_meta("tween").kill()
 		)
-		var empty_style = StyleBoxEmpty.new()
-		target_btn.add_theme_stylebox_override("normal", empty_style)
-		target_btn.add_theme_stylebox_override("hover", empty_style)
-		target_btn.add_theme_stylebox_override("pressed", empty_style)
-		target_btn.add_theme_stylebox_override("focus", empty_style)
+		
 		target_btn.mouse_filter = Control.MOUSE_FILTER_PASS
 		target_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		add_child(target_btn)
 		enemy_data["target_btn"] = target_btn
 		
 		target_btn.pressed.connect(func(): _on_enemy_clicked(idx_closure))

@@ -174,6 +174,9 @@ func _ready() -> void:
 		if not GlobalState.has_flag("key_found_dialogue_shown"):
 			GlobalState.set_flag("key_found_dialogue_shown", true)
 			call_deferred("_trigger_secret_hallway_intro")
+			
+	if SceneManager.previous_scene_name == "apartment" and has_node("Player"):
+		$Player.global_position.x = -750
 
 func _trigger_secret_hallway_intro() -> void:
 	DialogueSystem.start_dialogue(secret_hallway_intro, "start")

@@ -233,23 +233,41 @@ func _on_arrow_draw() -> void:
 	var outline_col = Color(0.05, 0.05, 0.05, 0.9)
 	
 	if is_on_screen:
-		# Bouncing arrow above target
-		var bounce_y = sin(_time * 6.0) * 8.0
-		var draw_pos = screen_pos + Vector2(0, -50 + bounce_y)
-		var pts = PackedVector2Array([
-			draw_pos + Vector2(-10, -12),
-			draw_pos + Vector2(10, -12),
-			draw_pos + Vector2(0, 4)
-		])
-		
-		# Outline
-		var out_pts = PackedVector2Array([
-			draw_pos + Vector2(-13, -15),
-			draw_pos + Vector2(13, -15),
-			draw_pos + Vector2(0, 8)
-		])
-		arrow_node.draw_polygon(out_pts, PackedColorArray([outline_col]))
-		arrow_node.draw_polygon(pts, PackedColorArray([arrow_col]))
+		if _objective_target_id.begins_with("door"):
+			# Bouncing arrow pointing horizontally to the door
+			var bounce_x = sin(_time * 6.0) * 8.0
+			var draw_pos = screen_pos + Vector2(-40 + bounce_x, 0)
+			var pts = PackedVector2Array([
+				draw_pos + Vector2(-12, -10),
+				draw_pos + Vector2(-12, 10),
+				draw_pos + Vector2(4, 0)
+			])
+			
+			var out_pts = PackedVector2Array([
+				draw_pos + Vector2(-15, -13),
+				draw_pos + Vector2(-15, 13),
+				draw_pos + Vector2(8, 0)
+			])
+			arrow_node.draw_polygon(out_pts, PackedColorArray([outline_col]))
+			arrow_node.draw_polygon(pts, PackedColorArray([arrow_col]))
+		else:
+			# Bouncing arrow above target vertically
+			var bounce_y = sin(_time * 6.0) * 8.0
+			var draw_pos = screen_pos + Vector2(0, -50 + bounce_y)
+			var pts = PackedVector2Array([
+				draw_pos + Vector2(-10, -12),
+				draw_pos + Vector2(10, -12),
+				draw_pos + Vector2(0, 4)
+			])
+			
+			# Outline
+			var out_pts = PackedVector2Array([
+				draw_pos + Vector2(-13, -15),
+				draw_pos + Vector2(13, -15),
+				draw_pos + Vector2(0, 8)
+			])
+			arrow_node.draw_polygon(out_pts, PackedColorArray([outline_col]))
+			arrow_node.draw_polygon(pts, PackedColorArray([arrow_col]))
 	else:
 		# Directional pointer at edge of screen
 		var center = screen_rect.size / 2.0
@@ -442,14 +460,14 @@ func update_hud() -> void:
 			match current_scene.name:
 				"Hallway":
 					objective_text = "Objective: Head down the hallway to your quiz."
-					_objective_target_id = "door_hall"
+					_objective_target_id = "fountain"
 				"Classroom":
-					if ShiftManager.cached_combat_exists:
-						objective_text = "Objective: Use your Dream Fragment on the Quiz Paper."
-						_objective_target_id = "quiz"
+					if GlobalState.has_flag("shift_1_done") or GlobalState.shift_1_done:
+						objective_text = "Objective: Take a breath. Look around."
+						_objective_target_id = ""
 					else:
 						objective_text = "Objective: Search the lockers, then sit at your desk to start the quiz."
-						_objective_target_id = "desk_class"
+						_objective_target_id = "desk"
 				
 	var old_objective = objective_label.text
 	objective_label.text = objective_text

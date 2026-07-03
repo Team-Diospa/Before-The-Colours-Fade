@@ -152,6 +152,9 @@ func _ready() -> void:
 		cm.name = "CanvasModulate"
 		cm.color = Color(1, 1, 1, 1)
 		add_child(cm)
+		
+	if SceneManager.previous_scene_name == "apartment" and has_node("Player"):
+		$Player.global_position.x = 941
 
 func _on_shower_interacted(_id: String) -> void:
 	if GlobalState.has_flag("has_showered"):

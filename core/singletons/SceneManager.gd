@@ -16,6 +16,7 @@ var active_sfx_players: Dictionary = {}
 # RATIONALE: Used during saving/loading to ensure that saving mid-combat
 # restores the game to the exploration scene prior to the battle.
 var last_exploration_scene_path: String = "res://scenes/exploration/apartment.tscn"
+var previous_scene_name: String = ""
 
 func _ready() -> void:
 	# Programmatically construct overlay UI to avoid scene dependencies.
@@ -586,6 +587,9 @@ func _change_scene_with_fade(scene_path: String) -> void:
 	# Keep track of exploration scenes for the save-load system.
 	if scene_path.contains("scenes/exploration/"):
 		last_exploration_scene_path = scene_path
+
+	if get_tree() and get_tree().current_scene:
+		previous_scene_name = get_tree().current_scene.scene_file_path.get_file().get_basename()
 
 	# Block user input during transition.
 	fade_rect.mouse_filter = Control.MOUSE_FILTER_STOP

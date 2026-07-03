@@ -729,6 +729,12 @@ func _ready() -> void:
 	if has_node("Window"):   $Window.interacted.connect(_on_window_interacted)
 	if has_node("Papers"):   $Papers.interacted.connect(_on_papers_interacted)
 
+	# Adjust player spawn position based on previous scene
+	if SceneManager.previous_scene_name == "bathroom" and has_node("Player"):
+		$Player.global_position.x = 950 # Bathroom Door x-coordinate
+	elif SceneManager.previous_scene_name == "hallway" and has_node("Player"):
+		$Player.global_position.x = 1150 # Exit Door x-coordinate
+
 	# Programmatically instantiate a StaticBody2D wall to prevent the player from crossing/walking over the bed graphic.
 	var bed_collider = StaticBody2D.new()
 	bed_collider.name = "BedCollider"
@@ -810,12 +816,12 @@ func _on_opening_narration_finished() -> void:
 func _advance_objective(new_objective: String) -> void:
 	current_objective = new_objective
 	match new_objective:
-		"bed":
-			ExplorationHUD.set_objective("Check the bed.")
+		"wake_up", "bed":
+			ExplorationHUD.set_objective("Check the bed.", "bed")
 		"shower":
-			ExplorationHUD.set_objective("Get ready. Use the shower.")
+			ExplorationHUD.set_objective("Get ready. Use the shower.", "bathroom_door")
 		"exit":
-			ExplorationHUD.set_objective("Leave the apartment.")
+			ExplorationHUD.set_objective("Leave the apartment.", "exit_door")
 
 # ============================================================
 # INTERACTABLE HANDLERS

@@ -83,6 +83,8 @@ var _continue_tween: Tween   # Reference to manage continue indicator pulsing sa
 
 # Tracks if dialogue is being fast-forwarded (skipped) by player pressing space/E.
 var _fast_forward: bool = false
+var _hold_skip_timer: float = 0.0
+const SKIP_HOLD_TIME: float = 1.0
 
 # Tracks the unique ID of the active typing coroutine to prevent race conditions when skipped.
 var _typing_session_id: int = 0
@@ -142,6 +144,7 @@ func _update_ui_style() -> void:
 		layout_container.vertical = true
 		layout_container.alignment = BoxContainer.ALIGNMENT_CENTER
 		layout_container.add_theme_constant_override("separation", 20)
+		text_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		
 		# Position continue indicator in the lower-middle portion of the screen.
 		continue_indicator.anchor_left = 0.5
@@ -218,6 +221,7 @@ func _update_ui_style() -> void:
 		layout_container.vertical = false
 		layout_container.alignment = BoxContainer.ALIGNMENT_BEGIN
 		layout_container.add_theme_constant_override("separation", 15)
+		text_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		
 		# Reset continue indicator to bottom-right corner of the panel.
 		continue_indicator.anchor_left = 1.0
@@ -358,11 +362,14 @@ func _ready() -> void:
 	
 	# BoxContainer to support dynamic switching between horizontal and vertical layouts.
 	layout_container = BoxContainer.new()
+	layout_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	layout_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin_container.add_child(layout_container)
 	
 	# RATIONALE: Nesting labels inside a VBox container to show speaker badge above dialogue text.
 	text_vbox = VBoxContainer.new()
 	text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	text_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	layout_container.add_child(text_vbox)
 	
@@ -382,6 +389,7 @@ func _ready() -> void:
 	
 	# Label to render the text.
 	text_label = Label.new()
+	text_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text_label.add_theme_font_size_override("font_size", 16)
@@ -427,6 +435,7 @@ func _ready() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not is_active:
+		_hold_skip_timer = 0.0
 		return
 		
 	# Advance dialogue when E, Space, or Left Mouse Click is pressed.
@@ -449,44 +458,66 @@ func _input(event: InputEvent) -> void:
 				_continue_tween.tween_property(continue_indicator, "modulate:a", 1.0, 0.4)
 			get_viewport().set_input_as_handled()
 			return
+		else:
+			_hold_skip_timer = 0.0
 			
 		if active_options.is_empty():
-			# Hide continuation indicator when advancing.
-			if _continue_tween and _continue_tween.is_valid():
-				_continue_tween.kill()
-			continue_indicator.visible = false
-			BubbleManager.show_continue_indicator(false)
-			# Fetch next node from current node data.
-			var node_data = dialogue_tree.get(current_node_id, {})
-			var next_node_id = node_data.get("next", "")
-			
-			if next_node_id != "":
-				var next_node_data = dialogue_tree.get(next_node_id, {})
-				var current_fade = node_data.get("fade_out", false)
-				var will_layout_change = false
-				
-				# Check layout change
-				if next_node_data.has("fullscreen"):
-					if next_node_data["fullscreen"] != _is_fullscreen_mode:
-						will_layout_change = true
-				# Check dream world style change
-				if next_node_data.has("dream_world"):
-					if next_node_data["dream_world"] != _is_dream_world:
-						will_layout_change = true
-						
-				if current_fade or will_layout_change:
-					# RATIONALE: Fade out dialogue panel to hide visual snaps during layout/state shifts.
-					var fade_tw = create_tween()
-					fade_tw.tween_property(dialogue_panel, "modulate:a", 0.0, 0.25).set_trans(Tween.TRANS_SINE)
-					await fade_tw.finished
-					
-				# Play page-turn sound only when actually advancing to the next node.
-				EventBus.play_sound.emit("ui_dialogue_skip")
-				_play_node(next_node_id)
-			else:
-				# End of dialogue tree reached.
-				close_dialogue()
+			_advance_dialogue()
 			get_viewport().set_input_as_handled()
+
+func _advance_dialogue() -> void:
+	# Hide continuation indicator when advancing.
+	if _continue_tween and _continue_tween.is_valid():
+		_continue_tween.kill()
+	continue_indicator.visible = false
+	BubbleManager.show_continue_indicator(false)
+	# Fetch next node from current node data.
+	var node_data = dialogue_tree.get(current_node_id, {})
+	var next_node_id = node_data.get("next", "")
+	
+	if next_node_id != "":
+		var next_node_data = dialogue_tree.get(next_node_id, {})
+		var current_fade = node_data.get("fade_out", false)
+		var will_layout_change = false
+		
+		# Check layout change
+		if next_node_data.has("fullscreen"):
+			if next_node_data["fullscreen"] != _is_fullscreen_mode:
+				will_layout_change = true
+		# Check dream world style change
+		if next_node_data.has("dream_world"):
+			if next_node_data["dream_world"] != _is_dream_world:
+				will_layout_change = true
+				
+		if current_fade or will_layout_change:
+			# RATIONALE: Fade out dialogue panel to hide visual snaps during layout/state shifts.
+			var fade_tw = create_tween()
+			fade_tw.tween_property(dialogue_panel, "modulate:a", 0.0, 0.25).set_trans(Tween.TRANS_SINE)
+			await fade_tw.finished
+			
+		# Play page-turn sound only when actually advancing to the next node.
+		EventBus.play_sound.emit("ui_dialogue_skip")
+		_play_node(next_node_id)
+	else:
+		# End of dialogue tree reached.
+		close_dialogue()
+
+func _process(delta: float) -> void:
+	if is_active:
+		if Input.is_action_pressed("e") or Input.is_action_pressed("space") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_hold_skip_timer += delta
+			if _hold_skip_timer >= SKIP_HOLD_TIME:
+				if active_options.is_empty():
+					if _is_typing:
+						_is_typing = false
+						_fast_forward = true
+						text_label.visible_characters = -1
+						if continue_indicator:
+							continue_indicator.visible = true
+					else:
+						_advance_dialogue()
+		else:
+			_hold_skip_timer = 0.0
 
 # Load and start a dialogue sequence from a Dictionary.
 # RATIONALE: Optional is_fullscreen_narration boolean allows displaying long narrative sequences
@@ -646,18 +677,20 @@ func _play_node(node_id: String) -> void:
 	print("[Dialogue Node ID: ", node_id, "] ", raw_text)
 	
 	# Clear old buttons.
+	active_options.clear()
 	for child in options_container.get_children():
 		child.queue_free()
 		
-	active_options.clear()
+	var options = node_data.get("options", [])
 	
-	# Populate options if available, before typing starts so they are ready.
-	if node_data.has("options"):
-		var options = node_data["options"]
+	if options.size() > 0:
+		options_container.visible = true
 		for i in range(options.size()):
 			var opt = options[i]
 			var btn = Button.new()
 			btn.text = opt.get("text", "")
+			
+			btn.custom_minimum_size = Vector2(0, 30)
 			btn.add_theme_font_override("font", font_retro)
 			btn.add_theme_font_size_override("font_size", 16)
 			
@@ -750,6 +783,8 @@ func _play_node(node_id: String) -> void:
 		# RATIONALE: Grab focus on the first option to enable full keyboard/controller navigation (Up/Down/Enter).
 		if options_container.get_child_count() > 0:
 			options_container.get_child(0).grab_focus()
+	else:
+		options_container.visible = false
 			
 	EventBus.dialogue_text_updated.emit(raw_text, active_options)
 	
