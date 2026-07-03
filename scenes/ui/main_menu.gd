@@ -24,7 +24,7 @@ func _ready() -> void:
 	# Connect Play button
 	btn_play.mouse_entered.connect(func(): play_selected.visible = true; play_unselected.visible = false)
 	btn_play.mouse_exited.connect(func(): play_selected.visible = false; play_unselected.visible = true)
-	btn_play.pressed.connect(_on_start_pressed)
+	btn_play.pressed.connect(_on_continue_pressed)
 	
 	# Connect New Game button
 	btn_new.mouse_entered.connect(func(): new_selected.visible = true; new_unselected.visible = false)
@@ -34,12 +34,21 @@ func _ready() -> void:
 	# Connect Options button
 	btn_opt.mouse_entered.connect(func(): opt_selected.visible = true; opt_unselected.visible = false)
 	btn_opt.mouse_exited.connect(func(): opt_selected.visible = false; opt_unselected.visible = true)
-	btn_opt.pressed.connect(func(): pass) # TODO: Implement settings screen
+	btn_opt.pressed.connect(func(): 
+		PauseManager._toggle_pause()
+		PauseManager._show_settings()
+	)
 	
 	# Connect Exit button
 	btn_exit.mouse_entered.connect(func(): exit_selected.visible = true; exit_unselected.visible = false)
 	btn_exit.mouse_exited.connect(func(): exit_selected.visible = false; exit_unselected.visible = true)
 	btn_exit.pressed.connect(_on_quit_pressed)
+
+func _on_continue_pressed() -> void:
+	if SaveManager.has_save():
+		SaveManager.load_game()
+	else:
+		_on_start_pressed()
 
 func _on_start_pressed() -> void:
 	GlobalState.reset_state()

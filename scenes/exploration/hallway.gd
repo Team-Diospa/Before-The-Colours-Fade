@@ -146,9 +146,20 @@ var fountain_dialogue: Dictionary = {
 		"next": ""
 	}
 }
+var class_door_dialogue: Dictionary = {
+	"start": {
+		"text": "The heavy wooden door to the lecture hall stands before you.",
+		"options": [
+			{"text": "Enter the classroom", "next": "enter_yes"},
+			{"text": "Not yet", "next": ""}
+		]
+	},
+	"enter_yes": {
+		"text": "You grasp the handle.",
+		"next": ""
+	}
+}
 
-# Reference to the panic Area2D trigger node.
-@onready var trigger_area = $PanicTrigger
 var is_triggered: bool = false
 
 # Dialogue for key discovery at secret ending start in the hallway.
@@ -178,20 +189,27 @@ var peer_e_dialogue: Dictionary = {
 
 func _ready() -> void:
 	# Connect collision entry signal.
-	trigger_area.body_entered.connect(_on_panic_trigger_body_entered)
+	if has_node("PanicTrigger"):
+		$PanicTrigger.monitoring = false # Disable auto hitbox
 	var interactables = [$Board, $PeerA, $PeerB, get_node_or_null("PeerC"), get_node_or_null("PeerD"), get_node_or_null("PeerE"), $Fountain, get_node_or_null("Fountain2"), $AptDoor]
 	for obj in interactables:
 		if obj: obj.interacted.connect(_on_object_interacted)
 
 	# RATIONALE: Disable panic attack trigger if secret ending is active, and trigger key discovery dialogue.
 	if GlobalState.has_flag("secret_ending_active"):
-		trigger_area.monitoring = false
 		if not GlobalState.has_flag("key_found_dialogue_shown"):
 			GlobalState.set_flag("key_found_dialogue_shown", true)
 			call_deferred("_trigger_secret_hallway_intro")
 			
 	if SceneManager.previous_scene_name == "apartment" and has_node("Player"):
 		$Player.global_position.x = -750
+		
+	# Spawn the classroom door interactable at the end of the hallway (around x=950 depending on original trigger position).
+	# Use the trigger's position if it exists, otherwise a reasonable end-hallway vector.
+	var door_pos = Vector2(950, 0)
+	if has_node("PanicTrigger"):
+		door_pos = $PanicTrigger.position
+	_spawn_interactable("class_door", "Enter Classroom", door_pos)
 
 func _trigger_secret_hallway_intro() -> void:
 	DialogueSystem.start_dialogue(secret_hallway_intro, "start")
@@ -228,6 +246,10 @@ func _on_object_interacted(id: String) -> void:
 			DialogueSystem.start_dialogue(fountain_dialogue, "start")
 			if not EventBus.dialogue_finished.is_connected(_on_fountain_dialogue_finished):
 				EventBus.dialogue_finished.connect(_on_fountain_dialogue_finished)
+		"class_door":
+			DialogueSystem.start_dialogue(class_door_dialogue, "start")
+			if not EventBus.dialogue_finished.is_connected(_on_class_door_dialogue_finished):
+				EventBus.dialogue_finished.connect(_on_class_door_dialogue_finished)
 		"apt_door":
 			# RATIONALE: Allow returning to the apartment if the secret ending loop is active.
 			if GlobalState.has_flag("secret_ending_active"):
@@ -267,24 +289,33 @@ func _on_fountain_dialogue_finished() -> void:
 		# Let's stack them so that full exploration rewards the player with a safe first round (+10 block).
 		GlobalState.starting_block_modifier += 5
 
-func _on_panic_trigger_body_entered(body: Node2D) -> void:
+func _on_class_door_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_class_door_dialogue_finished)
+	if DialogueSystem.current_node_id == "enter_yes":
+		_start_panic_sequence()
+
+func _start_panic_sequence() -> void:
 	if is_triggered:
 		return
+	is_triggered = true
 		
-	if body is ExplorationPlayer:
-		is_triggered = true
-		
-		# Lock UI and fade background sound.
-		EventBus.lock_player_ui.emit()
-		EventBus.play_sound.emit("murmur_fade_out")
-		
-		# Play the full atmospheric panic and memory sequence.
-		# RATIONALE: Pass true to render this heavy panic attack and threshold transition sequence in fullscreen mode.
-		DialogueSystem.start_dialogue(panic_dialogue, "start", true)
-		
-		# Connect to dialogue finish to perform transition.
-		if not EventBus.dialogue_finished.is_connected(_on_dialogue_finished):
-			EventBus.dialogue_finished.connect(_on_dialogue_finished)
+	# Lock UI and fade background sound.
+	EventBus.lock_player_ui.emit()
+	EventBus.play_sound.emit("murmur_fade_out")
+	EventBus.play_sound.emit("fluorescent_light")
+	EventBus.play_sound.emit("heartbeat")
+	
+	# Dim the BGM significantly for atmospheric suspense
+	var tw = create_tween()
+	tw.tween_property(SceneManager.music_player, "volume_db", -30.0, 1.0)
+	
+	# Play the full atmospheric panic and memory sequence.
+	# RATIONALE: Pass true to render this heavy panic attack and threshold transition sequence in fullscreen mode.
+	DialogueSystem.start_dialogue(panic_dialogue, "start", true)
+	
+	# Connect to dialogue finish to perform transition.
+	if not EventBus.dialogue_finished.is_connected(_on_dialogue_finished):
+		EventBus.dialogue_finished.connect(_on_dialogue_finished)
 
 # Bound listener callback to avoid signal reference leaks.
 func _on_dialogue_finished() -> void:

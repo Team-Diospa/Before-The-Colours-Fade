@@ -116,6 +116,22 @@ func _ready() -> void:
 	gap.custom_minimum_size.y = 8
 	_vbox.add_child(gap)
 	
+	_save_game_btn = _make_pause_button("Save Game")
+	_save_game_btn.pressed.connect(_on_save_pressed)
+	_vbox.add_child(_save_game_btn)
+	
+	var gap_s1 = Control.new()
+	gap_s1.custom_minimum_size.y = 8
+	_vbox.add_child(gap_s1)
+	
+	_load_game_btn = _make_pause_button("Load Game")
+	_load_game_btn.pressed.connect(_on_load_pressed)
+	_vbox.add_child(_load_game_btn)
+	
+	var gap_s2 = Control.new()
+	gap_s2.custom_minimum_size.y = 8
+	_vbox.add_child(gap_s2)
+	
 	var settings_btn = _make_pause_button("Settings")
 	settings_btn.pressed.connect(_show_settings)
 	_vbox.add_child(settings_btn)
@@ -254,24 +270,8 @@ func _ready() -> void:
 	vol_gap.custom_minimum_size.y = 8
 	_settings_vbox.add_child(vol_gap)
 	
-	_save_game_btn = _make_pause_button("Save Game")
-	_save_game_btn.pressed.connect(_on_save_pressed)
-	_settings_vbox.add_child(_save_game_btn)
-	
-	var s_gap = Control.new()
-	s_gap.custom_minimum_size.y = 8
-	_settings_vbox.add_child(s_gap)
-	
-	_load_game_btn = _make_pause_button("Load Game")
-	_load_game_btn.pressed.connect(_on_load_pressed)
-	_settings_vbox.add_child(_load_game_btn)
-	
-	var back_gap = Control.new()
-	back_gap.custom_minimum_size.y = 8
-	_settings_vbox.add_child(back_gap)
-	
 	var back_btn = _make_pause_button("Back")
-	back_btn.pressed.connect(_show_main_menu)
+	back_btn.pressed.connect(_on_back_pressed)
 	_settings_vbox.add_child(back_btn)
 	
 	_status_lbl = Label.new()
@@ -443,6 +443,13 @@ func _show_settings() -> void:
 func _show_main_menu() -> void:
 	_settings_vbox.visible = false
 	_vbox.visible = true
+
+func _on_back_pressed() -> void:
+	var current_scene = get_tree().current_scene
+	if current_scene and current_scene.scene_file_path == "res://scenes/ui/main_menu.tscn":
+		_toggle_pause()
+	else:
+		_show_main_menu()
 
 # Handles saving progress, resolving combat checkpoints to the previous exploration area.
 func _on_save_pressed() -> void:

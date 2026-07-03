@@ -159,12 +159,12 @@ func _update_ui_style() -> void:
 		
 		# Configure solid background color depending on dream vs reality.
 		if _is_dream_world:
-			style_box.bg_color = Color(0.94, 0.92, 0.88, 0.98) # High-opacity warm sketch paper
+			style_box.bg_color = Color(0.94, 0.92, 0.88, 0.8) # High-opacity warm sketch paper
 			text_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
 			speaker_label.add_theme_color_override("font_color", Color(0.65, 0.25, 0.15, 1.0))
 			continue_indicator.modulate = Color(0.12, 0.12, 0.15, 1.0)
 		else:
-			style_box.bg_color = Color(0.02, 0.02, 0.03, 0.98) # Cinematic near-black reality overlay
+			style_box.bg_color = Color(0.02, 0.02, 0.03, 0.8) # Cinematic near-black reality overlay
 			text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
 			speaker_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1.0))
 			continue_indicator.modulate = Color(0.6, 0.7, 0.8, 1.0)

@@ -80,10 +80,11 @@ position = Vector2(-679, 327)
 scale = Vector2(1.9542884, 2.012112)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=212908330]
+position = Vector2(0, -50)
 limit_left = -831
-limit_top = -10000034
+limit_top = -400
 limit_right = 2015
-limit_bottom = 510
+limit_bottom = 700
 
 [node name="LeftWall" type="StaticBody2D" parent="." unique_id=1390494320]
 position = Vector2(-790, -84)
@@ -99,19 +100,11 @@ position = Vector2(2001, 20)
 polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
 
 [node name="PanicTrigger" type="Area2D" parent="." unique_id=294252017]
-position = Vector2(1945, 390)
+position = Vector2(761, 435)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PanicTrigger" unique_id=1607875575]
 position = Vector2(0, -50)
 shape = SubResource("RectangleShape2D_hall_trigger")
-
-[node name="TriggerVisual" type="ColorRect" parent="PanicTrigger" unique_id=1555033190]
-offset_left = -40.0
-offset_top = -150.0
-offset_right = 40.0
-offset_bottom = 50.0
-color = Color(0.9, 0.3, 0.3, 0.2)
-metadata/_edit_use_anchors_ = true
 
 [node name="Board" parent="." unique_id=1657099196 instance=ExtResource("10_interact")]
 position = Vector2(-453, 349)
@@ -134,7 +127,7 @@ interaction_id = "fountain"
 prompt_message = "Press E to use Water Fountain"
 
 [node name="AptDoor" parent="." unique_id=1378150712 instance=ExtResource("10_interact")]
-position = Vector2(-799, 425)
+position = Vector2(-760, 439)
 interaction_id = "apt_door"
 prompt_message = "Press E to look at Exit"
 
