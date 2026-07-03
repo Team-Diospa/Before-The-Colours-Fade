@@ -30,48 +30,37 @@ var enemy_block: int = 0
 var enemy_intent: String = ""
 var enemy_intent_value: int = 0
 
-# Visual Nodes.
-
-
-
-
-
-
-
-
-
+# Visual Nodes - all declared in the .tscn, grabbed here at scene ready.
 @onready var hand_container = $UI/HandPanel
 @onready var end_turn_btn = $UI/ActionPanel/VBox/EndTurnButton
 @onready var reroll_btn = $UI/ActionPanel/VBox/RerollButton
 @onready var shift_btn = $UI/ActionPanel/VBox/ShiftButton
-@onready var retain_btn = get_node_or_null("UI/ActionPanel/VBox/RetainButton")
+@onready var retain_btn = $UI/ActionPanel/VBox/RetainButton
 @onready var feedback_label = $UI/FeedbackLabel
+@onready var energy_orb: Panel = $UI/EnergyOrb
+@onready var energy_orb_label: Label = $UI/EnergyOrb/EnergyOrbLabel
+@onready var top_bar: Panel = $UI/TopBar
+@onready var progress_label: Label = $UI/TopBar/ProgressLabel
+@onready var gold_label: Label = $UI/TopBar/GoldLabel
+@onready var deck_booklet_btn: Button = $UI/DeckBookletBtn
+@onready var deck_viewer_layer: CanvasLayer = $DeckViewerLayer
+@onready var deck_viewer_panel: Panel = $DeckViewerLayer/DeckViewerPanel
+@onready var deck_scroll_container: ScrollContainer = $DeckViewerLayer/DeckViewerPanel/DeckScrollContainer
+@onready var deck_grid: GridContainer = $DeckViewerLayer/DeckViewerPanel/DeckScrollContainer/DeckGrid
+@onready var player_sprite: Sprite2D = $UI/PlayerSprite
 
-# Slay the Spire style circular energy orb widgets.
-var energy_orb: Panel
-var energy_orb_label: Label
-
-# RATIONALE: Retain mode flag - when true, the next card click retains instead of plays.
+# Retain mode flag - when true, the next card click retains instead of plays.
 var _retain_mode_active: bool = false
 
-# UI controls for top bar and Booklet Deck Viewer.
-var top_bar: Panel
-var progress_label: Label
-var gold_label: Label
-var deck_booklet_btn: Button
-var deck_viewer_panel: Panel
-var deck_scroll_container: ScrollContainer
-var deck_grid: GridContainer
-var current_viewer_pile: String = "Deck" # Current active tab: "Deck", "Draw", or "Discard"
+# Current active deck viewer tab: "Deck", "Draw", or "Discard".
+var current_viewer_pile: String = "Deck"
 var _transitioning_wave: bool = false # Gate to prevent double-clearing of wave states
-var deck_viewer_layer: CanvasLayer # Dedicated layer for deck viewer modal to avoid mouse blocking
 
 # Programmatic wave stages, targeting, and sprite variables.
 var current_stage_idx: int = 0
 var stages_data: Array = []
 var active_enemies: Array = []
 var selected_enemy_idx: int = 0
-var player_sprite: Sprite2D = null
 
 # RATIONALE: Inner class helper to route damage and block-clearing actions to specific wave enemies.
 class EnemyTarget:
@@ -363,139 +352,22 @@ func _ready() -> void:
 	
 	# Initialize wave stages data structures
 	_init_stages_data()
-	
-	# Spawn a banner background TextureRect behind the feedback label
-	var banner_bg = TextureRect.new()
-	banner_bg.name = "FeedbackBannerBg"
-	banner_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	banner_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	banner_bg.visible = false
-	banner_bg.anchor_left = 0.0
-	banner_bg.anchor_top = 0.0
-	banner_bg.anchor_right = 0.0
-	banner_bg.anchor_bottom = 0.0
-	banner_bg.position = Vector2(376, 20)
-	
-	if has_node("UI/FeedbackLabel"):
-		var fb_lbl = $UI/FeedbackLabel
-		var fb_idx = fb_lbl.get_index()
-		fb_lbl.get_parent().add_child(banner_bg)
-		fb_lbl.get_parent().move_child(banner_bg, fb_idx)
-		fb_lbl.position = Vector2(376, 45)
-		fb_lbl.size = Vector2(400, 30)
-		fb_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		fb_lbl.add_theme_font_size_override("font_size", 24)
-	
-	# Hide default enemy panel template since wave panels are spawned programmatically
+
+	# All UI nodes are declared in the .tscn.
+	# Nothing to spawn - just connect signals and wire the deck tab buttons.
+	_connect_deck_tabs()
+
+	# EnemyPanel is a template; hide it until a wave spawns a real enemy panel.
 	$UI/EnemyPanel.visible = false
-	
-	_build_hud_panel($UI/PlayerPanel, true)
-	_build_hud_panel($UI/EnemyPanel, false)
-	
-	# Fetch player sprite from the scene instead of spawning programmatically
-	player_sprite = $UI.get_node_or_null("PlayerSprite")
-	if not player_sprite:
-		# Fallback just in case
-		player_sprite = Sprite2D.new()
-		var player_tex_path = "res://Assets/Sprites/DreamHilbertSideways.png"
-		if not FileAccess.file_exists(player_tex_path):
-			player_tex_path = "res://Assets/Sprites/character3.png"
-		player_sprite.texture = load(player_tex_path)
-		player_sprite.scale = Vector2(0.75, 0.75)
-		player_sprite.position = Vector2(200, 310)
-		player_sprite.z_index = 10
-		$UI.add_child(player_sprite) # Reparent to UI layer to guarantee visibility
-	
-	# Create top bar progression and booklet deck viewer UI
-	_create_top_bar()
-	_create_deck_viewer()
 
-	# Programmatically spawn the RetainButton if it is missing from the scene tree.
-	# RATIONALE: Avoids binary scene file corruption by instantiating the UI control in code.
-	var action_vbox = $UI/ActionPanel/VBox
-	if action_vbox and not action_vbox.has_node("RetainButton"):
-		retain_btn = Button.new()
-		retain_btn.name = "RetainButton"
-		retain_btn.text = "Retain Card"
-		action_vbox.add_child(retain_btn)
-		retain_btn.pressed.connect(_on_retain_pressed)
-
-	# Instantiate and add the custom sketch-style combat visuals.
-	var visuals_script = load("res://scenes/combat/CombatVisuals.gd")
-	if visuals_script:
-		var visuals = Node2D.new()
-		visuals.name = "CombatVisuals"
-		visuals.set_script(visuals_script)
-		add_child(visuals)
-
-	# Disable background so actual scene (apartment/field) shows through
-	if $UI/Background:
-		$UI/Background.visible = false
-
-	# Style HandPanel and ActionPanel with warm tan paper styleboxes and drop shadows.
-	# Restyled to translucent glassmorphism with square corners and a thin highlight.
-	var panel_bg = Color(0.95, 0.93, 0.88, 0.5) # Translucent beige glass base
-	var panel_border = Color(1.0, 1.0, 1.0, 0.25) # Thin white glass shine border
-	
-	var style_panel = StyleBoxFlat.new()
-	style_panel.bg_color = panel_bg
-	style_panel.border_width_left = 2
-	style_panel.border_width_top = 2
-	style_panel.border_width_right = 2
-	style_panel.border_width_bottom = 2
-	style_panel.border_color = panel_border
-	style_panel.anti_aliasing = false
-	style_panel.corner_radius_top_left = 0
-	style_panel.corner_radius_top_right = 0
-	style_panel.corner_radius_bottom_left = 0
-	style_panel.corner_radius_bottom_right = 0
-	style_panel.shadow_color = Color(0, 0, 0, 0.1) # Soft subtle shadow
-	style_panel.shadow_size = 2
-	style_panel.shadow_offset = Vector2(2, 2)
-	
-	$UI/HandPanel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	$UI/HandPanel.position = Vector2(250, 420)
-	$UI/HandPanel.size = Vector2(650, 200)
+	# HandPanel children can be cleared safely since cards are spawned per-draw.
 	for child in $UI/HandPanel.get_children():
 		child.queue_free()
-	$UI/ActionPanel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	$UI/ActionPanel.position = Vector2(1000, 480) # Move to bottom right
 
-	# RATIONALE: Programmatically build the customized HUD badges
-	$UI/EnemyPanel.visible = false
-	_build_hud_panel($UI/PlayerPanel, true)
-	_build_hud_panel($UI/EnemyPanel, false)
-	
-	# Hover badge at the top left
-	$UI/PlayerPanel.position = Vector2(40, 80)
+	# FeedbackLabel color - it's baked into the .tscn but set here too for consistency.
+	$UI/FeedbackLabel.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 1.0))
 
-	
-	# Shift Gauge setup
-	var sg = TextureProgressBar.new()
-	sg.name = "ShiftGauge"
-	if FileAccess.file_exists("res://Assets/UI/shift_gauge_bar_0_120x16.png"):
-		sg.texture_under = load("res://Assets/UI/shift_gauge_bar_0_120x16.png")
-	if FileAccess.file_exists("res://Assets/UI/shift_gauge_bar_3_120x16.png"):
-		sg.texture_progress = load("res://Assets/UI/shift_gauge_bar_3_120x16.png")
-	sg.nine_patch_stretch = true
-	# Fixes gauge scaling explosion when texture sizes change
-	# Increased size by 1.5x (from 120x35) per user request, rotated downwards
-	sg.size = Vector2(180, 52) 
-	sg.rotation_degrees = -90
-	sg.position = Vector2(8, 414) # Middle left, rotated bottom-up
-	sg.max_value = 100
-	sg.value = 100
-	$UI.add_child(sg)
-	
-	var label_color = Color(0.12, 0.12, 0.15, 1.0)
-	if has_node("UI/FeedbackLabel"):
-		$UI/FeedbackLabel.add_theme_color_override("font_color", label_color)
-
-	
-	# Apply texture-based styling to combat action buttons using real UI assets.
-	# RATIONALE: Each button has a custom pixel-art texture. We map each button to its texture
-	# and force the standardized render size (derived from filename label vs real pixel measurement).
-	# (Removed custom button texture styling per user request, using default UI style)
+	# Action button hover tweens (runtime-only, not storable in .tscn).
 	for btn in [end_turn_btn, reroll_btn, shift_btn, retain_btn]:
 		if not btn:
 			continue
@@ -511,8 +383,7 @@ func _ready() -> void:
 			tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1)
 		)
 
-	# Create Slay the Spire style Energy Orb.
-	_create_energy_orb()
+	# EnergyOrb is declared in .tscn; no spawning needed.
 
 	# Entry animations: slide character panels from off-screen into their layout position.
 	call_deferred("_animate_combat_entry")
@@ -586,6 +457,16 @@ func _ready() -> void:
 		
 		# Transition FSM to start the first round.
 		transition_to(State.PLAYER_START)
+
+func _connect_deck_tabs() -> void:
+	# RATIONALE: The DeckViewerPanel tab buttons and close button are now in .tscn
+	# with signal connections wired to _on_deck_tab_pressed / _toggle_deck_viewer.
+	# This function is a no-op placeholder in case manual connection is needed later.
+	pass
+
+func _on_deck_tab_pressed(pile_name: String) -> void:
+	# Routes deck viewer tab button presses to the grid renderer.
+	_render_deck_grid(pile_name)
 
 func _trigger_companion_tutorial() -> void:
 	# RATIONALE: Play arrival+tutorial dialogue before combat. The dialogue is long enough to

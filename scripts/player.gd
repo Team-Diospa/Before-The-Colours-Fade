@@ -21,33 +21,8 @@ var last_facing_right: bool = true
 
 func _ready() -> void:
 	z_index = 1
-	# Programmatically build SpriteFrames to load custom player assets
-	var sf = SpriteFrames.new()
-	sf.add_animation("Idle")
-	sf.add_animation("Run")
-	
-	var idle_tex = load("res://Assets/Sprites/3_4test.png")
-	if idle_tex:
-		sf.add_frame("Idle", idle_tex)
-	else:
-		var alt_idle = load("res://Assets/Sprites/character3.png")
-		if alt_idle:
-			sf.add_frame("Idle", alt_idle)
-			
-	var walk_tex = load("res://Assets/Sprites/walk falsya ver-Sheet 4 frames to row.png")
-	if walk_tex:
-		# Walk sheet is 512x128 with 4 frames in a row (each frame 128x128)
-		var w = walk_tex.get_width() / 4
-		var h = walk_tex.get_height()
-		for i in range(4):
-			var atlas = AtlasTexture.new()
-			atlas.atlas = walk_tex
-			atlas.region = Rect2(i * w, 0, w, h)
-			sf.add_frame("Run", atlas)
-	sf.set_animation_speed("Run", 6.0)
-	sf.set_animation_loop("Run", true)
-	
-	animated_sprite.sprite_frames = sf
+	# SpriteFrames (Idle + Run animations) are baked into player.tscn.
+	# Play the idle animation as the default starting state.
 	animated_sprite.play("Idle")
 	animated_sprite.scale = Vector2(1, 1)
 	animated_sprite.position = Vector2.ZERO

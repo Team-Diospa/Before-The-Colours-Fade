@@ -1,114 +1,419 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://cku5jaels5ce2"]
 
-[ext_resource type="Script" path="res://scenes/combat/CombatManager.gd" id="1_combat"]
+[ext_resource type="Script" uid="uid://ulki8ooxghjd" path="res://scenes/combat/CombatManager.gd" id="1_combat"]
+[ext_resource type="Texture2D" uid="uid://dy3hx210cfwwa" path="res://Assets/Sprites/DreamHilbertSideways.png" id="2_player_tex"]
+[ext_resource type="Script" uid="uid://bq3kxmgftlj5v" path="res://scenes/combat/CombatVisuals.gd" id="3_visuals"]
+[ext_resource type="Texture2D" uid="uid://s8rn5jtlynan" path="res://Assets/UI/block_icon_16x16 (armor readout shield).png" id="4_block_icon"]
+[ext_resource type="Texture2D" uid="uid://ctlrmlsfkc3vc" path="res://Assets/Sprites/DreamHilbertSideways icon.png" id="5_player_portrait"]
+[ext_resource type="Texture2D" uid="uid://x0kemnd6ctvy" path="res://Assets/Sprites/PACKLEADER.png" id="6_enemy_portrait"]
+[ext_resource type="Texture2D" uid="uid://xhyqwttfli4q" path="res://Assets/UI/shift_gauge_bar_0_120x16.png" id="7_shift_under"]
+[ext_resource type="Texture2D" uid="uid://dwxxm1l8jus7m" path="res://Assets/UI/shift_gauge_bar_3_120x16.png" id="8_shift_progress"]
+[ext_resource type="Texture2D" uid="uid://is8p1jf0b8kr" path="res://Assets/UI/energy_orb_48x48.png" id="9_energy_orb_tex"]
+[ext_resource type="Texture2D" uid="uid://bhl3q67p3k7sq" path="res://Assets/UI/card_pile_icon_32x32.png" id="10_card_pile_icon"]
+[ext_resource type="FontFile" uid="uid://jwfqam7igwia" path="res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf" id="11_font"]
 
-[ext_resource type="Texture2D" path="res://Assets/Sprites/DreamHilbertSideways.png" id="tex_player"]
+[sub_resource type="Theme" id="Theme_font"]
+default_font = ExtResource("11_font")
 
-[node name="GrassyField" type="Node2D"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_deck_panel"]
+bg_color = Color(0.95, 0.93, 0.88, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.65, 0.25, 0.15, 0.8)
+shadow_color = Color(0, 0, 0, 0.2)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_btn"]
+bg_color = Color(0.92, 0.9, 0.84, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.12, 0.12, 0.15, 0.25)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_btn"]
+bg_color = Color(0.8, 0.3, 0.3, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.12, 0.12, 0.15, 0.25)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_top_bar"]
+bg_color = Color(0.95, 0.93, 0.88, 0.85)
+border_width_bottom = 2
+border_color = Color(0.12, 0.12, 0.15, 0.25)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_panel"]
+bg_color = Color(0.95, 0.93, 0.88, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65, 0.25, 0.15, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.1)
+shadow_size = 2
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
+bg_color = Color(0.15, 0.15, 0.18, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.65, 0.25, 0.15, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill_player"]
+bg_color = Color(0.35, 0.7, 0.35, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill_enemy"]
+bg_color = Color(0.8, 0.35, 0.35, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hand"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_energy_orb"]
+texture = ExtResource("9_energy_orb_tex")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_deck_btn_normal"]
+texture = ExtResource("10_card_pile_icon")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_deck_btn_pressed"]
+texture = ExtResource("10_card_pile_icon")
+modulate_color = Color(0.8, 0.8, 0.8, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_deck_btn_hover"]
+texture = ExtResource("10_card_pile_icon")
+modulate_color = Color(1.2, 1.2, 1.2, 1)
+
+[node name="GrassyField" type="Node2D" unique_id=227942648]
 script = ExtResource("1_combat")
-enemy_name = "Castle Boss"
-enemy_hp = 50
-enemy_max_hp = 50
 
-[node name="UI" type="CanvasLayer" parent="."]
-[node name="PlayerSprite" type="Sprite2D" parent="UI"]
+[node name="CombatVisuals" type="Node2D" parent="." unique_id=1525814216]
+script = ExtResource("3_visuals")
+
+[node name="DeckViewerLayer" type="CanvasLayer" parent="." unique_id=1319816548]
+layer = 92
+
+[node name="DeckViewerPanel" type="Panel" parent="DeckViewerLayer" unique_id=1934096028]
+visible = false
+offset_left = 200.0
+offset_top = 100.0
+offset_right = 952.0
+offset_bottom = 550.0
+mouse_filter = 1
+theme = SubResource("Theme_font")
+theme_override_styles/panel = SubResource("StyleBoxFlat_deck_panel")
+
+[node name="DeckTitle" type="Label" parent="DeckViewerLayer/DeckViewerPanel" unique_id=544967112]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 15.0
+offset_right = 220.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(0.65, 0.25, 0.15, 1)
+theme_override_font_sizes/font_size = 20
+text = "Deck Booklet"
+
+[node name="TabHBox" type="HBoxContainer" parent="DeckViewerLayer/DeckViewerPanel" unique_id=1829321144]
+layout_mode = 0
+offset_left = 250.0
+offset_top = 15.0
+offset_right = 550.0
+offset_bottom = 45.0
+
+[node name="DeckTabBtn" type="Button" parent="DeckViewerLayer/DeckViewerPanel/TabHBox" unique_id=1571459668]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_btn")
+text = "Deck"
+
+[node name="DrawTabBtn" type="Button" parent="DeckViewerLayer/DeckViewerPanel/TabHBox" unique_id=37160692]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_btn")
+text = "Draw"
+
+[node name="DiscardTabBtn" type="Button" parent="DeckViewerLayer/DeckViewerPanel/TabHBox" unique_id=1337755171]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_btn")
+text = "Discard"
+
+[node name="CloseBtn" type="Button" parent="DeckViewerLayer/DeckViewerPanel" unique_id=1973594518]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 15.0
+offset_right = 730.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
+text = "X"
+
+[node name="DeckScrollContainer" type="ScrollContainer" parent="DeckViewerLayer/DeckViewerPanel" unique_id=1987368613]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 732.0
+offset_bottom = 430.0
+horizontal_scroll_mode = 0
+
+[node name="DeckGrid" type="GridContainer" parent="DeckViewerLayer/DeckViewerPanel/DeckScrollContainer" unique_id=682636740]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 6
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1244072308]
+
+[node name="Background" type="ColorRect" parent="UI" unique_id=894366764]
+visible = false
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.16, 0.3, 0.14, 1)
+
+[node name="TopBar" type="Panel" parent="UI" unique_id=1447521065]
+offset_right = 1152.0
+offset_bottom = 50.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_top_bar")
+
+[node name="ProgressLabel" type="Label" parent="UI/TopBar" unique_id=1834411402]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 10.0
+offset_right = 220.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_font_sizes/font_size = 16
+text = "Wave 1"
+
+[node name="GoldLabel" type="Label" parent="UI/TopBar" unique_id=1643466196]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 10.0
+offset_right = 500.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="PlayerSprite" type="Sprite2D" parent="UI" unique_id=1698099757]
+z_index = 10
 texture_filter = 1
 position = Vector2(200, 310)
 scale = Vector2(1.5, 1.5)
-z_index = 10
-texture = ExtResource("tex_player")
+texture = ExtResource("2_player_tex")
 
-
-[node name="Background" type="ColorRect" parent="UI"]
-offset_right = 1152.0
-offset_bottom = 648.0
-color = Color(0.2, 0.4, 0.22, 1)
-
-[node name="PlayerPanel" type="Panel" parent="UI"]
-offset_left = 80.0
+[node name="PlayerPanel" type="Panel" parent="UI" unique_id=1916013547]
+offset_left = 40.0
 offset_top = 80.0
-offset_right = 380.0
-offset_bottom = 280.0
+offset_right = 260.0
+offset_bottom = 155.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
-[node name="VBox" type="VBoxContainer" parent="UI/PlayerPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 2
-alignment = 1
+[node name="Portrait" type="TextureRect" parent="UI/PlayerPanel" unique_id=1489073191]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 13.0
+offset_right = 58.0
+offset_bottom = 61.0
+texture = ExtResource("5_player_portrait")
+expand_mode = 3
+stretch_mode = 6
 
-[node name="NameLabel" type="Label" parent="UI/PlayerPanel/VBox"]
-layout_mode = 2
-text = "Hilbert Hickman"
-horizontal_alignment = 1
+[node name="NameLabel" type="Label" parent="UI/PlayerPanel" unique_id=385805902]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 8.0
+offset_right = 65.0
+offset_bottom = 8.0
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_font_sizes/font_size = 12
+text = "HILBERT"
 
-[node name="HPLabel" type="Label" parent="UI/PlayerPanel/VBox"]
-layout_mode = 2
-text = "HP: 50/50"
-horizontal_alignment = 1
+[node name="HPLabelText" type="Label" parent="UI/PlayerPanel" unique_id=805233078]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 30.0
+offset_right = 65.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.8, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 10
+text = "HP"
 
-[node name="BlockLabel" type="Label" parent="UI/PlayerPanel/VBox"]
-layout_mode = 2
-text = "Block: 0"
-horizontal_alignment = 1
+[node name="HPBar" type="ProgressBar" parent="UI/PlayerPanel" unique_id=1284360316]
+layout_mode = 0
+offset_left = 85.0
+offset_top = 30.0
+offset_right = 165.0
+offset_bottom = 42.0
+theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill_player")
+show_percentage = false
 
-[node name="EnergyLabel" type="Label" parent="UI/PlayerPanel/VBox"]
-layout_mode = 2
-text = "Energy: 3/3"
-horizontal_alignment = 1
+[node name="BlockIcon" type="TextureRect" parent="UI/PlayerPanel" unique_id=1233069842]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 50.0
+offset_right = 85.0
+offset_bottom = 70.0
+texture = ExtResource("4_block_icon")
+expand_mode = 3
+stretch_mode = 6
 
-[node name="EnemyPanel" type="Panel" parent="UI"]
-offset_left = 772.0
-offset_top = 80.0
-offset_right = 1072.0
-offset_bottom = 280.0
+[node name="BlockLabel" type="Label" parent="UI/PlayerPanel" unique_id=1467141028]
+visible = false
+layout_mode = 0
+offset_left = 90.0
+offset_top = 52.0
+offset_right = 90.0
+offset_bottom = 52.0
+theme_override_colors/font_color = Color(0.2, 0.4, 0.8, 1)
+theme_override_font_sizes/font_size = 10
 
-[node name="VBox" type="VBoxContainer" parent="UI/EnemyPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 2
-alignment = 1
+[node name="IntentIcon" type="TextureRect" parent="UI/PlayerPanel" unique_id=632431131]
+layout_mode = 0
+offset_left = 175.0
+offset_top = 8.0
+offset_right = 191.0
+offset_bottom = 24.0
+expand_mode = 3
+stretch_mode = 6
 
-[node name="NameLabel" type="Label" parent="UI/EnemyPanel/VBox"]
-layout_mode = 2
+[node name="IntentLabel" type="Label" parent="UI/PlayerPanel" unique_id=2097220714]
+layout_mode = 0
+offset_left = 195.0
+offset_top = 8.0
+offset_right = 195.0
+offset_bottom = 8.0
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="EnemyPanel" type="Panel" parent="UI" unique_id=777586700]
+visible = false
+offset_right = 220.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
+
+[node name="Portrait" type="TextureRect" parent="UI/EnemyPanel" unique_id=532617417]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 13.0
+offset_right = 58.0
+offset_bottom = 61.0
+texture = ExtResource("6_enemy_portrait")
+expand_mode = 3
+stretch_mode = 6
+flip_h = true
+
+[node name="NameLabel" type="Label" parent="UI/EnemyPanel" unique_id=1515269681]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 8.0
+offset_right = 65.0
+offset_bottom = 8.0
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_font_sizes/font_size = 12
 text = "Castle Boss"
-horizontal_alignment = 1
 
-[node name="HPLabel" type="Label" parent="UI/EnemyPanel/VBox"]
-layout_mode = 2
-text = "HP: 50/50"
-horizontal_alignment = 1
+[node name="HPLabelText" type="Label" parent="UI/EnemyPanel" unique_id=1250288489]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 30.0
+offset_right = 65.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.8, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 10
+text = "HP"
 
-[node name="BlockLabel" type="Label" parent="UI/EnemyPanel/VBox"]
-layout_mode = 2
-text = "Block: 0"
-horizontal_alignment = 1
+[node name="HPBar" type="ProgressBar" parent="UI/EnemyPanel" unique_id=1955656605]
+layout_mode = 0
+offset_left = 85.0
+offset_top = 30.0
+offset_right = 165.0
+offset_bottom = 42.0
+theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill_enemy")
+show_percentage = false
 
-[node name="IntentLabel" type="Label" parent="UI/EnemyPanel/VBox"]
-layout_mode = 2
-text = "Intent: Attack (6)"
-horizontal_alignment = 1
+[node name="BlockIcon" type="TextureRect" parent="UI/EnemyPanel" unique_id=1157125022]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 50.0
+offset_right = 85.0
+offset_bottom = 70.0
+texture = ExtResource("4_block_icon")
+expand_mode = 3
+stretch_mode = 6
 
-[node name="HandPanel" type="Panel" parent="UI"]
-offset_left = 80.0
-offset_top = 450.0
+[node name="BlockLabel" type="Label" parent="UI/EnemyPanel" unique_id=1584293563]
+visible = false
+layout_mode = 0
+offset_left = 90.0
+offset_top = 52.0
+offset_right = 90.0
+offset_bottom = 52.0
+theme_override_colors/font_color = Color(0.2, 0.4, 0.8, 1)
+theme_override_font_sizes/font_size = 10
+
+[node name="IntentIcon" type="TextureRect" parent="UI/EnemyPanel" unique_id=466969763]
+layout_mode = 0
+offset_left = 175.0
+offset_top = 8.0
+offset_right = 191.0
+offset_bottom = 24.0
+expand_mode = 3
+stretch_mode = 6
+
+[node name="IntentLabel" type="Label" parent="UI/EnemyPanel" unique_id=788873642]
+layout_mode = 0
+offset_left = 195.0
+offset_top = 8.0
+offset_right = 195.0
+offset_bottom = 8.0
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="ShiftGauge" type="TextureProgressBar" parent="UI" unique_id=1010366946]
+offset_left = 8.0
+offset_top = 414.0
+offset_right = 188.0
+offset_bottom = 466.0
+rotation = -1.5708
+value = 100.0
+nine_patch_stretch = true
+texture_under = ExtResource("7_shift_under")
+texture_progress = ExtResource("8_shift_progress")
+
+[node name="HandPanel" type="Panel" parent="UI" unique_id=1761862974]
+offset_left = 250.0
+offset_top = 420.0
 offset_right = 900.0
-offset_bottom = 600.0
+offset_bottom = 620.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_hand")
 
-[node name="Margin" type="MarginContainer" parent="UI/HandPanel"]
+[node name="Margin" type="MarginContainer" parent="UI/HandPanel" unique_id=860006565]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -120,18 +425,43 @@ theme_override_constants/margin_top = 15
 theme_override_constants/margin_right = 15
 theme_override_constants/margin_bottom = 15
 
-[node name="HBox" type="HBoxContainer" parent="UI/HandPanel/Margin"]
+[node name="HBox" type="HBoxContainer" parent="UI/HandPanel/Margin" unique_id=1733518310]
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="ActionPanel" type="Panel" parent="UI"]
-offset_left = 930.0
-offset_top = 450.0
-offset_right = 1070.0
-offset_bottom = 600.0
+[node name="EnergyOrb" type="Panel" parent="UI" unique_id=1127966715]
+custom_minimum_size = Vector2(96, 96)
+offset_left = 40.0
+offset_top = 480.0
+offset_right = 40.0
+offset_bottom = 480.0
+theme = SubResource("Theme_font")
+theme_override_styles/panel = SubResource("StyleBoxTexture_energy_orb")
 
-[node name="VBox" type="VBoxContainer" parent="UI/ActionPanel"]
+[node name="EnergyOrbLabel" type="Label" parent="UI/EnergyOrb" unique_id=1578679640]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 36
+text = "3/3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ActionPanel" type="Panel" parent="UI" unique_id=1973865017]
+offset_left = 1000.0
+offset_top = 480.0
+offset_right = 1140.0
+offset_bottom = 630.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_hand")
+
+[node name="VBox" type="VBoxContainer" parent="UI/ActionPanel" unique_id=1603582731]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -144,27 +474,46 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="EndTurnButton" type="Button" parent="UI/ActionPanel/VBox"]
+[node name="EndTurnButton" type="Button" parent="UI/ActionPanel/VBox" unique_id=438967452]
 layout_mode = 2
 text = "End Turn"
 
-[node name="RerollButton" type="Button" parent="UI/ActionPanel/VBox"]
+[node name="RerollButton" type="Button" parent="UI/ActionPanel/VBox" unique_id=1848167922]
 layout_mode = 2
 text = "Reroll Hand"
 
-[node name="ShiftButton" type="Button" parent="UI/ActionPanel/VBox"]
+[node name="ShiftButton" type="Button" parent="UI/ActionPanel/VBox" unique_id=1398756514]
 layout_mode = 2
 text = "Shift to Reality"
 
-[node name="FeedbackLabel" type="Label" parent="UI"]
-offset_left = 80.0
-offset_top = 340.0
-offset_right = 1072.0
-offset_bottom = 380.0
+[node name="RetainButton" type="Button" parent="UI/ActionPanel/VBox" unique_id=966334861]
+layout_mode = 2
+text = "Retain Card"
+
+[node name="DeckBookletBtn" type="Button" parent="UI" unique_id=1584103691]
+offset_left = 20.0
+offset_top = 580.0
+offset_right = 68.0
+offset_bottom = 628.0
+theme_override_styles/normal = SubResource("StyleBoxTexture_deck_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_deck_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_deck_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_hand")
+
+[node name="FeedbackLabel" type="Label" parent="UI" unique_id=48099965]
+offset_left = 376.0
+offset_top = 45.0
+offset_right = 776.0
+offset_bottom = 75.0
+theme_override_colors/font_color = Color(0.12, 0.12, 0.15, 1)
+theme_override_font_sizes/font_size = 24
 text = "Draw Phase"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[connection signal="pressed" from="DeckViewerLayer/DeckViewerPanel/CloseBtn" to="." method="_toggle_deck_viewer"]
 [connection signal="pressed" from="UI/ActionPanel/VBox/EndTurnButton" to="." method="_on_end_turn_pressed"]
 [connection signal="pressed" from="UI/ActionPanel/VBox/RerollButton" to="." method="_on_reroll_pressed"]
 [connection signal="pressed" from="UI/ActionPanel/VBox/ShiftButton" to="." method="_on_shift_pressed"]
+[connection signal="pressed" from="UI/ActionPanel/VBox/RetainButton" to="." method="_on_retain_pressed"]
+[connection signal="pressed" from="UI/DeckBookletBtn" to="." method="_toggle_deck_viewer"]

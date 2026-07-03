@@ -164,11 +164,7 @@ var secret_hallway_intro: Dictionary = {
 func _ready() -> void:
 	# Connect collision entry signal.
 	trigger_area.body_entered.connect(_on_panic_trigger_body_entered)
-
-	# Move panic trigger further right to give player more space to explore.
-	trigger_area.position.x = 850
-
-	var interactables = [$Board, $PeerA, $PeerB, $Fountain, $AptDoor]
+	var interactables = [$Board, $PeerA, $PeerB, $Fountain, $Fountain2, $AptDoor]
 	for obj in interactables:
 		if obj: obj.interacted.connect(_on_object_interacted)
 

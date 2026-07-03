@@ -272,12 +272,12 @@ func play_sfx(sound_name: String) -> void:
 		# Typewriter click for dialogue text scroll.
 		"ui_typewriter_click", "typewriter":
 			sfx_path = "res://Assets/Sound Effects/World, Ambient, and UI/sfx_ui_typewriter_click (one).mp3"
-			volume_db = -6.0
+			volume_db = -33.0
 			cancel_duplicates = true
 		# Dialogue skip button click.
 		"ui_dialogue_skip":
 			sfx_path = "res://Assets/Sound Effects/Card Sounds/ui_dialogue_skip.mp3"
-			volume_db = -4.0
+			volume_db = -14.0
 			cancel_duplicates = true
 		# Generic hover tick for buttons (menus, pause, settings).
 		"ui_hover_tick", "hover", "click":

@@ -1,15 +1,48 @@
 [gd_scene format=3 uid="uid://drwjpjuc4hlka"]
 
 [ext_resource type="Script" uid="uid://cn5b23xbvn242" path="res://scripts/player.gd" id="1_onrkg"]
+[ext_resource type="Texture2D" uid="uid://bhtoh71a17gdf" path="res://Assets/Sprites/3_4test.png" id="2_idle"]
+[ext_resource type="Texture2D" uid="uid://5ko18rvtv8sf" path="res://Assets/Sprites/walk falsya ver-Sheet 4 frames to row.png" id="3_walk"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk0"]
+atlas = ExtResource("3_walk")
+region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk1"]
+atlas = ExtResource("3_walk")
+region = Rect2(128, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk2"]
+atlas = ExtResource("3_walk")
+region = Rect2(256, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk3"]
+atlas = ExtResource("3_walk")
+region = Rect2(384, 0, 128, 128)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_pbfsw"]
 animations = [{
-"frames": [],
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_idle")
+}],
 "loop": true,
 "name": &"Idle",
 "speed": 5.0
 }, {
-"frames": [],
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk3")
+}],
 "loop": true,
 "name": &"Run",
 "speed": 6.0
