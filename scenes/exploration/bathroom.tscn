@@ -21,8 +21,8 @@ texture = ExtResource("3_bg")
 
 [node name="Player" parent="." unique_id=635230076 instance=ExtResource("2_player")]
 z_index = 1
-position = Vector2(941.00006, 440.00003)
-scale = Vector2(1.5, 1.5)
+position = Vector2(955.99994, 362.00003)
+scale = Vector2(3.493361, 3.5699441)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=119676279]
 limit_left = 0

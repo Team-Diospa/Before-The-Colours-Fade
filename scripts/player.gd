@@ -58,25 +58,24 @@ func _physics_process(delta: float) -> void:
 
 	# Retrieve horizontal movement input from actions 'a' (left) and 'd' (right).
 	var direction := Input.get_axis("a", "d")
-	
+
 	if direction != 0:
 		# Set horizontal velocity.
 		velocity.x = direction * speed
 		last_facing_right = (direction > 0)
 		
-		# RATIONALE: The walk sheet faces left. So we flip when moving right.
-		animated_sprite.flip_h = last_facing_right
-		animated_sprite.scale = Vector2(2, 2)
+		# Both new idle and walk sheets face the same direction natively (Right).
+		animated_sprite.flip_h = not last_facing_right
+		animated_sprite.scale = Vector2(1, 1)
 		animated_sprite.play("Run")
 	else:
 		# Smooth deceleration to simulate dragging feet.
 		velocity.x = move_toward(velocity.x, 0, speed * delta * 8.0)
 		
-		# RATIONALE: Idle 3_4test faces right. So we flip when facing left.
 		animated_sprite.flip_h = not last_facing_right
 		animated_sprite.scale = Vector2(1, 1)
 		animated_sprite.play("Idle")
-		
+
 	# Side-scrolling horizontal constraint (vertical velocity is zero).
 	velocity.y = 0
 

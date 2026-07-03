@@ -51,8 +51,8 @@ metadata/_aseprite_wizard_interface_config_ = {
 }
 
 [node name="Player" parent="." unique_id=1096648528 instance=ExtResource("2_player")]
-position = Vector2(368, 468)
-scale = Vector2(1.15, 1.15)
+position = Vector2(380, 414)
+scale = Vector2(2.2638092, 2.3042948)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1869526077]
 position = Vector2(0, -24)
@@ -119,6 +119,6 @@ interaction_id = "kitchen"
 prompt_message = "Press E to check Kitchen"
 
 [node name="BathroomDoor" parent="." unique_id=1273033127 instance=ExtResource("3_interactable")]
-position = Vector2(999, 561)
+position = Vector2(1093, 502)
 interaction_id = "bathroom_door"
 prompt_message = "Press E to enter Bathroom"

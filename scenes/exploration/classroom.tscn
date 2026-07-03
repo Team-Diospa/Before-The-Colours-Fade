@@ -2,11 +2,66 @@
 
 [ext_resource type="Script" uid="uid://bwfa4ypcr0t5d" path="res://scenes/exploration/classroom.gd" id="1_class"]
 [ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
-[ext_resource type="Texture2D" uid="uid://cxe5byne43qo" path="res://Assets/Environments/640x360 all sides class (bottom layer).png" id="3_class_bottom"]
 [ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="3_interactable"]
 [ext_resource type="Texture2D" uid="uid://dndwp17n1d68q" path="res://Assets/Environments/640x360 all sides class (upper layer).png" id="4_class_upper"]
-[ext_resource type="Texture2D" uid="uid://cf5orpq4foqma" path="res://Assets/Sprites/npc.png" id="10_npc"]
-[ext_resource type="Texture2D" uid="uid://bdu2fqwutr3em" path="res://Assets/Sprites/Professor.png" id="20_prof"]
+[ext_resource type="Texture2D" uid="uid://cebmbpugo4t0v" path="res://Assets/Environments/ClassroomFilled-Sheet_lower layer__7row1column.png" id="class_anim"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_class_0"]
+atlas = ExtResource("class_anim")
+region = Rect2(0, 0, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_class_1"]
+atlas = ExtResource("class_anim")
+region = Rect2(640, 0, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_class_2"]
+atlas = ExtResource("class_anim")
+region = Rect2(1280, 0, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_class_3"]
+atlas = ExtResource("class_anim")
+region = Rect2(1920, 0, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_class_4"]
+atlas = ExtResource("class_anim")
+region = Rect2(2560, 0, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_class_5"]
+atlas = ExtResource("class_anim")
+region = Rect2(3200, 0, 640, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_class_6"]
+atlas = ExtResource("class_anim")
+region = Rect2(3840, 0, 640, 360)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_class"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_class_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_class_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_class_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_class_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_class_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_class_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_class_6")
+}],
+"loop": true,
+"name": &"default",
+"speed": 6.0
+}]
 
 [node name="Classroom" type="Node2D" unique_id=1682483080]
 script = ExtResource("1_class")
@@ -22,15 +77,16 @@ offset_right = 1152.0
 offset_bottom = 648.0
 color = Color(0.14, 0.14, 0.17, 1)
 
-[node name="ClassroomBottom" type="Sprite2D" parent="." unique_id=1607336857]
+[node name="ClassroomBottom" type="AnimatedSprite2D" parent="." unique_id=1607336857]
 texture_filter = 1
 position = Vector2(576, 324)
 scale = Vector2(1.8, 1.8)
-texture = ExtResource("3_class_bottom")
+sprite_frames = SubResource("SpriteFrames_class")
+autoplay = "default"
 
 [node name="Player" parent="." unique_id=953042844 instance=ExtResource("2_player")]
-position = Vector2(897, 456)
-scale = Vector2(1.1, 1.1)
+position = Vector2(909, 428)
+scale = Vector2(1.7489351, 1.9301335)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1650532013]
 limit_left = 0
@@ -38,30 +94,14 @@ limit_right = 1152
 limit_bottom = 648
 
 [node name="Orang1" parent="." unique_id=327751554 instance=ExtResource("3_interactable")]
-position = Vector2(677, 566)
+position = Vector2(574, 548)
 interaction_id = "orang1"
 prompt_message = "Press E to talk to Peer 1"
 
-[node name="Sprite2D" type="Sprite2D" parent="Orang1" unique_id=1653008883]
-z_index = 2
-z_as_relative = false
-texture_filter = 1
-position = Vector2(-0.8755994, -53.30647)
-scale = Vector2(-0.97639287, 0.9834035)
-texture = ExtResource("10_npc")
-
 [node name="Orang2" parent="." unique_id=104813054 instance=ExtResource("3_interactable")]
-position = Vector2(780, 587)
+position = Vector2(647, 543)
 interaction_id = "orang2"
 prompt_message = "Press E to talk to Peer 2"
-
-[node name="Sprite2D" type="Sprite2D" parent="Orang2" unique_id=338420155]
-z_index = 2
-z_as_relative = false
-texture_filter = 1
-position = Vector2(-4.8749895, -80.500015)
-scale = Vector2(0.99121106, 0.9648438)
-texture = ExtResource("10_npc")
 
 [node name="ClassroomUpper" type="Sprite2D" parent="." unique_id=315537022]
 z_index = 15
@@ -82,34 +122,27 @@ position = Vector2(973, -4)
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RightWall" unique_id=1914600009]
 polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
 
-[node name="Locker" parent="." unique_id=2142155223 instance=ExtResource("3_interactable")]
-position = Vector2(879, 440)
-interaction_id = "locker"
-prompt_message = "Press E to search Locker"
+[node name="Classmate3" parent="." unique_id=2142155223 instance=ExtResource("3_interactable")]
+position = Vector2(160, 575)
+interaction_id = "npc_classmate3"
+prompt_message = "Press E to talk"
 
 [node name="Desk" parent="." unique_id=1619080862 instance=ExtResource("3_interactable")]
-position = Vector2(477, 556)
+position = Vector2(296, 585)
 interaction_id = "desk"
 prompt_message = "Press E to sit at Desk"
 
 [node name="Blackboard" parent="." unique_id=2073278262 instance=ExtResource("3_interactable")]
-position = Vector2(554, 444)
+position = Vector2(728, 456)
 interaction_id = "blackboard"
 prompt_message = "Press E to look at Blackboard"
 
 [node name="EmptyDesk" parent="." unique_id=607794367 instance=ExtResource("3_interactable")]
-position = Vector2(188, 562)
+position = Vector2(831, 567)
 interaction_id = "empty_desk"
 prompt_message = "Press E to look at Adjacent Desk"
 
 [node name="Lecturer" parent="." unique_id=2033265990 instance=ExtResource("3_interactable")]
-position = Vector2(488, 481)
+position = Vector2(431, 525)
 interaction_id = "lecturer"
 prompt_message = "Press E to talk to Professor"
-
-[node name="Sprite2D" type="Sprite2D" parent="Lecturer" unique_id=1621180001]
-z_as_relative = false
-texture_filter = 1
-position = Vector2(-1.0000076, -59.500004)
-scale = Vector2(1.4843749, 1.6484375)
-texture = ExtResource("20_prof")

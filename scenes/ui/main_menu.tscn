@@ -1,6 +1,159 @@
 [gd_scene format=3 uid="uid://q1p1821aaxx1"]
 
 [ext_resource type="Script" uid="uid://cb7hgskg10rvk" path="res://scenes/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Texture2D" uid="uid://db16lluew7nlf" path="res://Assets/Menu and Settings/all layers for main menu/bg layer 0.png" id="2_bg0"]
+[ext_resource type="Texture2D" uid="uid://dc02mixtlsiv1" path="res://Assets/Menu and Settings/all layers for main menu/bg layer 1.png" id="3_bg1"]
+[ext_resource type="Texture2D" uid="uid://cjbvijcy4n61a" path="res://Assets/Menu and Settings/all layers for main menu/play unselected.png" id="4_play_u"]
+[ext_resource type="Texture2D" uid="uid://ctt7i82itvo6a" path="res://Assets/Menu and Settings/all layers for main menu/play selected.png" id="5_play_s"]
+[ext_resource type="Texture2D" uid="uid://d38dhilnmqydp" path="res://Assets/Menu and Settings/all layers for main menu/new game unselected.png" id="6_new_u"]
+[ext_resource type="Texture2D" uid="uid://dtqmdiwux2253" path="res://Assets/Menu and Settings/all layers for main menu/new game selected.png" id="7_new_s"]
+[ext_resource type="Texture2D" uid="uid://uhojf1x5mmn1" path="res://Assets/Menu and Settings/all layers for main menu/options unselected.png" id="8_opt_u"]
+[ext_resource type="Texture2D" uid="uid://c86okya3ei7v5" path="res://Assets/Menu and Settings/all layers for main menu/options selected.png" id="9_opt_s"]
+[ext_resource type="Texture2D" uid="uid://ca3rn5f8bauw2" path="res://Assets/Menu and Settings/all layers for main menu/exit unselected.png" id="10_exit_u"]
+[ext_resource type="Texture2D" uid="uid://bebg4gb0bdsm3" path="res://Assets/Menu and Settings/all layers for main menu/exit selected.png" id="11_exit_s"]
 
-[node name="MainMenu" type="Node" unique_id=767456864]
+[node name="MainMenu" type="Node" unique_id=1172270519]
 script = ExtResource("1_menu")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=378711244]
+layer = 10
+
+[node name="BG0" type="TextureRect" parent="CanvasLayer" unique_id=436077531]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg0")
+expand_mode = 1
+
+[node name="BG1" type="TextureRect" parent="CanvasLayer" unique_id=505665187]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_bg1")
+expand_mode = 1
+
+[node name="PlayUnselected" type="TextureRect" parent="CanvasLayer" unique_id=307120843]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_play_u")
+expand_mode = 1
+
+[node name="PlaySelected" type="TextureRect" parent="CanvasLayer" unique_id=137535324]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_play_s")
+expand_mode = 1
+
+[node name="NewUnselected" type="TextureRect" parent="CanvasLayer" unique_id=829490541]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_new_u")
+expand_mode = 1
+
+[node name="NewSelected" type="TextureRect" parent="CanvasLayer" unique_id=1106931328]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("7_new_s")
+expand_mode = 1
+
+[node name="OptUnselected" type="TextureRect" parent="CanvasLayer" unique_id=760800550]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("8_opt_u")
+expand_mode = 1
+
+[node name="OptSelected" type="TextureRect" parent="CanvasLayer" unique_id=1481656274]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("9_opt_s")
+expand_mode = 1
+
+[node name="ExitUnselected" type="TextureRect" parent="CanvasLayer" unique_id=175404748]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("10_exit_u")
+expand_mode = 1
+
+[node name="ExitSelected" type="TextureRect" parent="CanvasLayer" unique_id=427005335]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("11_exit_s")
+expand_mode = 1
+
+[node name="BtnPlay" type="Button" parent="CanvasLayer" unique_id=1151619710]
+offset_left = 272.0
+offset_top = 398.0
+offset_right = 370.0
+offset_bottom = 652.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+flat = true
+
+[node name="BtnNewGame" type="Button" parent="CanvasLayer" unique_id=2126703440]
+offset_left = 136.99997
+offset_top = 337.0
+offset_right = 240.5083
+offset_bottom = 632.09015
+rotation = 0.5927583
+focus_mode = 0
+mouse_default_cursor_shape = 2
+flat = true
+
+[node name="BtnOptions" type="Button" parent="CanvasLayer" unique_id=1443312363]
+offset_left = 778.0
+offset_top = 402.0
+offset_right = 879.0
+offset_bottom = 648.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+flat = true
+
+[node name="BtnExit" type="Button" parent="CanvasLayer" unique_id=1964214600]
+offset_left = 977.314
+offset_top = 370.47556
+offset_right = 1274.7422
+offset_bottom = 474.5841
+rotation = 0.8668801
+focus_mode = 0
+mouse_default_cursor_shape = 2
+flat = true

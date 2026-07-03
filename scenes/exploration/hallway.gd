@@ -50,7 +50,8 @@ var panic_dialogue: Dictionary = {
 # Peer B whispers gossip about the bridge project accident, establishing the narrative void.
 var peer_a_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer A: I stayed up until 3 AM and I still can't reconcile the math. The frame design... why does it convert momentum? It feels backwards.",
+		"speaker": "Peer A",
+		"text": "I stayed up until 3 AM and I still can't reconcile the math. The frame design... why does it convert momentum? It feels backwards.",
 		"next": "peer_a_2"
 	},
 	"peer_a_2": {
@@ -59,7 +60,8 @@ var peer_a_dialogue: Dictionary = {
 		"next": "peer_a_3"
 	},
 	"peer_a_3": {
-		"text": "Peer A: ...How do you know that? We haven't even covered shear limits in this chapter. Did you... get it from the old blueprints?",
+		"speaker": "Peer A",
+		"text": "...How do you know that? We haven't even covered shear limits in this chapter. Did you... get it from the old blueprints?",
 		"next": "peer_a_4"
 	},
 	"peer_a_4": {
@@ -75,7 +77,8 @@ var peer_b_dialogue: Dictionary = {
 		"next": "whisper_2"
 	},
 	"whisper_2": {
-		"text": "Peer B: ...Hickman. He looks completely disconnected, doesn't he? Ever since last year's incident on the bridge project, he's like a ghost walking around.",
+		"speaker": "Peer B",
+		"text": "...Hickman. He looks completely disconnected, doesn't he? Ever since last year's incident on the bridge project, he's like a ghost walking around.",
 		"next": "whisper_3"
 	},
 	"whisper_3": {
@@ -161,10 +164,22 @@ var secret_hallway_intro: Dictionary = {
 	}
 }
 
+var peer_c_dialogue: Dictionary = {
+	"start": { "text": "Peer C: Have you seen my notes? I swear I left them right by the fountain.", "next": "" }
+}
+
+var peer_d_dialogue: Dictionary = {
+	"start": { "text": "Peer D: I really don't want to go to this lecture. The professor just reads off the slides for an hour.", "next": "" }
+}
+
+var peer_e_dialogue: Dictionary = {
+	"start": { "text": "Peer E: Did you hear what happened in the lab yesterday? Broken glass everywhere...", "next": "" }
+}
+
 func _ready() -> void:
 	# Connect collision entry signal.
 	trigger_area.body_entered.connect(_on_panic_trigger_body_entered)
-	var interactables = [$Board, $PeerA, $PeerB, $Fountain, $Fountain2, $AptDoor]
+	var interactables = [$Board, $PeerA, $PeerB, get_node_or_null("PeerC"), get_node_or_null("PeerD"), get_node_or_null("PeerE"), $Fountain, get_node_or_null("Fountain2"), $AptDoor]
 	for obj in interactables:
 		if obj: obj.interacted.connect(_on_object_interacted)
 
@@ -199,6 +214,12 @@ func _on_object_interacted(id: String) -> void:
 			DialogueSystem.start_dialogue(peer_a_dialogue, "start")
 		"peer_b":
 			DialogueSystem.start_dialogue(peer_b_dialogue, "start")
+		"npc_peer_c":
+			DialogueSystem.start_dialogue(peer_c_dialogue, "start")
+		"npc_peer_d":
+			DialogueSystem.start_dialogue(peer_d_dialogue, "start")
+		"npc_peer_e":
+			DialogueSystem.start_dialogue(peer_e_dialogue, "start")
 		"fountain":
 			# Gated so player only drinks once.
 			if GlobalState.starting_block_modifier > 0:

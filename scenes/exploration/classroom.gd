@@ -6,21 +6,24 @@ extends Node2D
 # Dialogue trees for the classroom actors with split beats and isolated system notices.
 var peer1_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 1: Uhh... You okay?",
+		"speaker": "Peer 1",
+		"text": "Uhh... You okay?",
 		"options": [
 			{"text": "\"Uhh, yeah. Why?\"", "next": "look_ghost"},
 			{"text": "\"I'm just stressed about the quiz.\"", "next": "stressed"}
 		]
 	},
 	"look_ghost": {
-		"text": "Peer 1: You look like a ghost. Did you... forget again?",
+		"speaker": "Peer 1",
+		"text": "You look like a ghost. Did you... forget again?",
 		"options": [
 			{"text": "\"Forget what?\"", "next": "forget_what"},
 			{"text": "\"No, I'm fine.\"", "next": "stressed"}
 		]
 	},
 	"forget_what": {
-		"text": "Peer 1: Your notebook. You left it in the workshop. The one on 4th street.",
+		"speaker": "Peer 1",
+		"text": "Your notebook. You left it in the workshop. The one on 4th street.",
 		"next": "forget_what_2"
 	},
 	"forget_what_2": {
@@ -29,11 +32,13 @@ var peer1_dialogue: Dictionary = {
 		"next": "forget_what_3"
 	},
 	"forget_what_3": {
-		"text": "Peer 1: Really? I could have sworn I saw the lights on yesterday. Anyway, take care.",
+		"speaker": "Peer 1",
+		"text": "Really? I could have sworn I saw the lights on yesterday. Anyway, take care.",
 		"next": "peer1_healed_sys"
 	},
 	"stressed": {
-		"text": "Peer 1: Don't worry, it's just a quiz. Take it slow, Hilbert.",
+		"speaker": "Peer 1",
+		"text": "Don't worry, it's just a quiz. Take it slow, Hilbert.",
 		"next": "peer1_healed_sys"
 	},
 	"peer1_healed_sys": {
@@ -47,14 +52,16 @@ var peer1_dialogue: Dictionary = {
 
 var peer2_dialogue: Dictionary = {
 	"start": {
-		"text": "Peer 2: Stop looking at me! Weirdo.",
+		"speaker": "Peer 2",
+		"text": "Stop looking at me! Weirdo.",
 		"options": [
 			{"text": "\"Sorry, just spaced out.\"", "next": "apologize"},
 			{"text": "\"I wasn't looking at you.\"", "next": "reciting"}
 		]
 	},
 	"reciting": {
-		"text": "Peer 2: Right. Hilbert, are you reciting formulas or what? You keep humming that same chord under your breath.",
+		"speaker": "Peer 2",
+		"text": "Right. Hilbert, are you reciting formulas or what? You keep humming that same chord under your breath.",
 		"options": [
 			{"text": "\"Sorry.\"", "next": "apologize"},
 			{"text": "Ignore them.", "next": "ignore"}
@@ -78,19 +85,23 @@ var peer2_dialogue: Dictionary = {
 	}
 }
 
-var locker_dialogue: Dictionary = {
+var classmate3_dialogue: Dictionary = {
 	"start": {
-		"text": "You open the locker. Inside is an old notebook covered in brave drawings of inventions.",
-		"next": "locker_2"
+		"text": "Classmate 3 is packing up his bag. He notices you staring.",
+		"next": "classmate3_2"
 	},
-	"locker_2": {
-		# RATIONALE: Ground the discovery in specific childhood plans (flying whales drawn in blue wax crayon)
-		# inside L.G.'s old draft binder stuffed behind heavy textbooks.
-		"text": "Hilbert: Stuffed behind the heavy college textbooks is L.G.'s old cardboard draft binder. The cover is faded, featuring drawings of giant flying whales in blue wax crayon. I took it from his desk after the service and hid it here, unable to throw it away. Inside are blueprints for a reinforced storm shelter we wanted to build when we were ten. The margin notes are in his handwriting: 'converts impact into return pressure.'",
-		"next": "locker_sys"
+	"classmate3_2": {
+		"speaker": "Classmate 3",
+		"text": "Hey, Hilbert. I found this old draft binder wedged behind some textbooks in the engineering lab. It has drawings of flying whales... I think it belonged to L.G.",
+		"next": "classmate3_3"
 	},
-	"locker_sys": {
-		"text": "[System]: Locker -> Courage (Fortress and Counter Stance added to deck. Courage Buff active).",
+	"classmate3_3": {
+		"speaker": "Hilbert",
+		"text": "He hands over the faded cardboard binder. Inside are blueprints for a reinforced storm shelter we wanted to build when we were ten. The margin notes are in L.G.'s handwriting: 'converts impact into return pressure.'",
+		"next": "classmate3_sys"
+	},
+	"classmate3_sys": {
+		"text": "[System]: Memory recalled -> Courage (Fortress and Counter Stance added to deck. Courage Buff active).",
 		"next": ""
 	}
 }
@@ -117,9 +128,9 @@ var blackboard_dialogue: Dictionary = {
 	}
 }
 
-var locker_empty_dialogue: Dictionary = {
+var classmate3_empty_dialogue: Dictionary = {
 	"start": {
-		"text": "The locker is empty.",
+		"text": "Classmate 3 nods at you. The binder is safely in your bag.",
 		"next": ""
 	}
 }
@@ -205,7 +216,7 @@ func _ready() -> void:
 	# Connect to local interactable node signals.
 	$Orang1.interacted.connect(_on_orang1_interacted)
 	$Orang2.interacted.connect(_on_orang2_interacted)
-	$Locker.interacted.connect(_on_locker_interacted)
+	if has_node("Classmate3"): $Classmate3.interacted.connect(_on_classmate3_interacted)
 	$Desk.interacted.connect(_on_desk_interacted)
 	
 	$Blackboard.interacted.connect(_on_blackboard_interacted)
@@ -255,20 +266,19 @@ func _on_peer2_dialogue_finished() -> void:
 			# RATIONALE: Inward focus grants starting card draw.
 			GlobalState.starting_draw_modifier = 1
 
-func _on_locker_interacted(_id: String) -> void:
-	EventBus.play_sound.emit("locker_open")
-	# RATIONALE: locker searched flag is stored globally, preventing the locker re-loot exploit after shifting.
-	if not GlobalState.has_flag("locker_searched"):
-		DialogueSystem.start_dialogue(locker_dialogue, "start")
-		if not EventBus.dialogue_finished.is_connected(_on_locker_dialogue_finished):
-			EventBus.dialogue_finished.connect(_on_locker_dialogue_finished)
+func _on_classmate3_interacted(_id: String) -> void:
+	# RATIONALE: flag is stored globally, preventing the re-loot exploit after shifting.
+	if not GlobalState.has_flag("classmate3_talked"):
+		DialogueSystem.start_dialogue(classmate3_dialogue, "start")
+		if not EventBus.dialogue_finished.is_connected(_on_classmate3_dialogue_finished):
+			EventBus.dialogue_finished.connect(_on_classmate3_dialogue_finished)
 	else:
-		DialogueSystem.start_dialogue(locker_empty_dialogue, "start")
+		DialogueSystem.start_dialogue(classmate3_empty_dialogue, "start")
 
-func _on_locker_dialogue_finished() -> void:
-	EventBus.dialogue_finished.disconnect(_on_locker_dialogue_finished)
-	if DialogueSystem.dialogue_tree == locker_dialogue and DialogueSystem.current_node_id == "locker_sys":
-		GlobalState.set_flag("locker_searched", true)
+func _on_classmate3_dialogue_finished() -> void:
+	EventBus.dialogue_finished.disconnect(_on_classmate3_dialogue_finished)
+	if DialogueSystem.dialogue_tree == classmate3_dialogue and DialogueSystem.current_node_id == "classmate3_sys":
+		GlobalState.set_flag("classmate3_talked", true)
 		GlobalState.set_flag("buff_courage_active", true)
 		
 		# Adds Fortress and Counter Stance to master deck

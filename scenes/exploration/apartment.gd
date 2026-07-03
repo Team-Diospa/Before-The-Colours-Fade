@@ -1046,6 +1046,9 @@ var bathroom_door_dialogue = {
 }
 
 func _on_bathroom_door_interacted(id: String) -> void:
+	if current_objective in ["wake_up", "bed"]:
+		DialogueSystem.start_dialogue({"start": {"text": "I should check my bed first before getting ready.", "next": ""}}, "start")
+		return
 	if GlobalState.has_flag("apt_showered"):
 		DialogueSystem.start_dialogue({"start": {"text": "You've already showered.", "next": ""}}, "start")
 		return

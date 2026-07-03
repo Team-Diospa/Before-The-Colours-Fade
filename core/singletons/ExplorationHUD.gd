@@ -229,14 +229,14 @@ func _on_arrow_draw() -> void:
 	var margin = 40.0
 	var is_on_screen = screen_rect.grow(-margin).has_point(screen_pos)
 	
-	var arrow_col = Color(0.85, 0.75, 0.2, 0.95)
+	var arrow_col = Color(0.75, 0.75, 0.75, 0.95)
 	var outline_col = Color(0.05, 0.05, 0.05, 0.9)
 	
 	if is_on_screen:
 		if _objective_target_id.begins_with("door"):
 			# Bouncing arrow pointing horizontally to the door
 			var bounce_x = sin(_time * 6.0) * 8.0
-			var draw_pos = screen_pos + Vector2(-40 + bounce_x, 0)
+			var draw_pos = screen_pos + Vector2(-60 + bounce_x, -50) # raised higher
 			var pts = PackedVector2Array([
 				draw_pos + Vector2(-12, -10),
 				draw_pos + Vector2(-12, 10),
@@ -253,7 +253,7 @@ func _on_arrow_draw() -> void:
 		else:
 			# Bouncing arrow above target vertically
 			var bounce_y = sin(_time * 6.0) * 8.0
-			var draw_pos = screen_pos + Vector2(0, -50 + bounce_y)
+			var draw_pos = screen_pos + Vector2(0, -150 + bounce_y) # much higher above the target
 			var pts = PackedVector2Array([
 				draw_pos + Vector2(-10, -12),
 				draw_pos + Vector2(10, -12),

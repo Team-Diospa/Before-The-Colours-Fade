@@ -341,6 +341,15 @@ func _build_hud_panel(panel: Panel, is_player: bool) -> void:
 	panel.add_child(intent_lbl)
 
 func _ready() -> void:
+	
+	if player_sprite:
+		var p_tex = load("res://Assets/Sprites/Hilbert_dream_battleIdle-Sheet_7x1.png")
+		if p_tex:
+			player_sprite.texture = p_tex
+			player_sprite.hframes = 7
+			player_sprite.vframes = 1
+			# Scale down because old sprite was 128x128, new is 200x200
+			player_sprite.scale = Vector2(1, 1)
 	# Set a global theme font for all UI elements to PixelifySans per user request
 	var global_theme = Theme.new()
 	var main_font = load("res://Assets/Fonts/PixelifySans-VariableFont_wght.ttf")
@@ -1775,36 +1784,51 @@ func _start_wave(stage_idx: int) -> void:
 		
 		var sprite = template.get_node("EnemySprite")
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		
 		# Map conf["name"] to correct custom texture path
-		var texture_path = "res://Assets/Sprites/Monster1.png"
+		var texture_path = "res://Assets/Sprites/Monster1-Sheet_8x1.png"
+		var portrait_path = "res://Assets/Sprites/Monster1.png"
 		var name_lower = conf["name"].to_lower()
 		if "sentry" in name_lower:
-			texture_path = "res://Assets/Sprites/Monster2.png"
+			texture_path = "res://Assets/Sprites/Monster2-Sheet_8x1.png"
+			portrait_path = "res://Assets/Sprites/Monster2.png"
 		elif "pack leader" in name_lower:
 			texture_path = "res://Assets/Sprites/PACKLEADER.png"
+			portrait_path = "res://Assets/Sprites/PACKLEADER.png"
 		elif "wolf" in name_lower:
 			texture_path = "res://Assets/Sprites/PACKLEADER 2.png"
+			portrait_path = "res://Assets/Sprites/PACKLEADER 2.png"
+		elif "castle boss" in name_lower:
+			texture_path = "res://Assets/Sprites/Monster1-Sheet_8x1.png"
+			portrait_path = "res://Assets/Sprites/Monster1.png"
 			
 		if FileAccess.file_exists(texture_path):
 			sprite.texture = load(texture_path)
 		else:
-			if FileAccess.file_exists("res://Assets/Sprites/Monster1.png"):
-				sprite.texture = load("res://Assets/Sprites/Monster1.png")
+			if FileAccess.file_exists("res://Assets/Sprites/Monster1-Sheet_8x1.png"):
+				sprite.texture = load("res://Assets/Sprites/Monster1-Sheet_8x1.png")
 			
 		# RATIONALE: All monster sprites are 256x256 real pixels.
 		var base_scale = Vector2(0.7, 0.7)
 		if "pack leader" in name_lower or "boss" in name_lower:
 			base_scale = Vector2(1.0, 1.0)
 		sprite.scale = base_scale
-		
+		if "Sheet" in texture_path or "Monster" in texture_path:
+			sprite.hframes = 8
+			sprite.vframes = 1
+			var anim_tw = create_tween().set_loops()
+			for frame_idx in range(8):
+				anim_tw.tween_callback(func():
+					if is_instance_valid(sprite):
+						sprite.frame = frame_idx
+				)
+				anim_tw.tween_interval(0.12)
+			
 		enemy_data["sprite"] = sprite
-		
 		# Setup panel
 		var panel = template.get_node("EnemyPanel")
 		var portrait = panel.get_node_or_null("Portrait")
-		if portrait and FileAccess.file_exists(texture_path):
-			portrait.texture = load(texture_path)
+		if portrait and FileAccess.file_exists(portrait_path):
+			portrait.texture = load(portrait_path)
 		enemy_data["panel"] = panel
 		
 		# Setup arrow
@@ -2173,3 +2197,18 @@ func clear_enemy_block(idx: int) -> void:
 	active_enemies[idx]["block"] = 0
 	animate_feedback("Heavy Slash breaks through the defense of " + active_enemies[idx]["name"] + "!")
 	update_stats_pulsed(false, true)
+
+func _process(delta: float) -> void:
+	if not has_meta("_anim_timer"):
+		set_meta("_anim_timer", 0.0)
+	var t = get_meta("_anim_timer") + delta
+	if t > 0.15:
+		t = 0.0
+		if player_sprite and player_sprite.hframes > 1:
+			player_sprite.frame = (player_sprite.frame + 1) % player_sprite.hframes
+		for enemy in active_enemies:
+			if typeof(enemy) == TYPE_DICTIONARY and enemy.has("sprite") and is_instance_valid(enemy["sprite"]):
+				var es = enemy["sprite"]
+				if es.hframes > 1:
+					es.frame = (es.frame + 1) % es.hframes
+	set_meta("_anim_timer", t)

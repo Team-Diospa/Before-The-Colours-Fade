@@ -2,9 +2,65 @@
 
 [ext_resource type="Script" uid="uid://bb0way80pdcgt" path="res://scenes/exploration/hallway.gd" id="1_hall"]
 [ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
-[ext_resource type="Texture2D" uid="uid://ddbwci0mp2ivt" path="res://Assets/Environments/HALLWAY3.png" id="3_hall_bottom"]
 [ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="10_interact"]
-[ext_resource type="Texture2D" uid="uid://cf5orpq4foqma" path="res://Assets/Sprites/npc.png" id="11_npc"]
+[ext_resource type="Texture2D" uid="uid://do3nmitbluoao" path="res://Assets/Environments/HallwayFilled-Sheet_7rows1column.png" id="hall_anim"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hall_0"]
+atlas = ExtResource("hall_anim")
+region = Rect2(0, 0, 1500, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hall_1"]
+atlas = ExtResource("hall_anim")
+region = Rect2(1500, 0, 1500, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hall_2"]
+atlas = ExtResource("hall_anim")
+region = Rect2(3000, 0, 1500, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hall_3"]
+atlas = ExtResource("hall_anim")
+region = Rect2(4500, 0, 1500, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hall_4"]
+atlas = ExtResource("hall_anim")
+region = Rect2(6000, 0, 1500, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hall_5"]
+atlas = ExtResource("hall_anim")
+region = Rect2(7500, 0, 1500, 360)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hall_6"]
+atlas = ExtResource("hall_anim")
+region = Rect2(9000, 0, 1500, 360)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_hall"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hall_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hall_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hall_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hall_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hall_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hall_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hall_6")
+}],
+"loop": true,
+"name": &"default",
+"speed": 6.0
+}]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hall_trigger"]
 size = Vector2(80, 200)
@@ -12,21 +68,22 @@ size = Vector2(80, 200)
 [node name="Hallway" type="Node2D" unique_id=2062354250]
 script = ExtResource("1_hall")
 
-[node name="HallwayBottom" type="Sprite2D" parent="." unique_id=263208232]
+[node name="HallwayBottom" type="AnimatedSprite2D" parent="." unique_id=263208232]
 texture_filter = 1
-position = Vector2(600, 324)
-scale = Vector2(1.875, 1.875)
-texture = ExtResource("3_hall_bottom")
+position = Vector2(600, 172.49971)
+scale = Vector2(1.915, 1.92)
+sprite_frames = SubResource("SpriteFrames_hall")
+autoplay = "default"
 
 [node name="Player" parent="." unique_id=2060877902 instance=ExtResource("2_player")]
-position = Vector2(-722, 376)
+position = Vector2(-679, 327)
+scale = Vector2(1.9542884, 2.012112)
 
-scale = Vector2(1.2, 1.2)
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=212908330]
-limit_left = -795
-limit_top = -9999902
-limit_right = 2009
-limit_bottom = 642
+limit_left = -831
+limit_top = -10000034
+limit_right = 2015
+limit_bottom = 510
 
 [node name="LeftWall" type="StaticBody2D" parent="." unique_id=1390494320]
 position = Vector2(-790, -84)
@@ -57,43 +114,22 @@ color = Color(0.9, 0.3, 0.3, 0.2)
 metadata/_edit_use_anchors_ = true
 
 [node name="Board" parent="." unique_id=1657099196 instance=ExtResource("10_interact")]
-position = Vector2(1361, 380)
+position = Vector2(-453, 349)
 interaction_id = "board"
 prompt_message = "Press E to read Bulletin Board"
 
 [node name="PeerA" parent="." unique_id=831020770 instance=ExtResource("10_interact")]
-position = Vector2(-484, 354)
+position = Vector2(38, 415)
 interaction_id = "peer_a"
 prompt_message = "Press E to talk to Student"
 
-[node name="Sprite2D" type="Sprite2D" parent="PeerA" unique_id=432144498]
-z_index = 0
-z_as_relative = false
-texture_filter = 1
-position = Vector2(1.9073486e-05, -5.0000153)
-scale = Vector2(-1.0887855, 1.1879007)
-texture = ExtResource("11_npc")
-
 [node name="PeerB" parent="." unique_id=1285647922 instance=ExtResource("10_interact")]
-position = Vector2(677, 340)
+position = Vector2(401, 405)
 interaction_id = "peer_b"
 prompt_message = "Press E to talk to Student"
 
-[node name="Sprite2D" type="Sprite2D" parent="PeerB" unique_id=1635015126]
-z_index = 0
-z_as_relative = false
-texture_filter = 1
-position = Vector2(2.999981, 13.999996)
-scale = Vector2(1.126953, 1.1542968)
-texture = ExtResource("11_npc")
-
 [node name="Fountain" parent="." unique_id=385494832 instance=ExtResource("10_interact")]
-position = Vector2(1221, 445)
-interaction_id = "fountain"
-prompt_message = "Press E to use Water Fountain"
-
-[node name="Fountain2" parent="." unique_id=1778422118 instance=ExtResource("10_interact")]
-position = Vector2(1513, 454)
+position = Vector2(1719, 418)
 interaction_id = "fountain"
 prompt_message = "Press E to use Water Fountain"
 
@@ -101,3 +137,18 @@ prompt_message = "Press E to use Water Fountain"
 position = Vector2(-799, 425)
 interaction_id = "apt_door"
 prompt_message = "Press E to look at Exit"
+
+[node name="PeerC" parent="." unique_id=1368978392 instance=ExtResource("10_interact")]
+position = Vector2(518, 392)
+interaction_id = "npc_peer_c"
+prompt_message = "Press E to talk"
+
+[node name="PeerD" parent="." unique_id=2057082611 instance=ExtResource("10_interact")]
+position = Vector2(1166, 420)
+interaction_id = "npc_peer_d"
+prompt_message = "Press E to talk"
+
+[node name="PeerE" parent="." unique_id=1869057960 instance=ExtResource("10_interact")]
+position = Vector2(1271, 435)
+interaction_id = "npc_peer_e"
+prompt_message = "Press E to talk"

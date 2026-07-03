@@ -78,6 +78,7 @@ var active_options: Array = []
 
 # RATIONALE: Keep track of printing state to prevent accidental dialogue skipping.
 var _is_typing: bool = false
+var _anim_timer: float = 0.0
 var _active_tween: Tween
 var _continue_tween: Tween   # Reference to manage continue indicator pulsing safely
 
@@ -503,6 +504,14 @@ func _advance_dialogue() -> void:
 		close_dialogue()
 
 func _process(delta: float) -> void:
+	if portrait_right and portrait_right.visible:
+		var anim_sprite = portrait_texture_right.get_node_or_null("AnimSprite")
+		if anim_sprite and anim_sprite.visible and anim_sprite.hframes > 1:
+			_anim_timer += delta
+			if _anim_timer >= 0.15:
+				_anim_timer -= 0.15
+				anim_sprite.frame = (anim_sprite.frame + 1) % anim_sprite.hframes
+				
 	if is_active:
 		if Input.is_action_pressed("e") or Input.is_action_pressed("space") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 			_hold_skip_timer += delta
@@ -1032,18 +1041,51 @@ func _update_speaker_portraits(speaker: String) -> void:
 		
 		var texture_path = ""
 		if speaker == "n.n.":
-			texture_path = "res://Assets/Sprites/n.n..png"
+			texture_path = "res://Assets/Sprites/n.n-Sheet_8x1.png"
 		elif speaker == "Landlady":
 			texture_path = "res://Assets/Sprites/Landlord (front facing full body (head to toe)).png"
 		elif speaker == "Professor":
 			texture_path = "res://Assets/Sprites/Professor.png"
+		elif speaker == "Peer A":
+			texture_path = "res://Assets/Sprites/peerA.png"
+		elif speaker == "Peer B":
+			texture_path = "res://Assets/Sprites/peerB.png"
+		elif speaker == "Peer C":
+			texture_path = "res://Assets/Sprites/peerC.png"
+		elif speaker == "Peer D":
+			texture_path = "res://Assets/Sprites/peerD.png"
+		elif speaker == "Peer E":
+			texture_path = "res://Assets/Sprites/peerE.png"
+		elif speaker == "Peer 1":
+			texture_path = "res://Assets/Sprites/classmate 1.png"
+		elif speaker == "Peer 2":
+			texture_path = "res://Assets/Sprites/classmate 2.png"
+		elif speaker == "Classmate 3":
+			texture_path = "res://Assets/Sprites/classmate 3.png"
 		else:
 			# General peer or unknown NPC
 			texture_path = "res://Assets/Sprites/npc.png"
 			
 		if texture_path != "" and FileAccess.file_exists(texture_path):
 			portrait_texture_right.visible = true
-			portrait_texture_right.texture = load(texture_path)
+			if "Sheet_8x1" in texture_path:
+				portrait_texture_right.texture = null
+				var anim_sprite = portrait_texture_right.get_node_or_null("AnimSprite")
+				if not anim_sprite:
+					anim_sprite = Sprite2D.new()
+					anim_sprite.name = "AnimSprite"
+					portrait_texture_right.add_child(anim_sprite)
+				anim_sprite.texture = load(texture_path)
+				anim_sprite.hframes = 8
+				anim_sprite.vframes = 1
+				anim_sprite.position = portrait_texture_right.size / 2.0
+				anim_sprite.scale = Vector2(2.0, 2.0)
+				anim_sprite.visible = true
+			else:
+				var anim_sprite = portrait_texture_right.get_node_or_null("AnimSprite")
+				if anim_sprite:
+					anim_sprite.visible = false
+				portrait_texture_right.texture = load(texture_path)
 			
 			# Fill the large panel area naturally
 			portrait_texture_right.anchor_left = 0.0
