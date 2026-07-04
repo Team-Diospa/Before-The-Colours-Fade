@@ -15,6 +15,9 @@ extends Node
 @onready var btn_exit = $CanvasLayer/BtnExit
 
 func _ready() -> void:
+	# Ensure Title Screen OST is playing when in main menu
+	SceneManager.play_music("res://Assets/OST/Title Screen - OST 000.ogg", -2.0)
+	
 	# Hide all selected layers by default
 	play_selected.visible = false
 	new_selected.visible = false
@@ -54,7 +57,7 @@ func _on_start_pressed() -> void:
 	GlobalState.reset_state()
 	GlobalState.set_flag("game_started", true)
 	# SceneManager handles fade out and transitions properly.
-	SceneManager.transition_to_state("S_apt")
+	SceneManager.transition_to_state("S_intro")
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()

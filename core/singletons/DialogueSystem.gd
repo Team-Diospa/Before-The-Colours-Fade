@@ -608,6 +608,8 @@ func _play_node(node_id: String) -> void:
 	if changed:
 		_update_ui_style()
 		
+	EventBus.dialogue_node_changed.emit(node_id)
+		
 	var raw_text = node_data.get("text", "")
 	
 	# RATIONALE: Prefer explicit "speaker" field in node data over the split heuristic.

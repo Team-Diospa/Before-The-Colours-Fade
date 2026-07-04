@@ -12,6 +12,8 @@ script = ExtResource("1_bath")
 offset_right = 1152.0
 offset_bottom = 648.0
 color = Color(0.1, 0.1, 0.12, 1)
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+color = Color(0.5, 0.5, 0.6, 1)
 
 [node name="BathroomBG" type="Sprite2D" parent="." unique_id=716158659]
 texture_filter = 1
@@ -23,6 +25,7 @@ texture = ExtResource("3_bg")
 z_index = 1
 position = Vector2(955.99994, 362.00003)
 scale = Vector2(3.493361, 3.5699441)
+speed = 240.0
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=119676279]
 limit_left = 0

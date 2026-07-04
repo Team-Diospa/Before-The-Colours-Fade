@@ -4,6 +4,7 @@ extends Node
 
 # Narrative & Dialogue Signals
 signal dialogue_started(node_id: String)
+signal dialogue_node_changed(node_id: String)
 signal dialogue_text_updated(text: String, options: Array)
 signal dialogue_option_selected(option_idx: int)
 signal dialogue_finished()

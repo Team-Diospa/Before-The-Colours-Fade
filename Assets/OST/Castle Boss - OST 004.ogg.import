@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b6gx0fgkqfkwc"
+path="res://.godot/imported/Castle Boss - OST 004.ogg-7e8d44bd1ec19058243ad752b4a11a7d.oggvorbisstr"
+
+[deps]
+
+source_file="res://Assets/OST/Castle Boss - OST 004.ogg"
+dest_files=["res://.godot/imported/Castle Boss - OST 004.ogg-7e8d44bd1ec19058243ad752b4a11a7d.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

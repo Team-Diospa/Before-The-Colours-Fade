@@ -76,19 +76,19 @@ func _start_initial_music() -> void:
 	if current:
 		var path = current.scene_file_path
 		if "main_menu" in path:
-			play_music("res://Assets/OST/Title Screen - OST 000.mp3", -2.0)
+			play_music("res://Assets/OST/Title Screen - OST 000.ogg", -2.0)
 			stop_ambient()
 		elif "apartment" in path:
-			play_music("res://Assets/OST/Home - OST 001.mp3", -2.0)
+			play_music("res://Assets/OST/Home - OST 001.ogg", -2.0)
 			play_ambient("res://Assets/Sound Effects/World, Ambient, and UI/amb_bird_chirp_bedroom_ambience_please loop.mp3", -8.0)
 		elif "hallway" in path:
-			play_music("res://Assets/OST/College - OST 003.mp3", -2.0)
+			play_music("res://Assets/OST/College - OST 002.ogg", -2.0)
 			play_ambient("res://Assets/Sound Effects/World, Ambient, and UI/amb_college_hallway.mp3", -6.0)
 		elif "classroom" in path:
-			play_music("res://Assets/OST/College - OST 003.mp3", -2.0)
+			play_music("res://Assets/OST/College - OST 002.ogg", -2.0)
 			play_ambient("res://Assets/Sound Effects/World, Ambient, and UI/amb_classroom.mp3", -6.0)
 		elif "grassy_field" in path or "burning_village" in path:
-			play_music("res://Assets/OST/Dream World - OST 002.mp3", -3.0)
+			play_music("res://Assets/OST/Dreamworld - OST 003.mp3", -3.0)
 			stop_ambient()
 
 # Helper to play and swap background tracks safely, avoiding loading if already playing
@@ -102,9 +102,8 @@ func play_music(track_path: String, volume_db: float = 0.0) -> void:
 		return
 	
 	music_player.stop()
-	if FileAccess.file_exists(track_path):
-		var stream = load(track_path)
-		if stream:
+	var stream = load(track_path)
+	if stream:
 			if "loop" in stream:
 				stream.loop = true
 			elif "loop_mode" in stream:
@@ -124,9 +123,8 @@ func play_ambient(track_path: String, volume_db: float = 0.0) -> void:
 		return
 		
 	ambient_player.stop()
-	if FileAccess.file_exists(track_path):
-		var stream = load(track_path)
-		if stream:
+	var stream = load(track_path)
+	if stream:
 			if "loop" in stream:
 				stream.loop = true
 			elif "loop_mode" in stream:
@@ -427,7 +425,7 @@ func play_sfx(sound_name: String) -> void:
 			volume_db = -4.0
 			
 	# Spawn a temporary audio player to support multiple overlapping sound effects
-	if sfx_path != "" and FileAccess.file_exists(sfx_path):
+	if sfx_path != "":
 		if cancel_duplicates and active_sfx_players.has(sound_name):
 			var old_player = active_sfx_players[sound_name]
 			if is_instance_valid(old_player) and old_player.playing:
@@ -485,6 +483,9 @@ func stop_sfx(sound_name: String) -> void:
 func transition_to_state(target_state: String) -> void:
 	var target_scene_path: String = ""
 	match target_state:
+		"S_intro":
+			target_scene_path = "res://scenes/exploration/intro_cutscene.tscn"
+			stop_all_oneshot_sfx()
 		"S_bathroom":
 			target_scene_path = "res://scenes/exploration/bathroom.tscn"
 			if has_node("/root/ExplorationHUD"):
@@ -496,7 +497,7 @@ func transition_to_state(target_state: String) -> void:
 				get_node("/root/ExplorationHUD").show_hud()
 			# Stop any leftover SFX from combat or other scenes before starting apartment music.
 			stop_all_oneshot_sfx()
-			play_music("res://Assets/OST/Home - OST 001.mp3", -2.0)
+			play_music("res://Assets/OST/Home - OST 001.ogg", -2.0)
 			play_ambient("res://Assets/Sound Effects/World, Ambient, and UI/amb_bird_chirp_bedroom_ambience_please loop.mp3", -8.0)
 		"S_hall":
 			target_scene_path = "res://scenes/exploration/hallway.tscn"
@@ -506,7 +507,7 @@ func transition_to_state(target_state: String) -> void:
 			stop_sfx("sfx_clock_tick")
 			stop_sfx("clock")
 			stop_all_oneshot_sfx()
-			play_music("res://Assets/OST/College - OST 003.mp3", -2.0)
+			play_music("res://Assets/OST/College - OST 002.ogg", -2.0)
 			play_ambient("res://Assets/Sound Effects/World, Ambient, and UI/amb_college_hallway.mp3", -6.0)
 		"S_dream1":
 			target_scene_path = "res://scenes/combat/grassy_field.tscn"
@@ -514,7 +515,7 @@ func transition_to_state(target_state: String) -> void:
 				get_node("/root/ExplorationHUD").hide_hud()
 			# Stop all SFX (clock, guitar, shower, etc.) before combat music takes over.
 			stop_all_oneshot_sfx()
-			play_music("res://Assets/OST/Dream World - OST 002.mp3", -3.0)
+			play_music("res://Assets/OST/Dreamworld - OST 003.mp3", -3.0)
 			stop_ambient()
 		"S_class":
 			target_scene_path = "res://scenes/exploration/classroom.tscn"
@@ -524,7 +525,7 @@ func transition_to_state(target_state: String) -> void:
 			stop_sfx("amb_guitar_chords")
 			stop_sfx("guitar")
 			stop_all_oneshot_sfx()
-			play_music("res://Assets/OST/College - OST 003.mp3", -2.0)
+			play_music("res://Assets/OST/College - OST 002.ogg", -2.0)
 			play_ambient("res://Assets/Sound Effects/World, Ambient, and UI/amb_classroom.mp3", -6.0)
 		"S_dream2", "S_dream2_resume":
 			target_scene_path = "res://scenes/combat/burning_village.tscn"
@@ -532,14 +533,14 @@ func transition_to_state(target_state: String) -> void:
 				get_node("/root/ExplorationHUD").hide_hud()
 			# Stop classroom SFX (clock, pen scratch, bell, etc.) before combat music.
 			stop_all_oneshot_sfx()
-			play_music("res://Assets/OST/Dream World - OST 002.mp3", -3.0)
+			play_music("res://Assets/OST/Castle Boss - OST 004.ogg", -7.0)
 			stop_ambient()
 		"S_ending":
 			target_scene_path = "res://scenes/ui/ending_screen.tscn"
 			if has_node("/root/ExplorationHUD"):
 				get_node("/root/ExplorationHUD").hide_hud()
 			stop_all_oneshot_sfx()
-			play_music("res://Assets/OST/Title Screen - OST 000.mp3", -2.0)
+			play_music("res://Assets/OST/Title Screen - OST 000.ogg", -2.0)
 			stop_ambient()
 		_:
 			push_error("SceneManager: Unknown target state: " + target_state)

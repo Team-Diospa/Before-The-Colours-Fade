@@ -209,6 +209,7 @@ var pack_leader_hint_dialogue: Dictionary = {
 	}
 }
 
+var enemy_layer: CanvasLayer
 
 func _build_hud_panel(panel: Panel, is_player: bool) -> void:
 	# Clear out old styling instantly so duplicate() doesn't copy dead nodes
@@ -341,6 +342,35 @@ func _build_hud_panel(panel: Panel, is_player: bool) -> void:
 	panel.add_child(intent_lbl)
 
 func _ready() -> void:
+	enemy_layer = CanvasLayer.new()
+	enemy_layer.layer = 91
+	enemy_layer.name = "EnemyLayer"
+	add_child(enemy_layer)
+	
+	# Dynamically load and scale battle background
+	var bg_sprite = Sprite2D.new()
+	bg_sprite.z_index = -10
+	# Shift the background down by ~35% of the screen height (648 * 0.35 = ~227 pixels)
+	bg_sprite.position = Vector2(576, 324 + 227)
+	bg_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	
+	var scene_name = ""
+	if get_tree() and get_tree().current_scene:
+		scene_name = get_tree().current_scene.name
+		
+	if scene_name == "GrassyField":
+		bg_sprite.texture = load("res://Assets/Environments/grassy plain.png")
+	elif scene_name == "BurningVillage":
+		bg_sprite.texture = load("res://Assets/Environments/burnt village.png")
+			
+	if bg_sprite.texture:
+		var w = bg_sprite.texture.get_width() / max(1, bg_sprite.hframes)
+		var h = bg_sprite.texture.get_height() / max(1, bg_sprite.vframes)
+		# Enlarge to cover the screen width while maintaining aspect ratio. 
+		# Using max() ensures no black bars on either axis if the aspect ratio differs.
+		var scale_factor = max(1152.0 / w, 648.0 / h)
+		bg_sprite.scale = Vector2(scale_factor, scale_factor)
+		add_child(bg_sprite)
 	
 	if player_sprite:
 		var p_tex = load("res://Assets/Sprites/Hilbert_dream_battleIdle-Sheet_7x1.png")
@@ -1779,7 +1809,12 @@ func _start_wave(stage_idx: int) -> void:
 		template.visible = true
 		template.name = "EnemyTemplate_%d" % i
 		template.position = Vector2(x_coords[i], 310) # Base position is character level
-		$UI.add_child(template)
+		
+		if conf["name"].to_lower() == "n.n.":
+			enemy_layer.add_child(template)
+		else:
+			$UI.add_child(template)
+			
 		enemy_data["template"] = template
 		
 		var sprite = template.get_node("EnemySprite")

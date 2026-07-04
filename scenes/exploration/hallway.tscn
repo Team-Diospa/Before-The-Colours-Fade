@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bb0way80pdcgt" path="res://scenes/exploration/hallway.gd" id="1_hall"]
 [ext_resource type="PackedScene" uid="uid://drwjpjuc4hlka" path="res://player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://core/components/interactable.tscn" id="10_interact"]
-[ext_resource type="Texture2D" uid="uid://do3nmitbluoao" path="res://Assets/Environments/HallwayFilled-Sheet_7rows1column.png" id="hall_anim"]
+[ext_resource type="Texture2D" uid="uid://dtmoyg5bivcim" path="res://Assets/Environments/HallwayFilled-Sheet_7rows1column.png" id="hall_anim"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hall_0"]
 atlas = ExtResource("hall_anim")
@@ -80,11 +80,11 @@ position = Vector2(-679, 327)
 scale = Vector2(1.9542884, 2.012112)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=212908330]
-position = Vector2(0, -50)
+offset = Vector2(0, -130)
 limit_left = -831
-limit_top = -400
+limit_top = -168
 limit_right = 2015
-limit_bottom = 700
+limit_bottom = 510
 
 [node name="LeftWall" type="StaticBody2D" parent="." unique_id=1390494320]
 position = Vector2(-790, -84)
@@ -100,7 +100,7 @@ position = Vector2(2001, 20)
 polygon = PackedVector2Array(0, 0, 20, 0, 20, 648, 0, 648)
 
 [node name="PanicTrigger" type="Area2D" parent="." unique_id=294252017]
-position = Vector2(761, 435)
+position = Vector2(764, 428)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PanicTrigger" unique_id=1607875575]
 position = Vector2(0, -50)
@@ -122,12 +122,12 @@ interaction_id = "peer_b"
 prompt_message = "Press E to talk to Student"
 
 [node name="Fountain" parent="." unique_id=385494832 instance=ExtResource("10_interact")]
-position = Vector2(1719, 418)
+position = Vector2(1415, 411)
 interaction_id = "fountain"
 prompt_message = "Press E to use Water Fountain"
 
 [node name="AptDoor" parent="." unique_id=1378150712 instance=ExtResource("10_interact")]
-position = Vector2(-760, 439)
+position = Vector2(-757, 446)
 interaction_id = "apt_door"
 prompt_message = "Press E to look at Exit"
 
