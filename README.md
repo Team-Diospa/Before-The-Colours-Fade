@@ -105,7 +105,8 @@ Players navigate Hilbert's apartment, desolate university corridors, and tense l
 
 - Engaging with empathetic peers or inspecting past blueprints grants mental clarity, translating into combat advantages such as additional initial Block or bonus card draws.
 
-<img width="1239" height="700" alt="Screenshot 2026-11-04 150721" src="https://github.com/user-attachments/assets/a6692474-b4c0-42e4-90da-ec6e1f53b074" />
+<img width="1336" height="749" alt="Screenshot 2026-11-04 200157" src="https://github.com/user-attachments/assets/0a941503-aa28-460d-8b2b-1fed7842ab76" />
+
 
 <!-- ![Exploration Screenshot](path/to/exploration_screenshot.png) -->
 
@@ -144,7 +145,8 @@ To prevent dead hands and reward foresight, players possess dedicated tactical c
 
 <img width="1365" height="767" alt="Screenshot 2026-11-04 151258" src="https://github.com/user-attachments/assets/5c7cc1d9-3401-40c5-a265-85c06c61f933" />
 <img width="2048" height="256" alt="Monster2-Sheet_8x1" src="https://github.com/user-attachments/assets/26b5d7dc-bfb5-431e-90b9-77cfc8a91d67" />
-<img width="257" height="231" alt="peerB" src="https://github.com/user-attachments/assets/04ca84f5-e923-4e77-bb58-79ae8a098426" /> <img width="257" height="231" alt="peerA" src="https://github.com/user-attachments/assets/b52839fb-0856-4b65-8773-8d499af9824f" />
+<img width="257" height="231" alt="peerB" src="https://github.com/user-attachments/assets/04ca84f5-e923-4e77-bb58-79ae8a098426" /> <img width="257" height="231" alt="peerA" src="https://github.com/user-attachments/assets/b52839fb-0856-4b65-8773-8d499af9824f" /> <img width="257" height="231" alt="peerC" src="https://github.com/user-attachments/assets/f16ca444-f33f-4182-807d-e95c7d9eaee4" />
+
 
 
 
