@@ -6,8 +6,6 @@
 
 <img width="1276" height="717" alt="image" src="https://github.com/user-attachments/assets/07d2a0f3-e9f2-4385-89e5-b0b05fad30b9" />
 
-![Before The Colours Fade Banner](Assets/Cutscenes/intro_scene_mockup.png)
-
 ---
 
 
@@ -16,9 +14,6 @@
 **Before The Colours Fade** is a narrative turn-based deckbuilder infused with psychological 2D exploration.
 
 Grounded in the theme of **"Inner Childhood Dream"**, the game chronicles the emotional journey of a young man confronting the weight of adulthood, grief, and isolation. When the reality of everyday life becomes unbearable, he shifts into a world shaped by his childhood imagination. In this realm, real-life anxieties and burdens manifest as fantasy beasts that must be overcome through strategic, card-based combat.
-
-
-<img width="1192" height="705" alt="Screenshot 2026-11-04 144712" src="https://github.com/user-attachments/assets/e0fc8103-fcc4-4275-a095-f0b8b3221a4d" />
 
 
 ---
@@ -110,9 +105,7 @@ Players navigate Hilbert's apartment, desolate university corridors, and tense l
 
 - Engaging with empathetic peers or inspecting past blueprints grants mental clarity, translating into combat advantages such as additional initial Block or bonus card draws.
 
-
-<img width="1364" height="699" alt="Screenshot 2026-11-04 145431" src="https://github.com/user-attachments/assets/b364d5e2-f08b-47d9-a8ab-a50b47b481bb" />
-
+<img width="1239" height="700" alt="Screenshot 2026-11-04 150721" src="https://github.com/user-attachments/assets/a6692474-b4c0-42e4-90da-ec6e1f53b074" />
 
 <!-- ![Exploration Screenshot](path/to/exploration_screenshot.png) -->
 
@@ -150,6 +143,11 @@ To prevent dead hands and reward foresight, players possess dedicated tactical c
 - A melancholic soundtrack weaving reflective acoustic guitar melodies through the ticking pulse of passing time.
 
 <img width="1365" height="767" alt="Screenshot 2026-11-04 151258" src="https://github.com/user-attachments/assets/5c7cc1d9-3401-40c5-a265-85c06c61f933" />
+<img width="2048" height="256" alt="Monster2-Sheet_8x1" src="https://github.com/user-attachments/assets/26b5d7dc-bfb5-431e-90b9-77cfc8a91d67" />
+<img width="257" height="231" alt="peerB" src="https://github.com/user-attachments/assets/04ca84f5-e923-4e77-bb58-79ae8a098426" /> <img width="257" height="231" alt="peerA" src="https://github.com/user-attachments/assets/b52839fb-0856-4b65-8773-8d499af9824f" />
+
+
+
 
 
 <!-- ![Art Gallery Showcase](path/to/art_gallery.png) -->
